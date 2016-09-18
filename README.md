@@ -1,0 +1,2 @@
+# About
+This project defines sets of utility constructs for Repository- or Share-tier modules as well as cross-cutting utilities. The resulting technical modules are primarily used to avoid redundancy in Acosix GmbH modules, as well as abstracting and consolidating similar functionality without tying it to specific functional constructs.
