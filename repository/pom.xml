@@ -25,7 +25,7 @@
 			<resource>
 				<directory>src/main/resources</directory>
 				<excludes>
-					<exclude>dummy.txt</exclude>
+					<exclude>.gitkeep</exclude>
 				</excludes>
 			</resource>
 			<!-- the following are only for mapping source folders in Eclipse -->
