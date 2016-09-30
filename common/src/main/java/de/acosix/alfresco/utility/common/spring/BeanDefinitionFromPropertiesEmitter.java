@@ -29,11 +29,12 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
+import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.ManagedMap;
-import org.springframework.beans.factory.support.RootBeanDefinition;
 
 /**
  * Base class for post processors that need to emit bean definitions for beans based on simple configuration in properties files (i.e.
@@ -53,6 +54,10 @@ public class BeanDefinitionFromPropertiesEmitter implements BeanDefinitionRegist
     private static final String SUFFIX_CLASS_NAME = "._className";
 
     private static final String SUFFIX_PARENT = "._parent";
+
+    private static final String SUFFIX_SCOPE = "._scope";
+
+    private static final String SUFFIX_ABSTRACT = "._abstract";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BeanDefinitionFromPropertiesEmitter.class);
 
@@ -101,7 +106,7 @@ public class BeanDefinitionFromPropertiesEmitter implements BeanDefinitionRegist
 
         if (this.beanTypes == null || this.beanTypes.isEmpty())
         {
-            throw new IllegalStateException("baseClassNamesByBeanType has not been set");
+            throw new IllegalStateException("beanTypes has not been set");
         }
 
         if (this.propertiesSource == null || this.propertiesSource.isEmpty())
@@ -128,7 +133,7 @@ public class BeanDefinitionFromPropertiesEmitter implements BeanDefinitionRegist
         LOGGER.info("Processing beans defined via properties files using prefix {}", this.propertyPrefix);
 
         final Map<String, BeanDefinition> beanDefinitions = new HashMap<>();
-        processBeanClassAndParentDefinitions(beanName -> {
+        this.processBeanDefinitions(beanName -> {
             BeanDefinition definition;
             if (beanDefinitions.containsKey(beanName))
             {
@@ -143,7 +148,7 @@ public class BeanDefinitionFromPropertiesEmitter implements BeanDefinitionRegist
             else
             {
                 LOGGER.debug("Defining new bean {}", beanName);
-                definition = new RootBeanDefinition();
+                definition = new GenericBeanDefinition();
                 beanDefinitions.put(beanName, definition);
                 registry.registerBeanDefinition(beanName, definition);
             }
@@ -151,7 +156,7 @@ public class BeanDefinitionFromPropertiesEmitter implements BeanDefinitionRegist
         });
     }
 
-    protected void processBeanClassAndParentDefinitions(final Function<String, BeanDefinition> getOrCreateBeanDefinition)
+    protected void processBeanDefinitions(final Function<String, BeanDefinition> getOrCreateBeanDefinition)
     {
         final String effectivePropertyPrefix = this.propertyPrefix + ".";
         final int propertyPrefixLength = effectivePropertyPrefix.length();
@@ -175,14 +180,31 @@ public class BeanDefinitionFromPropertiesEmitter implements BeanDefinitionRegist
                             {
                                 final String beanName = beanDefinitionKey.substring(0,
                                         beanDefinitionKey.length() - SUFFIX_CLASS_NAME.length());
-                                LOGGER.trace("Setting class name of bean {} to {}", beanName, value);
+                                LOGGER.debug("Setting class name of bean {} to {}", beanName, value);
                                 getOrCreateBeanDefinition.apply(beanName).setBeanClassName(String.valueOf(value));
                             }
                             else if (keyStr.endsWith(SUFFIX_PARENT))
                             {
                                 final String beanName = beanDefinitionKey.substring(0, beanDefinitionKey.length() - SUFFIX_PARENT.length());
-                                LOGGER.trace("Setting parent of bean {} to {}", beanName, value);
+                                LOGGER.debug("Setting parent of bean {} to {}", beanName, value);
                                 getOrCreateBeanDefinition.apply(beanName).setParentName(String.valueOf(value));
+                            }
+                            else if (keyStr.endsWith(SUFFIX_SCOPE))
+                            {
+                                final String beanName = beanDefinitionKey.substring(0, beanDefinitionKey.length() - SUFFIX_SCOPE.length());
+                                LOGGER.debug("Setting scope of bean {} to {}", beanName, value);
+                                getOrCreateBeanDefinition.apply(beanName).setScope(String.valueOf(value));
+                            }
+                            else if (keyStr.endsWith(SUFFIX_ABSTRACT))
+                            {
+                                final String beanName = beanDefinitionKey.substring(0,
+                                        beanDefinitionKey.length() - SUFFIX_ABSTRACT.length());
+                                LOGGER.debug("Setting abstract of bean {} to {}", beanName, value);
+                                final BeanDefinition beanDefinition = getOrCreateBeanDefinition.apply(beanName);
+                                if (beanDefinition instanceof AbstractBeanDefinition)
+                                {
+                                    ((AbstractBeanDefinition) beanDefinition).setAbstract(Boolean.parseBoolean(String.valueOf(value)));
+                                }
                             }
                             else
                             {
@@ -192,7 +214,7 @@ public class BeanDefinitionFromPropertiesEmitter implements BeanDefinitionRegist
                                     final String beanName = beanDefinitionKey.substring(0, propertyFragmentIdx);
                                     final String propertyDefinitionKey = beanDefinitionKey
                                             .substring(propertyFragmentIdx + FRAGMENT_PROPERTY.length());
-                                    processPropertyDefinition(beanName, propertyDefinitionKey, value,
+                                    this.processPropertyDefinition(beanName, propertyDefinitionKey, value,
                                             getOrCreateBeanDefinition.apply(beanName));
                                 }
                             }
@@ -228,17 +250,17 @@ public class BeanDefinitionFromPropertiesEmitter implements BeanDefinitionRegist
         if (isList)
         {
             definitionKeyRemainder = definitionKeyRemainder.substring(PREFIX_LIST.length());
-            processListPropertyDefinition(beanName, propertyName, definitionKeyRemainder, value, propertyValues);
+            this.processListPropertyDefinition(beanName, propertyName, definitionKeyRemainder, value, propertyValues);
         }
         else if (isMap)
         {
             definitionKeyRemainder = definitionKeyRemainder.substring(PREFIX_MAP.length());
-            processMapPropertryDefinition(beanName, propertyName, definitionKeyRemainder, value, propertyValues);
+            this.processMapPropertryDefinition(beanName, propertyName, definitionKeyRemainder, value, propertyValues);
         }
         else
         {
             PropertyValue propertyValue = propertyValues.getPropertyValue(propertyName);
-            final Object valueToSet = getAsValue(beanName, propertyName, definitionKeyRemainder, value);
+            final Object valueToSet = this.getAsValue(beanName, propertyName, definitionKeyRemainder, value);
 
             if (propertyValue != null && propertyValue.getValue() != null)
             {
@@ -268,7 +290,7 @@ public class BeanDefinitionFromPropertiesEmitter implements BeanDefinitionRegist
             definitionKeyRemainder = "";
         }
 
-        final ManagedList<Object> valueList = initListPropertyValue(beanName, propertyName, propertyValues);
+        final ManagedList<Object> valueList = this.initListPropertyValue(beanName, propertyName, propertyValues);
 
         while (valueList.size() < index)
         {
@@ -277,7 +299,7 @@ public class BeanDefinitionFromPropertiesEmitter implements BeanDefinitionRegist
             valueList.add(null);
         }
 
-        final Object valueToSet = getAsValue(beanName, propertyName, definitionKeyRemainder, value);
+        final Object valueToSet = this.getAsValue(beanName, propertyName, definitionKeyRemainder, value);
         if (valueList.size() == index)
         {
             valueList.add(valueToSet);
@@ -306,8 +328,8 @@ public class BeanDefinitionFromPropertiesEmitter implements BeanDefinitionRegist
             definitionKeyRemainder = "";
         }
 
-        final ManagedMap<Object, Object> valueMap = initMapPropertyValue(beanName, propertyName, propertyValues);
-        final Object valueToSet = getAsValue(beanName, propertyName, definitionKeyRemainder, value);
+        final ManagedMap<Object, Object> valueMap = this.initMapPropertyValue(beanName, propertyName, propertyValues);
+        final Object valueToSet = this.getAsValue(beanName, propertyName, definitionKeyRemainder, value);
         valueMap.put(key, valueToSet);
     }
 
