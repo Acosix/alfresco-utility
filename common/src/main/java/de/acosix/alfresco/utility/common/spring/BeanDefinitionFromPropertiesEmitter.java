@@ -399,6 +399,11 @@ public class BeanDefinitionFromPropertiesEmitter implements BeanDefinitionRegist
             LOGGER.trace("Treating value of property {} on {} as reference to bean {}", beanName, propertyName, value);
             result = new RuntimeBeanReference(String.valueOf(value));
         }
+        else if ("null".equals(definitionKey) && Boolean.parseBoolean(String.valueOf(value)))
+        {
+            LOGGER.trace("Treating value of property {} on {} as null", beanName, propertyName);
+            result = null;
+        }
         else if (definitionKey.isEmpty())
         {
             LOGGER.trace("Treating value of property {} on {} as literal value {}", beanName, propertyName, value);
