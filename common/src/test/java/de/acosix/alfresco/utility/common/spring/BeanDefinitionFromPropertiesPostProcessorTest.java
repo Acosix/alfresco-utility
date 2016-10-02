@@ -32,7 +32,7 @@ public class BeanDefinitionFromPropertiesPostProcessorTest
     public void simpleBean()
     {
         final ApplicationContext context = new ClassPathXmlApplicationContext(
-                "classpath:BeanDefinitionFromPropertiesEmitterTest-simpleBean-context.xml");
+                "classpath:BeanDefinitionFromPropertiesPostProcessorTest-simpleBean-context.xml");
         final Object simpleBean = context.getBean("beanTypeX.simpleBean");
 
         // TODO Switch with other simple bean class that provides a simple property that can be set AND get

@@ -4,7 +4,7 @@
            http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
-    <bean class="${project.artifactId}.spring.BeanDefinitionFromPropertiesEmitter">
+    <bean class="${project.artifactId}.spring.BeanDefinitionFromPropertiesPostProcessor">
         <property name="propertyPrefix" value="testPrefix" />
         <property name="beanTypes">
             <list>
@@ -15,7 +15,7 @@
             <bean class="org.springframework.beans.factory.config.PropertiesFactoryBean">
                 <property name="locations">
                     <list>
-                        <value>classpath:BeanDefinitionFromPropertiesEmitterTest-simpleBean.properties</value>
+                        <value>classpath:BeanDefinitionFromPropertiesPostProcessorTest-simpleBean.properties</value>
                     </list>
                 </property>
             </bean>
