@@ -45,11 +45,15 @@ import org.springframework.beans.factory.support.ManagedMap;
 public class BeanDefinitionFromPropertiesEmitter implements BeanDefinitionRegistryPostProcessor, InitializingBean
 {
 
+    private static final String SUFFIX_PROPERTY_REMOVE = "_remove";
+
     private static final String PREFIX_MAP = "map.";
 
     private static final String PREFIX_LIST = "list.";
 
     private static final String FRAGMENT_PROPERTY = ".property.";
+
+    private static final String SUFFIX_BEAN_REMOVE = "._remove";
 
     private static final String SUFFIX_CLASS_NAME = "._className";
 
@@ -133,7 +137,7 @@ public class BeanDefinitionFromPropertiesEmitter implements BeanDefinitionRegist
         LOGGER.info("Processing beans defined via properties files using prefix {}", this.propertyPrefix);
 
         final Map<String, BeanDefinition> beanDefinitions = new HashMap<>();
-        this.processBeanDefinitions(beanName -> {
+        final Function<String, BeanDefinition> getOrCreateBeanDefinition = beanName -> {
             BeanDefinition definition;
             if (beanDefinitions.containsKey(beanName))
             {
@@ -153,10 +157,31 @@ public class BeanDefinitionFromPropertiesEmitter implements BeanDefinitionRegist
                 registry.registerBeanDefinition(beanName, definition);
             }
             return definition;
-        });
+        };
+        final Function<String, BeanDefinition> removeBeanDefinition = beanName -> {
+            BeanDefinition definition;
+            if (beanDefinitions.containsKey(beanName))
+            {
+                definition = beanDefinitions.remove(beanName);
+                registry.removeBeanDefinition(beanName);
+            }
+            else if (registry.containsBeanDefinition(beanName))
+            {
+                definition = registry.getBeanDefinition(beanName);
+                registry.removeBeanDefinition(beanName);
+            }
+            else
+            {
+                definition = null;
+            }
+
+            return definition;
+        };
+        this.processBeanDefinitions(getOrCreateBeanDefinition, removeBeanDefinition);
     }
 
-    protected void processBeanDefinitions(final Function<String, BeanDefinition> getOrCreateBeanDefinition)
+    protected void processBeanDefinitions(final Function<String, BeanDefinition> getOrCreateBeanDefinition,
+            final Function<String, BeanDefinition> removeBeanDefinition)
     {
         final String effectivePropertyPrefix = this.propertyPrefix + ".";
         final int propertyPrefixLength = effectivePropertyPrefix.length();
@@ -176,7 +201,14 @@ public class BeanDefinitionFromPropertiesEmitter implements BeanDefinitionRegist
                         if (this.beanTypes.contains(beanType))
                         {
                             LOGGER.trace("Processing entry {} = {}", key, value);
-                            if (beanDefinitionKey.endsWith(SUFFIX_CLASS_NAME))
+                            if (beanDefinitionKey.endsWith(SUFFIX_BEAN_REMOVE))
+                            {
+                                final String beanName = beanDefinitionKey.substring(0,
+                                        beanDefinitionKey.length() - SUFFIX_BEAN_REMOVE.length());
+                                LOGGER.debug("Removing bean {}", beanName);
+                                removeBeanDefinition.apply(beanName);
+                            }
+                            else if (beanDefinitionKey.endsWith(SUFFIX_CLASS_NAME))
                             {
                                 final String beanName = beanDefinitionKey.substring(0,
                                         beanDefinitionKey.length() - SUFFIX_CLASS_NAME.length());
@@ -245,7 +277,7 @@ public class BeanDefinitionFromPropertiesEmitter implements BeanDefinitionRegist
 
         final MutablePropertyValues propertyValues = beanDefinition.getPropertyValues();
 
-        final boolean isRemove = definitionKeyRemainder.equals("_remove");
+        final boolean isRemove = definitionKeyRemainder.equals(SUFFIX_PROPERTY_REMOVE);
         final boolean isList = definitionKeyRemainder.startsWith(PREFIX_LIST);
         final boolean isMap = definitionKeyRemainder.startsWith(PREFIX_MAP);
         if (isRemove)
