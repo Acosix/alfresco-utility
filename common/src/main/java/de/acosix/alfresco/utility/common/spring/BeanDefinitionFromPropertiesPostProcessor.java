@@ -226,8 +226,15 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                             {
                                 final String beanName = beanDefinitionKey.substring(0,
                                         beanDefinitionKey.length() - SUFFIX_BEAN_REMOVE.length());
-                                LOGGER.debug("Removing bean {}", beanName);
-                                removeBeanDefinition.apply(beanName);
+                                if (Boolean.parseBoolean(String.valueOf(value)))
+                                {
+                                    LOGGER.debug("Removing bean {}", beanName);
+                                    removeBeanDefinition.apply(beanName);
+                                }
+                                else
+                                {
+                                    LOGGER.debug("Not removing bean {} due to non-true property value", beanName);
+                                }
                             }
                             else if (beanDefinitionKey.endsWith(SUFFIX_CLASS_NAME))
                             {
@@ -303,8 +310,15 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         final boolean isMap = definitionKeyRemainder.startsWith(PREFIX_MAP);
         if (isRemove)
         {
-            LOGGER.debug("Removing property {} from {}", propertyName, beanName);
-            propertyValues.removePropertyValue(propertyName);
+            if (value instanceof String && Boolean.parseBoolean(String.valueOf(value)))
+            {
+                LOGGER.debug("Removing property {} from {}", propertyName, beanName);
+                propertyValues.removePropertyValue(propertyName);
+            }
+            else
+            {
+                LOGGER.debug("Not removing property {} from [} due to non-true property value", propertyName, beanName);
+            }
         }
         else if (isList)
         {
