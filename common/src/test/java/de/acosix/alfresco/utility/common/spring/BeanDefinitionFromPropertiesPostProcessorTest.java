@@ -25,7 +25,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
  */
 @RunWith(BlockJUnit4ClassRunner.class)
-public class BeanDefinitionFromPropertiesEmitterTest
+public class BeanDefinitionFromPropertiesPostProcessorTest
 {
 
     @Test
