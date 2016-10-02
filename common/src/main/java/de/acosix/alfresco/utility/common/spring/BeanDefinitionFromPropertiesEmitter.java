@@ -245,9 +245,15 @@ public class BeanDefinitionFromPropertiesEmitter implements BeanDefinitionRegist
 
         final MutablePropertyValues propertyValues = beanDefinition.getPropertyValues();
 
+        final boolean isRemove = definitionKeyRemainder.equals("_remove");
         final boolean isList = definitionKeyRemainder.startsWith(PREFIX_LIST);
         final boolean isMap = definitionKeyRemainder.startsWith(PREFIX_MAP);
-        if (isList)
+        if (isRemove)
+        {
+            LOGGER.debug("Removing property {} from {}", propertyName, beanName);
+            propertyValues.removePropertyValue(propertyName);
+        }
+        else if (isList)
         {
             definitionKeyRemainder = definitionKeyRemainder.substring(PREFIX_LIST.length());
             this.processListPropertyDefinition(beanName, propertyName, definitionKeyRemainder, value, propertyValues);
