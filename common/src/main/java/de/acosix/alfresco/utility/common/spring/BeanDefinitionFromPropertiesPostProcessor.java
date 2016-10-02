@@ -37,12 +37,12 @@ import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.ManagedMap;
 
 /**
- * Base class for post processors that need to emit bean definitions for beans based on simple configuration in properties files (i.e.
- * alfresco-global.properties) to provide more dynamic configuration options than via pre-defined XML bean definitions.
+ * Base class for post processors that need to emit, enhance or remove bean definitions based on simple configuration in properties files
+ * (i.e. alfresco-global.properties) to provide more dynamic configuration options than via pre-defined XML bean definitions.
  *
  * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
  */
-public class BeanDefinitionFromPropertiesEmitter implements BeanDefinitionRegistryPostProcessor, InitializingBean
+public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinitionRegistryPostProcessor, InitializingBean
 {
 
     private static final String SUFFIX_PROPERTY_REMOVE = "_remove";
@@ -63,13 +63,24 @@ public class BeanDefinitionFromPropertiesEmitter implements BeanDefinitionRegist
 
     private static final String SUFFIX_ABSTRACT = "._abstract";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(BeanDefinitionFromPropertiesEmitter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BeanDefinitionFromPropertiesPostProcessor.class);
+
+    protected String enabledProperty;
 
     protected String propertyPrefix;
 
     protected List<String> beanTypes;
 
     protected Properties propertiesSource;
+
+    /**
+     * @param enabledProperty
+     *            the enabledProperty to set
+     */
+    public void setEnabledProperty(final String enabledProperty)
+    {
+        this.enabledProperty = enabledProperty;
+    }
 
     /**
      * @param propertyPrefix
@@ -134,50 +145,60 @@ public class BeanDefinitionFromPropertiesEmitter implements BeanDefinitionRegist
     @Override
     public void postProcessBeanDefinitionRegistry(final BeanDefinitionRegistry registry) throws BeansException
     {
-        LOGGER.info("Processing beans defined via properties files using prefix {}", this.propertyPrefix);
+        boolean enabled = true;
+        if (this.enabledProperty != null && !this.enabledProperty.isEmpty())
+        {
+            final String property = this.propertiesSource.getProperty(this.enabledProperty);
+            enabled = property != null ? Boolean.parseBoolean(property) : false;
+        }
 
-        final Map<String, BeanDefinition> beanDefinitions = new HashMap<>();
-        final Function<String, BeanDefinition> getOrCreateBeanDefinition = beanName -> {
-            BeanDefinition definition;
-            if (beanDefinitions.containsKey(beanName))
-            {
-                definition = beanDefinitions.get(beanName);
-            }
-            else if (registry.containsBeanDefinition(beanName))
-            {
-                LOGGER.debug("Customizing pre-defined bean {}", beanName);
-                definition = registry.getBeanDefinition(beanName);
-                beanDefinitions.put(beanName, definition);
-            }
-            else
-            {
-                LOGGER.debug("Defining new bean {}", beanName);
-                definition = new GenericBeanDefinition();
-                beanDefinitions.put(beanName, definition);
-                registry.registerBeanDefinition(beanName, definition);
-            }
-            return definition;
-        };
-        final Function<String, BeanDefinition> removeBeanDefinition = beanName -> {
-            BeanDefinition definition;
-            if (beanDefinitions.containsKey(beanName))
-            {
-                definition = beanDefinitions.remove(beanName);
-                registry.removeBeanDefinition(beanName);
-            }
-            else if (registry.containsBeanDefinition(beanName))
-            {
-                definition = registry.getBeanDefinition(beanName);
-                registry.removeBeanDefinition(beanName);
-            }
-            else
-            {
-                definition = null;
-            }
+        if (enabled)
+        {
+            LOGGER.info("Processing beans defined via properties files using prefix {}", this.propertyPrefix);
 
-            return definition;
-        };
-        this.processBeanDefinitions(getOrCreateBeanDefinition, removeBeanDefinition);
+            final Map<String, BeanDefinition> beanDefinitions = new HashMap<>();
+            final Function<String, BeanDefinition> getOrCreateBeanDefinition = beanName -> {
+                BeanDefinition definition;
+                if (beanDefinitions.containsKey(beanName))
+                {
+                    definition = beanDefinitions.get(beanName);
+                }
+                else if (registry.containsBeanDefinition(beanName))
+                {
+                    LOGGER.debug("Customizing pre-defined bean {}", beanName);
+                    definition = registry.getBeanDefinition(beanName);
+                    beanDefinitions.put(beanName, definition);
+                }
+                else
+                {
+                    LOGGER.debug("Defining new bean {}", beanName);
+                    definition = new GenericBeanDefinition();
+                    beanDefinitions.put(beanName, definition);
+                    registry.registerBeanDefinition(beanName, definition);
+                }
+                return definition;
+            };
+            final Function<String, BeanDefinition> removeBeanDefinition = beanName -> {
+                BeanDefinition definition;
+                if (beanDefinitions.containsKey(beanName))
+                {
+                    definition = beanDefinitions.remove(beanName);
+                    registry.removeBeanDefinition(beanName);
+                }
+                else if (registry.containsBeanDefinition(beanName))
+                {
+                    definition = registry.getBeanDefinition(beanName);
+                    registry.removeBeanDefinition(beanName);
+                }
+                else
+                {
+                    definition = null;
+                }
+
+                return definition;
+            };
+            this.processBeanDefinitions(getOrCreateBeanDefinition, removeBeanDefinition);
+        }
     }
 
     protected void processBeanDefinitions(final Function<String, BeanDefinition> getOrCreateBeanDefinition,
