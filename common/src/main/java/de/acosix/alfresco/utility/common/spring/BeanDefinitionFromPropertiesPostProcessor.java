@@ -63,6 +63,8 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
 
     private static final String SUFFIX_ABSTRACT = "._abstract";
 
+    private static final String SUFFIX_DEPENDS_ON = "._dependsOn";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(BeanDefinitionFromPropertiesPostProcessor.class);
 
     protected String enabledProperty;
@@ -254,6 +256,13 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                                 final String beanName = beanDefinitionKey.substring(0, beanDefinitionKey.length() - SUFFIX_SCOPE.length());
                                 LOGGER.debug("Setting scope of bean {} to {}", beanName, value);
                                 getOrCreateBeanDefinition.apply(beanName).setScope(String.valueOf(value));
+                            }
+                            else if (keyStr.endsWith(SUFFIX_DEPENDS_ON))
+                            {
+                                final String beanName = beanDefinitionKey.substring(0,
+                                        beanDefinitionKey.length() - SUFFIX_DEPENDS_ON.length());
+                                LOGGER.debug("Setting dependsOn of bean {} to {}", beanName, value);
+                                getOrCreateBeanDefinition.apply(beanName).setDependsOn(String.valueOf(value).split(","));
                             }
                             else if (keyStr.endsWith(SUFFIX_ABSTRACT))
                             {
