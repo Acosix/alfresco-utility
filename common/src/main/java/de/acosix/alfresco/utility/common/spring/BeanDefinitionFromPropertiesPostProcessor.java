@@ -224,68 +224,72 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                         if (this.beanTypes.contains(beanType))
                         {
                             LOGGER.trace("Processing entry {} = {}", key, value);
-                            if (beanDefinitionKey.endsWith(SUFFIX_BEAN_REMOVE))
+
+                            final int propertyFragmentIdx = beanDefinitionKey.indexOf(FRAGMENT_PROPERTY);
+
+                            if (propertyFragmentIdx == -1)
                             {
-                                final String beanName = beanDefinitionKey.substring(0,
-                                        beanDefinitionKey.length() - SUFFIX_BEAN_REMOVE.length());
-                                if (Boolean.parseBoolean(String.valueOf(value)))
+                                if (beanDefinitionKey.endsWith(SUFFIX_BEAN_REMOVE))
                                 {
-                                    LOGGER.debug("Removing bean {}", beanName);
-                                    removeBeanDefinition.apply(beanName);
+                                    final String beanName = beanDefinitionKey.substring(0,
+                                            beanDefinitionKey.length() - SUFFIX_BEAN_REMOVE.length());
+                                    if (Boolean.parseBoolean(String.valueOf(value)))
+                                    {
+                                        LOGGER.debug("Removing bean {}", beanName);
+                                        removeBeanDefinition.apply(beanName);
+                                    }
+                                    else
+                                    {
+                                        LOGGER.debug("Not removing bean {} due to non-true property value", beanName);
+                                    }
                                 }
-                                else
+                                else if (beanDefinitionKey.endsWith(SUFFIX_CLASS_NAME))
                                 {
-                                    LOGGER.debug("Not removing bean {} due to non-true property value", beanName);
+                                    final String beanName = beanDefinitionKey.substring(0,
+                                            beanDefinitionKey.length() - SUFFIX_CLASS_NAME.length());
+                                    LOGGER.debug("Setting class name of bean {} to {}", beanName, value);
+                                    getOrCreateBeanDefinition.apply(beanName).setBeanClassName(String.valueOf(value));
                                 }
-                            }
-                            else if (beanDefinitionKey.endsWith(SUFFIX_CLASS_NAME))
-                            {
-                                final String beanName = beanDefinitionKey.substring(0,
-                                        beanDefinitionKey.length() - SUFFIX_CLASS_NAME.length());
-                                LOGGER.debug("Setting class name of bean {} to {}", beanName, value);
-                                getOrCreateBeanDefinition.apply(beanName).setBeanClassName(String.valueOf(value));
-                            }
-                            else if (keyStr.endsWith(SUFFIX_PARENT))
-                            {
-                                final String beanName = beanDefinitionKey.substring(0, beanDefinitionKey.length() - SUFFIX_PARENT.length());
-                                LOGGER.debug("Setting parent of bean {} to {}", beanName, value);
-                                getOrCreateBeanDefinition.apply(beanName).setParentName(String.valueOf(value));
-                            }
-                            else if (keyStr.endsWith(SUFFIX_SCOPE))
-                            {
-                                final String beanName = beanDefinitionKey.substring(0, beanDefinitionKey.length() - SUFFIX_SCOPE.length());
-                                LOGGER.debug("Setting scope of bean {} to {}", beanName, value);
-                                getOrCreateBeanDefinition.apply(beanName).setScope(String.valueOf(value));
-                            }
-                            else if (keyStr.endsWith(SUFFIX_DEPENDS_ON))
-                            {
-                                final String beanName = beanDefinitionKey.substring(0,
-                                        beanDefinitionKey.length() - SUFFIX_DEPENDS_ON.length());
-                                LOGGER.debug("Setting dependsOn of bean {} to {}", beanName, value);
-                                getOrCreateBeanDefinition.apply(beanName).setDependsOn(String.valueOf(value).split(","));
-                            }
-                            else if (keyStr.endsWith(SUFFIX_ABSTRACT))
-                            {
-                                final String beanName = beanDefinitionKey.substring(0,
-                                        beanDefinitionKey.length() - SUFFIX_ABSTRACT.length());
-                                LOGGER.debug("Setting abstract of bean {} to {}", beanName, value);
-                                final BeanDefinition beanDefinition = getOrCreateBeanDefinition.apply(beanName);
-                                if (beanDefinition instanceof AbstractBeanDefinition)
+                                else if (keyStr.endsWith(SUFFIX_PARENT))
                                 {
-                                    ((AbstractBeanDefinition) beanDefinition).setAbstract(Boolean.parseBoolean(String.valueOf(value)));
+                                    final String beanName = beanDefinitionKey.substring(0,
+                                            beanDefinitionKey.length() - SUFFIX_PARENT.length());
+                                    LOGGER.debug("Setting parent of bean {} to {}", beanName, value);
+                                    getOrCreateBeanDefinition.apply(beanName).setParentName(String.valueOf(value));
+                                }
+                                else if (keyStr.endsWith(SUFFIX_SCOPE))
+                                {
+                                    final String beanName = beanDefinitionKey.substring(0,
+                                            beanDefinitionKey.length() - SUFFIX_SCOPE.length());
+                                    LOGGER.debug("Setting scope of bean {} to {}", beanName, value);
+                                    getOrCreateBeanDefinition.apply(beanName).setScope(String.valueOf(value));
+                                }
+                                else if (keyStr.endsWith(SUFFIX_DEPENDS_ON))
+                                {
+                                    final String beanName = beanDefinitionKey.substring(0,
+                                            beanDefinitionKey.length() - SUFFIX_DEPENDS_ON.length());
+                                    LOGGER.debug("Setting dependsOn of bean {} to {}", beanName, value);
+                                    getOrCreateBeanDefinition.apply(beanName).setDependsOn(String.valueOf(value).split(","));
+                                }
+                                else if (keyStr.endsWith(SUFFIX_ABSTRACT))
+                                {
+                                    final String beanName = beanDefinitionKey.substring(0,
+                                            beanDefinitionKey.length() - SUFFIX_ABSTRACT.length());
+                                    LOGGER.debug("Setting abstract of bean {} to {}", beanName, value);
+                                    final BeanDefinition beanDefinition = getOrCreateBeanDefinition.apply(beanName);
+                                    if (beanDefinition instanceof AbstractBeanDefinition)
+                                    {
+                                        ((AbstractBeanDefinition) beanDefinition).setAbstract(Boolean.parseBoolean(String.valueOf(value)));
+                                    }
                                 }
                             }
                             else
                             {
-                                final int propertyFragmentIdx = beanDefinitionKey.indexOf(FRAGMENT_PROPERTY);
-                                if (propertyFragmentIdx != -1)
-                                {
-                                    final String beanName = beanDefinitionKey.substring(0, propertyFragmentIdx);
-                                    final String propertyDefinitionKey = beanDefinitionKey
-                                            .substring(propertyFragmentIdx + FRAGMENT_PROPERTY.length());
-                                    this.processPropertyDefinition(beanName, propertyDefinitionKey, value,
-                                            getOrCreateBeanDefinition.apply(beanName));
-                                }
+                                final String beanName = beanDefinitionKey.substring(0, propertyFragmentIdx);
+                                final String propertyDefinitionKey = beanDefinitionKey
+                                        .substring(propertyFragmentIdx + FRAGMENT_PROPERTY.length());
+                                this.processPropertyDefinition(beanName, propertyDefinitionKey, value,
+                                        getOrCreateBeanDefinition.apply(beanName));
                             }
                         }
                     }
