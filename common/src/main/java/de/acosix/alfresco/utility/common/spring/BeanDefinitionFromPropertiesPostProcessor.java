@@ -13,11 +13,15 @@
  */
 package de.acosix.alfresco.utility.common.spring;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.slf4j.Logger;
@@ -44,6 +48,12 @@ import org.springframework.beans.factory.support.ManagedMap;
  */
 public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinitionRegistryPostProcessor, InitializingBean
 {
+
+    private static final String SUFFIX_PROPERTY_NULL = "null";
+
+    private static final String SUFFIX_PROPERTY_REF = "ref";
+
+    private static final String DOT = ".";
 
     private static final String SUFFIX_PROPERTY_REMOVE = "_remove";
 
@@ -199,14 +209,39 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
 
                 return definition;
             };
-            this.processBeanDefinitions(getOrCreateBeanDefinition, removeBeanDefinition);
+
+            final Collection<ManagedList<?>> paddedLists = new ArrayList<>();
+            final Consumer<ManagedList<?>> paddedListRegistrator = list -> {
+                if (!paddedLists.contains(list))
+                {
+                    paddedLists.add(list);
+                }
+            };
+
+            this.processBeanDefinitions(getOrCreateBeanDefinition, removeBeanDefinition, paddedListRegistrator);
+
+            this.compressPaddedLists(paddedLists);
         }
     }
 
-    protected void processBeanDefinitions(final Function<String, BeanDefinition> getOrCreateBeanDefinition,
-            final Function<String, BeanDefinition> removeBeanDefinition)
+    protected void compressPaddedLists(final Collection<ManagedList<?>> paddedLists)
     {
-        final String effectivePropertyPrefix = this.propertyPrefix + ".";
+        paddedLists.forEach(list -> {
+            final Iterator<?> iterator = list.iterator();
+            while (iterator.hasNext())
+            {
+                if (iterator.next() == null)
+                {
+                    iterator.remove();
+                }
+            }
+        });
+    }
+
+    protected void processBeanDefinitions(final Function<String, BeanDefinition> getOrCreateBeanDefinition,
+            final Function<String, BeanDefinition> removeBeanDefinition, final Consumer<ManagedList<?>> paddedListRegistrator)
+    {
+        final String effectivePropertyPrefix = this.propertyPrefix + DOT;
         final int propertyPrefixLength = effectivePropertyPrefix.length();
 
         this.propertiesSource.forEach((key, value) -> {
@@ -289,7 +324,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                                 final String propertyDefinitionKey = beanDefinitionKey
                                         .substring(propertyFragmentIdx + FRAGMENT_PROPERTY.length());
                                 this.processPropertyDefinition(beanName, propertyDefinitionKey, value,
-                                        getOrCreateBeanDefinition.apply(beanName));
+                                        getOrCreateBeanDefinition.apply(beanName), paddedListRegistrator);
                             }
                         }
                     }
@@ -299,7 +334,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
     }
 
     protected void processPropertyDefinition(final String beanName, final String propertyDefinitionKey, final Object value,
-            final BeanDefinition beanDefinition)
+            final BeanDefinition beanDefinition, final Consumer<ManagedList<?>> paddedListRegistrator)
     {
         final String propertyName;
 
@@ -321,7 +356,19 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         final boolean isRemove = definitionKeyRemainder.equals(SUFFIX_PROPERTY_REMOVE);
         final boolean isList = definitionKeyRemainder.startsWith(PREFIX_LIST);
         final boolean isMap = definitionKeyRemainder.startsWith(PREFIX_MAP);
-        if (isRemove)
+
+        if (isList)
+        {
+            definitionKeyRemainder = definitionKeyRemainder.substring(PREFIX_LIST.length());
+            this.processListPropertyDefinition(beanName, propertyName, definitionKeyRemainder, value, propertyValues,
+                    paddedListRegistrator);
+        }
+        else if (isMap)
+        {
+            definitionKeyRemainder = definitionKeyRemainder.substring(PREFIX_MAP.length());
+            this.processMapPropertryDefinition(beanName, propertyName, definitionKeyRemainder, value, propertyValues);
+        }
+        else if (isRemove)
         {
             if (value instanceof String && Boolean.parseBoolean(String.valueOf(value)))
             {
@@ -332,16 +379,6 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
             {
                 LOGGER.debug("Not removing property {} from [} due to non-true property value", propertyName, beanName);
             }
-        }
-        else if (isList)
-        {
-            definitionKeyRemainder = definitionKeyRemainder.substring(PREFIX_LIST.length());
-            this.processListPropertyDefinition(beanName, propertyName, definitionKeyRemainder, value, propertyValues);
-        }
-        else if (isMap)
-        {
-            definitionKeyRemainder = definitionKeyRemainder.substring(PREFIX_MAP.length());
-            this.processMapPropertryDefinition(beanName, propertyName, definitionKeyRemainder, value, propertyValues);
         }
         else
         {
@@ -359,7 +396,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
     }
 
     protected void processListPropertyDefinition(final String beanName, final String propertyName, final String definitionKey,
-            final Object value, final MutablePropertyValues propertyValues)
+            final Object value, final MutablePropertyValues propertyValues, final Consumer<ManagedList<?>> paddedListRegistrator)
     {
         int index;
 
@@ -378,21 +415,33 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
 
         final ManagedList<Object> valueList = this.initListPropertyValue(beanName, propertyName, propertyValues);
 
-        while (valueList.size() < index)
+        if (valueList.size() < index)
         {
-            // pad with null values
-            // may be replaced with actual value if another property defines value for index
-            valueList.add(null);
+            paddedListRegistrator.accept(valueList);
+
+            while (valueList.size() < index)
+            {
+                // pad with null values
+                // may be replaced with actual value if another property defines value for index
+                valueList.add(null);
+            }
         }
 
-        final Object valueToSet = this.getAsValue(beanName, propertyName, definitionKeyRemainder, value);
-        if (valueList.size() == index)
+        if (definitionKeyRemainder.endsWith(DOT + SUFFIX_PROPERTY_REMOVE))
         {
-            valueList.add(valueToSet);
+            valueList.remove(index);
         }
         else
         {
-            valueList.set(index, valueToSet);
+            final Object valueToSet = this.getAsValue(beanName, propertyName, definitionKeyRemainder, value);
+            if (valueList.size() == index)
+            {
+                valueList.add(valueToSet);
+            }
+            else
+            {
+                valueList.set(index, valueToSet);
+            }
         }
     }
 
@@ -402,11 +451,25 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         String key;
 
         String definitionKeyRemainder;
-        final int nextDot = definitionKey.indexOf('.');
-        if (nextDot != -1)
+        int keySeparator;
+
+        if (definitionKey.endsWith(DOT + SUFFIX_PROPERTY_NULL))
         {
-            key = definitionKey.substring(0, nextDot);
-            definitionKeyRemainder = definitionKey.substring(nextDot + 1);
+            keySeparator = definitionKey.lastIndexOf(DOT + SUFFIX_PROPERTY_NULL);
+        }
+        else if (definitionKey.endsWith(DOT + SUFFIX_PROPERTY_REF))
+        {
+            keySeparator = definitionKey.lastIndexOf(DOT + SUFFIX_PROPERTY_REF);
+        }
+        else
+        {
+            keySeparator = -1;
+        }
+
+        if (keySeparator != -1)
+        {
+            key = definitionKey.substring(0, keySeparator);
+            definitionKeyRemainder = definitionKey.substring(keySeparator + 1);
         }
         else
         {
@@ -415,8 +478,16 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         }
 
         final ManagedMap<Object, Object> valueMap = this.initMapPropertyValue(beanName, propertyName, propertyValues);
-        final Object valueToSet = this.getAsValue(beanName, propertyName, definitionKeyRemainder, value);
-        valueMap.put(key, valueToSet);
+
+        if (definitionKeyRemainder.endsWith(DOT + SUFFIX_PROPERTY_REMOVE))
+        {
+            valueMap.remove(key);
+        }
+        else
+        {
+            final Object valueToSet = this.getAsValue(beanName, propertyName, definitionKeyRemainder, value);
+            valueMap.put(key, valueToSet);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -480,12 +551,12 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
     protected Object getAsValue(final String beanName, final String propertyName, final String definitionKey, final Object value)
     {
         final Object result;
-        if ("ref".equals(definitionKey))
+        if (SUFFIX_PROPERTY_REF.equals(definitionKey))
         {
             LOGGER.trace("Treating value of property {} on {} as reference to bean {}", beanName, propertyName, value);
             result = new RuntimeBeanReference(String.valueOf(value));
         }
-        else if ("null".equals(definitionKey) && Boolean.parseBoolean(String.valueOf(value)))
+        else if (SUFFIX_PROPERTY_NULL.equals(definitionKey) && Boolean.parseBoolean(String.valueOf(value)))
         {
             LOGGER.trace("Treating value of property {} on {} as null", beanName, propertyName);
             result = null;
