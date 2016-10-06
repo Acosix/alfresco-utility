@@ -16,7 +16,10 @@
 	</properties>
 
 	<dependencies>
-
+        <dependency>
+            <groupId>org.alfresco</groupId>
+            <artifactId>alfresco-repository</artifactId>
+        </dependency>
 	</dependencies>
 
 	<build>
@@ -24,6 +27,7 @@
 		<resources>
 			<resource>
 				<directory>src/main/resources</directory>
+                <filtering>true</filtering>
 				<excludes>
 					<exclude>.gitkeep</exclude>
 				</excludes>

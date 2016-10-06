@@ -1,0 +1,102 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- 
+ Copyright 2016 Acosix GmbH
+
+ Licensed under the Eclipse Public License (EPL), Version 1.0 (the "License"); you may not use
+ this file except in compliance with the License. You may obtain a copy of the License at
+
+ https://www.eclipse.org/legal/epl-v10.html
+
+ Unless required by applicable law or agreed to in writing, software distributed under the
+ License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ either express or implied. See the License for the specific language governing permissions
+ and limitations under the License.
+ -->
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+           http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+    <bean class="${project.artifactId}.spring.EarlyActingBeanDefinitionFromPropertiesPostProcessor">
+        <property name="enabledProperty" value="${moduleId}.moduleConfig.support.enabled" />
+        <property name="propertyPrefix" value="${moduleId}" />
+        <property name="beanTypes">
+            <list>
+                <value>global-properties</value>
+                <value>common-placeholder-configurer</value>
+                <value>share-properties</value>
+            </list>
+        </property>
+        <property name="propertiesSource" ref="${moduleId}-properties" />
+    </bean>
+    
+    <bean class="de.acosix.alfresco.utility.common.spring.BeanDefinitionFromPropertiesPostProcessor">
+        <property name="enabledProperty" value="${moduleId}.logConfig.support.enabled" />
+        <property name="propertyPrefix" value="${moduleId}" />
+        <property name="beanTypes">
+            <list>
+                <value>log4JHierarchyInit</value>
+            </list>
+        </property>
+        <property name="propertiesSource" ref="${moduleId}-properties" />
+    </bean>
+
+    <bean id="${moduleId}-properties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+        <property name="locations">
+            <list>
+                <value>classpath*:org/springframework/extensions/surf/acosix-utility-config-support-bootstrap.properties</value>
+                <value>classpath*:alfresco/web-extension/acosix-utility-config-support-bootstrap.properties</value>
+            </list>
+        </property>
+    </bean>
+
+    <!-- This is simply a workaround for the lack of logging configuration support in Share -->
+    <!-- abstract only to allow overridable properties-based enablement -->
+    <bean abstract="true" id="log4JHierarchyInit" class="${project.artifactId}.config.Log4jHierarchyInit">
+        <property name="extraLog4jUrls">
+            <list>
+                <value>classpath*:alfresco/enterprise/*-log4j.properties</value>
+                <value>classpath*:alfresco/module/*/log4j.properties</value>
+                <value>classpath*:alfresco/web-extension/*-log4j.properties</value>
+                <value>classpath*:alfresco/web-extension/dev-log4j.properties</value>
+            </list>
+        </property>
+    </bean>
+
+    <!-- This is simply a workaround for the lack of module support in Share -->
+    <import resource="classpath*:alfresco/module/*/module-context.xml" />
+
+    <!-- This is simply a workaround for the lack of global configuration support in Share -->
+    <!-- abstract only to allow overridable properties-based enablement -->
+    <bean abstract="true" id="global-properties" class="org.alfresco.config.JndiPropertiesFactoryBean">
+        <property name="locations">
+            <list>
+                <value>classpath*:alfresco/share-global.properties</value>
+                <value>classpath*:alfresco/enterprise/share-global.properties</value>
+                <value>classpath*:alfresco/module/*/share-global.properties</value>
+                <value>classpath*:share-global.properties</value>
+            </list>
+        </property>
+        <property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE" />
+        <property name="propertiesPersister">
+            <bean class="org.alfresco.config.AlfrescoPropertiesPersister" />
+        </property>
+    </bean>
+
+    <bean abstract="true" id="common-placeholder-configurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="valueSeparator">
+            <null />
+        </property>
+        <property name="ignoreUnresolvablePlaceholders" value="true" />
+        <property name="searchSystemEnvironment" value="false" />
+        <property name="propertiesPersister">
+            <bean class="org.alfresco.config.AlfrescoPropertiesPersister" />
+        </property>
+    </bean>
+
+    <!-- abstract only to allow overridable properties-based enablement -->
+    <bean abstract="true" id="share-properties" parent="common-placeholder-configurer">
+        <property name="properties" ref="global-properties" />
+        <property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_NEVER" />
+    </bean>
+</beans>
