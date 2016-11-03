@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.0.xsd">
+
+    <util:map id="encrypted-properties">
+        <!-- A dummy value -->
+        <entry key="empty.enc">
+            <value>empty</value>
+        </entry>
+    </util:map>
+
+    <bean id="global-properties" class="org.alfresco.config.JndiPropertiesFactoryBean">
+        <property name="locations">
+            <list>
+                <value>classpath:alfresco/repository.properties</value>
+                <value>classpath*:alfresco-global.properties</value>
+            </list>
+        </property>
+        <property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE" />
+        <property name="propertiesPersister">
+            <bean class="org.alfresco.config.AlfrescoPropertiesPersister" />
+        </property>
+    </bean>
+
+    <bean id="propertyBackedBeanRegistry" class="org.alfresco.repo.management.subsystems.DefaultPropertyBackedBeanRegistry" />
+
+    <bean id="abstractPropertyBackedBean" class="org.alfresco.repo.management.subsystems.AbstractPropertyBackedBean" abstract="true">
+        <property name="registry" ref="propertyBackedBeanRegistry" />
+        <property name="propertyDefaults" ref="global-properties" />
+        <property name="encryptedPropertyDefaults" ref="encrypted-properties" />
+    </bean>
+
+    <bean id="SubsystemManagerTest" class="${project.artifactId}.subsystems.SubsystemChildApplicationContextManager" parent="abstractPropertyBackedBean">
+        <property name="defaultChain" value="inst1:default,inst2:default" />
+    </bean>
+
+</beans>
