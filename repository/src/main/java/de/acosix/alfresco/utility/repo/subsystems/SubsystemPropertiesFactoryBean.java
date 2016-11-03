@@ -17,7 +17,11 @@ package de.acosix.alfresco.utility.repo.subsystems;
 
 import java.util.Properties;
 
+import org.alfresco.repo.management.subsystems.ChildApplicationContextFactory;
+import org.alfresco.repo.management.subsystems.ChildApplicationContextManager;
 import org.alfresco.util.PropertyCheck;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
@@ -32,11 +36,13 @@ public class SubsystemPropertiesFactoryBean extends PropertiesLoaderSupport
         implements FactoryBean<Properties>, ApplicationContextAware, InitializingBean
 {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(SubsystemPropertiesFactoryBean.class);
+
     protected ApplicationContext applicationContext;
 
-    protected SubsystemChildApplicationContextManager subsystemChildApplicationContextManager;
+    protected ChildApplicationContextManager subsystemChildApplicationContextManager;
 
-    protected SubsystemChildApplicationContextFactory subsystemChildApplicationContextFactory;
+    protected ChildApplicationContextFactory subsystemChildApplicationContextFactory;
 
     protected boolean extensionProperties;
 
@@ -61,30 +67,53 @@ public class SubsystemPropertiesFactoryBean extends PropertiesLoaderSupport
         {
             PropertyCheck.mandatory(this, "childApplicationContextManager", this.subsystemChildApplicationContextManager);
 
-            final String instanceId = this.subsystemChildApplicationContextManager.determineInstanceId(this.applicationContext);
-            if (instanceId == null)
+            if (this.subsystemChildApplicationContextManager instanceof SubsystemChildApplicationContextManager)
             {
-                throw new IllegalStateException("applicationContext is active but subsystem instance could not be determiend");
-            }
+                final String instanceId = ((SubsystemChildApplicationContextManager) this.subsystemChildApplicationContextManager)
+                        .determineInstanceId(this.applicationContext);
+                if (instanceId == null)
+                {
+                    throw new IllegalStateException("applicationContext is active but subsystem instance could not be determiend");
+                }
 
-            if (this.extensionProperties)
-            {
-                locations = this.subsystemChildApplicationContextManager.getSubsystemExtensionPropertiesResources(instanceId);
+                if (this.extensionProperties)
+                {
+                    locations = ((SubsystemChildApplicationContextManager) this.subsystemChildApplicationContextManager)
+                            .getSubsystemExtensionPropertiesResources(instanceId);
+                }
+                else
+                {
+                    locations = ((SubsystemChildApplicationContextManager) this.subsystemChildApplicationContextManager)
+                            .getSubsystemDefaultPropertiesResources(instanceId);
+                }
             }
             else
             {
-                locations = this.subsystemChildApplicationContextManager.getSubsystemDefaultPropertiesResources(instanceId);
+                locations = new Resource[0];
+                LOGGER.warn(
+                        "subsystemChildApplicationContextManager is not of type SubsystemChildApplicationContextManager - original Alfresco bean may not have been enhanced");
             }
         }
         else
         {
-            if (this.extensionProperties)
+            if (this.subsystemChildApplicationContextFactory instanceof SubsystemChildApplicationContextFactory)
             {
-                locations = this.subsystemChildApplicationContextFactory.getSubsystemExtensionPropertiesResources();
+                if (this.extensionProperties)
+                {
+                    locations = ((SubsystemChildApplicationContextFactory) this.subsystemChildApplicationContextFactory)
+                            .getSubsystemExtensionPropertiesResources();
+                }
+                else
+                {
+                    locations = ((SubsystemChildApplicationContextFactory) this.subsystemChildApplicationContextFactory)
+                            .getSubsystemDefaultPropertiesResources();
+                }
             }
             else
             {
-                locations = this.subsystemChildApplicationContextFactory.getSubsystemDefaultPropertiesResources();
+                locations = new Resource[0];
+                LOGGER.warn(
+                        "subsystemChildApplicationContextFactory is not of type SubsystemChildApplicationContextFactory - original Alfresco bean may not have been enhanced");
             }
         }
         this.setLocations(locations);
@@ -94,8 +123,7 @@ public class SubsystemPropertiesFactoryBean extends PropertiesLoaderSupport
      * @param subsystemChildApplicationContextManager
      *            the subsystemChildApplicationContextManager to set
      */
-    public void setSubsystemChildApplicationContextManager(
-            final SubsystemChildApplicationContextManager subsystemChildApplicationContextManager)
+    public void setSubsystemChildApplicationContextManager(final ChildApplicationContextManager subsystemChildApplicationContextManager)
     {
         this.subsystemChildApplicationContextManager = subsystemChildApplicationContextManager;
     }
@@ -104,8 +132,7 @@ public class SubsystemPropertiesFactoryBean extends PropertiesLoaderSupport
      * @param subsystemChildApplicationContextFactory
      *            the subsystemChildApplicationContextFactory to set
      */
-    public void setSubsystemChildApplicationContextFactory(
-            final SubsystemChildApplicationContextFactory subsystemChildApplicationContextFactory)
+    public void setSubsystemChildApplicationContextFactory(final ChildApplicationContextFactory subsystemChildApplicationContextFactory)
     {
         this.subsystemChildApplicationContextFactory = subsystemChildApplicationContextFactory;
     }
