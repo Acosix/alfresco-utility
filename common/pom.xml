@@ -10,7 +10,7 @@
     </parent>
 
     <artifactId>de.acosix.alfresco.utility.common</artifactId>
-    <name>Acosix Alfresco Ignite - Utility Library</name>
+    <name>Acosix Alfresco Utility - Common Library</name>
 
     <properties>
 

@@ -50,6 +50,8 @@
         <messages.path>acosix/utility</messages.path>
         <messages.packageId>acosix.utility</messages.packageId>
         <moduleId>acosix-utility</moduleId>
+
+        <alfresco.distribution.version>5.0.d</alfresco.distribution.version>
     </properties>
 
     <dependencyManagement>
