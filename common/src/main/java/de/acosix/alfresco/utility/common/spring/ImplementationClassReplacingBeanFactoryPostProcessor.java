@@ -15,7 +15,6 @@
  */
 package de.acosix.alfresco.utility.common.spring;
 
-import java.util.Properties;
 import java.util.function.Function;
 
 import org.slf4j.Logger;
@@ -46,10 +45,6 @@ public class ImplementationClassReplacingBeanFactoryPostProcessor implements Bea
     protected String targetBeanName;
 
     protected boolean active;
-
-    protected String activePropertyKey;
-
-    protected Properties propertiesSource;
 
     /**
      * {@inheritDoc}
@@ -104,7 +99,7 @@ public class ImplementationClassReplacingBeanFactoryPostProcessor implements Bea
     {
         if (this.active && this.targetBeanName != null && this.replacementClassName != null)
         {
-            applyChange(beanName -> {
+            this.applyChange(beanName -> {
                 return beanFactory.getBeanDefinition(beanName);
             });
         }
