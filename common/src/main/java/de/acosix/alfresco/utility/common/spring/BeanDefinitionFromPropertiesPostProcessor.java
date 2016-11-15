@@ -79,7 +79,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BeanDefinitionFromPropertiesPostProcessor.class);
 
-    protected String enabledProperty;
+    protected String enabledPropertyKey;
 
     protected String propertyPrefix;
 
@@ -88,12 +88,12 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
     protected Properties propertiesSource;
 
     /**
-     * @param enabledProperty
-     *            the enabledProperty to set
+     * @param enabledPropertyKey
+     *            the enabledPropertyKey to set
      */
-    public void setEnabledProperty(final String enabledProperty)
+    public void setEnabledPropertyKey(final String enabledPropertyKey)
     {
-        this.enabledProperty = enabledProperty;
+        this.enabledPropertyKey = enabledPropertyKey;
     }
 
     /**
@@ -160,9 +160,9 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
     public void postProcessBeanDefinitionRegistry(final BeanDefinitionRegistry registry) throws BeansException
     {
         boolean enabled = true;
-        if (this.enabledProperty != null && !this.enabledProperty.isEmpty())
+        if (this.enabledPropertyKey != null && !this.enabledPropertyKey.isEmpty())
         {
-            final String property = this.propertiesSource.getProperty(this.enabledProperty);
+            final String property = this.propertiesSource.getProperty(this.enabledPropertyKey);
             enabled = property != null ? Boolean.parseBoolean(property) : false;
         }
 

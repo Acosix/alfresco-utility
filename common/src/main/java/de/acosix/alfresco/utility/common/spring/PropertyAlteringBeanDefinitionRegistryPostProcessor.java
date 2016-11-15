@@ -39,17 +39,17 @@ public class PropertyAlteringBeanDefinitionRegistryPostProcessor extends Propert
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PropertyAlteringBeanDefinitionRegistryPostProcessor.class);
 
-    protected String activePropertyKey;
+    protected String enabledPropertyKey;
 
     protected Properties propertiesSource;
 
     /**
-     * @param activePropertyKey
-     *            the activePropertyKey to set
+     * @param enabledPropertyKey
+     *            the enabledPropertyKey to set
      */
-    public void setActivePropertyKey(final String activePropertyKey)
+    public void setEnabledPropertyKey(final String enabledPropertyKey)
     {
-        this.activePropertyKey = activePropertyKey;
+        this.enabledPropertyKey = enabledPropertyKey;
     }
 
     /**
@@ -76,17 +76,17 @@ public class PropertyAlteringBeanDefinitionRegistryPostProcessor extends Propert
     @Override
     public void postProcessBeanDefinitionRegistry(final BeanDefinitionRegistry registry) throws BeansException
     {
-        if (this.activePropertyKey != null && this.propertiesSource != null)
+        if (this.enabledPropertyKey != null && this.propertiesSource != null)
         {
-            final boolean active = Boolean.parseBoolean(this.propertiesSource.getProperty(this.activePropertyKey));
+            final boolean enabled = Boolean.parseBoolean(this.propertiesSource.getProperty(this.enabledPropertyKey));
 
-            if (active && this.targetBeanName != null && this.propertyName != null)
+            if (enabled && this.targetBeanName != null && this.propertyName != null)
             {
-                applyChange(beanName -> {
+                this.applyChange(beanName -> {
                     return registry.getBeanDefinition(beanName);
                 });
             }
-            else if (!active)
+            else if (!enabled)
             {
                 LOGGER.info("[{}] patch will not be applied as it has been marked as inactive", this.beanName);
             }
