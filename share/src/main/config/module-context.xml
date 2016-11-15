@@ -19,30 +19,49 @@
            http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
-    <bean id="${moduleId}-css.theme.handler-postProcessor" abstract="true" class="de.acosix.alfresco.utility.common.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
+    <bean id="${moduleId}-css.theme.handler-postProcessor" abstract="true"
+        class="de.acosix.alfresco.utility.common.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
         <property name="enabledPropertyKey" value="${moduleId}.surf.stateSafeCssThemeHandler.enabled" />
         <property name="propertiesSource" ref="global-properties" />
         <property name="targetBeanName" value="css.theme.handler" />
     </bean>
-    
+
     <bean parent="${moduleId}-css.theme.handler-postProcessor">
         <property name="originalClassName" value="org.springframework.extensions.surf.CssThemeHandler" />
         <property name="replacementClassName" value="${project.artifactId}.surf.StateSafeCssThemeHandler" />
     </bean>
-    
+
     <bean parent="${moduleId}-css.theme.handler-postProcessor">
         <property name="originalClassName" value="org.springframework.extensions.surf.HybridCssThemeHandler" />
         <property name="replacementClassName" value="${project.artifactId}.surf.StateSafeHybridCssThemeHandler" />
     </bean>
-    
+
     <bean parent="${moduleId}-css.theme.handler-postProcessor">
         <property name="originalClassName" value="org.springframework.extensions.surf.LessForJavaCssThemeHandler" />
         <property name="replacementClassName" value="${project.artifactId}.surf.StateSafeLessForJavaCssThemeHandler" />
     </bean>
-    
+
     <bean parent="${moduleId}-css.theme.handler-postProcessor">
         <property name="originalClassName" value="org.springframework.extensions.surf.ExternalLessCssThemeHandler" />
         <property name="replacementClassName" value="${project.artifactId}.surf.StateSafeExternalLessCssThemeHandler" />
     </bean>
 
+    <!-- better detection of widget configs in JS sources -->
+    <!-- this supports single- and multi-widget configs -->
+    <!-- this supports variables and members -->
+    <!-- this supports aggregated variable / member names -->
+    <bean class="de.acosix.alfresco.utility.common.spring.PropertyAlteringBeanFactoryPostProcessor">
+        <property name="targetBeanName" value="define.dojo.widgets.dependency.rule" />
+        <property name="propertyName" value="declarationRegex" />
+        <property name="value"
+            value="&quot;?(?:_+)?(?:widgets?|[\w]+Widgets?|widgets?[A-Z]\w+)(?:_+)?&quot;?[^:=]*?[:=][\r\s\t\n]*\[?(\{(.*)\})\]?" />
+        <property name="enabled" value="\${${moduleId}.surf.betterRegexDojoWidgetsRule.enabled}" />
+    </bean>
+
+    <bean class="de.acosix.alfresco.utility.common.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
+        <property name="targetBeanName" value="define.dojo.widgets.dependency.rule" />
+        <property name="originalClassName" value="org.springframework.extensions.surf.DojoWidgetsDependencyRule" />
+        <property name="replacementClassName" value="${project.artifactId}.surf.JSONAwareWidgetsDependencyRule" />
+        <property name="enabled" value="\${${moduleId}.surf.jsonAwareDojoWidgetsRule.enabled}" />
+    </bean>
 </beans>
