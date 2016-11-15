@@ -21,12 +21,6 @@
             <artifactId>de.acosix.alfresco.utility.common</artifactId>
             <version>${project.version}</version>
         </dependency>
-    
-        <dependency>
-            <groupId>com.github.sommeri</groupId>
-            <artifactId>less4j</artifactId>
-            <version>1.17.2</version>
-        </dependency>
 
         <dependency>
             <groupId>org.alfresco</groupId>

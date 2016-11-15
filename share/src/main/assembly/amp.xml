@@ -46,10 +46,6 @@
             <outputDirectory>lib</outputDirectory>
             <includes>
                 <include>de.acosix.alfresco.utility:de.acosix.alfresco.utility.common:*</include>
-                <include>com.github.sommeri:less4j:*</include>
-                <include>com.google.protobuf:protobuf-java:*</include>
-                <include>com.google.code.gson:gson:*</include>
-                <include>org.antlr:antlr-runtime:*</include>
             </includes>
         </dependencySet>
     </dependencySets>
