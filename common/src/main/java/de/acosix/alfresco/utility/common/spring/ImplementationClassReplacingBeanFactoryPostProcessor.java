@@ -44,7 +44,7 @@ public class ImplementationClassReplacingBeanFactoryPostProcessor implements Bea
 
     protected String targetBeanName;
 
-    protected boolean active;
+    protected boolean enabled;
 
     /**
      * {@inheritDoc}
@@ -83,12 +83,12 @@ public class ImplementationClassReplacingBeanFactoryPostProcessor implements Bea
     }
 
     /**
-     * @param active
-     *            the active to set
+     * @param enabled
+     *            the enabled to set
      */
-    public void setActive(final boolean active)
+    public void setEnabled(final boolean enabled)
     {
-        this.active = active;
+        this.enabled = enabled;
     }
 
     /**
@@ -97,13 +97,13 @@ public class ImplementationClassReplacingBeanFactoryPostProcessor implements Bea
     @Override
     public void postProcessBeanFactory(final ConfigurableListableBeanFactory beanFactory) throws BeansException
     {
-        if (this.active && this.targetBeanName != null && this.replacementClassName != null)
+        if (this.enabled && this.targetBeanName != null && this.replacementClassName != null)
         {
             this.applyChange(beanName -> {
                 return beanFactory.getBeanDefinition(beanName);
             });
         }
-        else if (!this.active)
+        else if (!this.enabled)
         {
             LOGGER.info("[{}] patch will not be applied as it has been marked as inactive", this.beanName);
         }

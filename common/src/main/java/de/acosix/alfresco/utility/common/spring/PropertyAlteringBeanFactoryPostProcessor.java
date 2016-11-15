@@ -46,7 +46,7 @@ public class PropertyAlteringBeanFactoryPostProcessor implements BeanFactoryPost
 
     protected String targetBeanName;
 
-    protected boolean active;
+    protected boolean enabled;
 
     protected String propertyName;
 
@@ -87,12 +87,12 @@ public class PropertyAlteringBeanFactoryPostProcessor implements BeanFactoryPost
     }
 
     /**
-     * @param active
-     *            the active to set
+     * @param enabled
+     *            the enabled to set
      */
-    public void setActive(final boolean active)
+    public void setEnabled(final boolean enabled)
     {
-        this.active = active;
+        this.enabled = enabled;
     }
 
     /**
@@ -182,13 +182,13 @@ public class PropertyAlteringBeanFactoryPostProcessor implements BeanFactoryPost
     @Override
     public void postProcessBeanFactory(final ConfigurableListableBeanFactory beanFactory) throws BeansException
     {
-        if (this.active && this.targetBeanName != null && this.propertyName != null)
+        if (this.enabled && this.targetBeanName != null && this.propertyName != null)
         {
-            applyChange(beanName -> {
+            this.applyChange(beanName -> {
                 return beanFactory.getBeanDefinition(beanName);
             });
         }
-        else if (!this.active)
+        else if (!this.enabled)
         {
             LOGGER.info("[{}] patch will not be applied as it has been marked as inactive", this.beanName);
         }

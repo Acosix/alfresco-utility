@@ -76,24 +76,22 @@ public class PropertyAlteringBeanDefinitionRegistryPostProcessor extends Propert
     @Override
     public void postProcessBeanDefinitionRegistry(final BeanDefinitionRegistry registry) throws BeansException
     {
-        if (this.enabledPropertyKey != null && this.propertiesSource != null)
+        boolean enabled = this.enabled;
+        if (this.enabledPropertyKey != null && !this.enabledPropertyKey.isEmpty() && this.propertiesSource != null)
         {
-            final boolean enabled = Boolean.parseBoolean(this.propertiesSource.getProperty(this.enabledPropertyKey));
+            final String property = this.propertiesSource.getProperty(this.enabledPropertyKey);
+            enabled = enabled || (property != null ? Boolean.parseBoolean(property) : false);
+        }
 
-            if (enabled && this.targetBeanName != null && this.propertyName != null)
-            {
-                this.applyChange(beanName -> {
-                    return registry.getBeanDefinition(beanName);
-                });
-            }
-            else if (!enabled)
-            {
-                LOGGER.info("[{}] patch will not be applied as it has been marked as inactive", this.beanName);
-            }
-            else
-            {
-                LOGGER.warn("[{}] patch cannnot be applied as its configuration is incomplete", this.beanName);
-            }
+        if (enabled && this.targetBeanName != null && this.propertyName != null)
+        {
+            this.applyChange(beanName -> {
+                return registry.getBeanDefinition(beanName);
+            });
+        }
+        else if (!enabled)
+        {
+            LOGGER.info("[{}] patch will not be applied as it has been marked as inactive", this.beanName);
         }
         else
         {
