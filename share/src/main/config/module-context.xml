@@ -14,20 +14,35 @@
  See the License for the specific language governing permissions and
  limitations under the License.
  -->
-<beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
            http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
-           
-    <bean class="de.acosix.alfresco.utility.common.spring.BeanDefinitionFromPropertiesPostProcessor">
-        <property name="enabledProperty" value="${moduleId}.surf.less4j.enabled" />
-        <property name="propertyPrefix" value="${moduleId}.surf" />
-        <property name="beanTypes">
-            <list>
-                <value>css</value>
-            </list>
-        </property>
+
+    <bean id="${moduleId}-css.theme.handler-postProcessor" abstract="true" class="de.acosix.alfresco.utility.common.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
+        <property name="enabledPropertyKey" value="${moduleId}.surf.stateSafeCssThemeHandler.enabled" />
         <property name="propertiesSource" ref="global-properties" />
+        <property name="targetBeanName" value="css.theme.handler" />
     </bean>
+    
+    <bean parent="${moduleId}-css.theme.handler-postProcessor">
+        <property name="originalClassName" value="org.springframework.extensions.surf.CssThemeHandler" />
+        <property name="replacementClassName" value="${project.artifactId}.surf.StateSafeCssThemeHandler" />
+    </bean>
+    
+    <bean parent="${moduleId}-css.theme.handler-postProcessor">
+        <property name="originalClassName" value="org.springframework.extensions.surf.HybridCssThemeHandler" />
+        <property name="replacementClassName" value="${project.artifactId}.surf.StateSafeHybridCssThemeHandler" />
+    </bean>
+    
+    <bean parent="${moduleId}-css.theme.handler-postProcessor">
+        <property name="originalClassName" value="org.springframework.extensions.surf.LessForJavaCssThemeHandler" />
+        <property name="replacementClassName" value="${project.artifactId}.surf.StateSafeLessForJavaCssThemeHandler" />
+    </bean>
+    
+    <bean parent="${moduleId}-css.theme.handler-postProcessor">
+        <property name="originalClassName" value="org.springframework.extensions.surf.ExternalLessCssThemeHandler" />
+        <property name="replacementClassName" value="${project.artifactId}.surf.StateSafeExternalLessCssThemeHandler" />
+    </bean>
+
 </beans>
