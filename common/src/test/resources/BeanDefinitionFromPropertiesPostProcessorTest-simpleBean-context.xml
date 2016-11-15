@@ -5,6 +5,7 @@
            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
     <bean class="${project.artifactId}.spring.BeanDefinitionFromPropertiesPostProcessor">
+        <property name="enabled" value="true" />
         <property name="propertyPrefix" value="testPrefix" />
         <property name="beanTypes">
             <list>

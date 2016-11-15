@@ -20,7 +20,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.BlockJUnit4ClassRunner;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
@@ -33,14 +32,16 @@ public class BeanDefinitionFromPropertiesPostProcessorTest
     @Test
     public void simpleBean()
     {
-        final ApplicationContext context = new ClassPathXmlApplicationContext(
-                "classpath:BeanDefinitionFromPropertiesPostProcessorTest-simpleBean-context.xml");
-        final Object simpleBean = context.getBean("beanTypeX.simpleBean");
+        try (final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+                "classpath:BeanDefinitionFromPropertiesPostProcessorTest-simpleBean-context.xml"))
+        {
+            final Object simpleBean = context.getBean("beanTypeX.simpleBean");
 
-        // TODO Switch with other simple bean class that provides a simple property that can be set AND get
-        Assert.assertTrue("beanTypeX.simpleBean is not of expected type", simpleBean instanceof RuntimeExec);
-        Assert.assertArrayEquals("command is not of expected array value", new String[] { "dummy", "cmd" },
-                ((RuntimeExec) simpleBean).getCommand());
+            // TODO Switch with other simple bean class that provides a simple property that can be set AND get
+            Assert.assertTrue("beanTypeX.simpleBean is not of expected type", simpleBean instanceof RuntimeExec);
+            Assert.assertArrayEquals("command is not of expected array value", new String[] { "dummy", "cmd" },
+                    ((RuntimeExec) simpleBean).getCommand());
+        }
     }
 
     // TODO Test constructs with all types of properties
