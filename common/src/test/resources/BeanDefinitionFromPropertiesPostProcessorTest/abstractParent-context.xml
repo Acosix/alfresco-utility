@@ -16,7 +16,7 @@
             <bean class="org.springframework.beans.factory.config.PropertiesFactoryBean">
                 <property name="locations">
                     <list>
-                        <value>classpath:BeanDefinitionFromPropertiesPostProcessorTest-simpleBean.properties</value>
+                        <value>classpath:BeanDefinitionFromPropertiesPostProcessorTest/abstractParent.properties</value>
                     </list>
                 </property>
             </bean>
