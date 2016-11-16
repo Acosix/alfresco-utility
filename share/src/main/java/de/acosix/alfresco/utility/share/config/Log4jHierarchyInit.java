@@ -71,9 +71,9 @@ import org.springframework.core.io.support.ResourcePatternResolver;
  * </pre>
  *
  *
- * This class is a near-verbatim copy from the {@link org.alfresco.repo.admin.Log4JHierarchyInit Repository-tier class}.
+ * This class is a near-verbatim copy from the
+ * <a href="http://dev.alfresco.com/resource/docs/java/org/alfresco/repo/admin/Log4JHierarchyInit.html">Repository-tier class</a>.
  *
- * @see org.alfresco.repo.admin.Log4JHierarchyInit
  * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
  */
 public class Log4jHierarchyInit implements InitializingBean, ApplicationContextAware, BeanDefinitionRegistryPostProcessor
@@ -108,6 +108,9 @@ public class Log4jHierarchyInit implements InitializingBean, ApplicationContextA
      * <p>
      * This function supports Spring's syntax for retrieving multiple class path resources with the same name, via the "classpath&#042;:"
      * prefix. For details, see: {@link PathMatchingResourcePatternResolver}.
+     *
+     * @param urls
+     *            the URLs to Log4J configuration files
      */
     public void setExtraLog4jUrls(final List<String> urls)
     {
