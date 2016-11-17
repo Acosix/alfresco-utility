@@ -56,6 +56,8 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
 
     private static final String SUFFIX_PROPERTY_REF = "ref";
 
+    private static final String SUFFIX_LIST_PROPERTY_CSV = "csv";
+
     private static final String DOT = ".";
 
     private static final String SUFFIX_PROPERTY_REMOVE = "_remove";
@@ -423,18 +425,26 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
     protected void processListPropertyDefinition(final String beanName, final String propertyName, final String definitionKey,
             final Object value, final MutablePropertyValues propertyValues, final Consumer<ManagedList<?>> paddedListRegistrator)
     {
-        int index;
+        boolean isCsv = false;
+        int index = 0;
 
-        String definitionKeyRemainder;
-        final int nextDot = definitionKey.indexOf('.');
+        String definitionKeyRemainder = definitionKey;
+
+        if (definitionKeyRemainder.startsWith(SUFFIX_LIST_PROPERTY_CSV + "."))
+        {
+            isCsv = true;
+            definitionKeyRemainder = definitionKeyRemainder.substring(SUFFIX_LIST_PROPERTY_CSV.length() + 1);
+        }
+
+        final int nextDot = definitionKeyRemainder.indexOf('.');
         if (nextDot != -1)
         {
-            index = Integer.parseInt(definitionKey.substring(0, nextDot));
-            definitionKeyRemainder = definitionKey.substring(nextDot + 1);
+            index = Integer.parseInt(definitionKeyRemainder.substring(0, nextDot));
+            definitionKeyRemainder = definitionKeyRemainder.substring(nextDot + 1);
         }
         else
         {
-            index = Integer.parseInt(definitionKey);
+            index = Integer.parseInt(definitionKeyRemainder);
             definitionKeyRemainder = "";
         }
 
@@ -458,14 +468,38 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         }
         else
         {
-            final Object valueToSet = this.getAsValue(beanName, propertyName, definitionKeyRemainder, value);
-            if (valueList.size() == index)
+            if (isCsv)
             {
-                valueList.add(valueToSet);
+                final String strValue = String.valueOf(value);
+                if (!strValue.trim().isEmpty())
+                {
+                    final String[] strValues = strValue.trim().split("\\s*(?<!\\\\),\\s*");
+
+                    for (final String singleValue : strValues)
+                    {
+                        final Object valueToSet = this.getAsValue(beanName, propertyName, definitionKeyRemainder, singleValue);
+                        if (valueList.size() == index)
+                        {
+                            valueList.add(valueToSet);
+                        }
+                        else
+                        {
+                            valueList.set(index, valueToSet);
+                        }
+                    }
+                }
             }
             else
             {
-                valueList.set(index, valueToSet);
+                final Object valueToSet = this.getAsValue(beanName, propertyName, definitionKeyRemainder, value);
+                if (valueList.size() == index)
+                {
+                    valueList.add(valueToSet);
+                }
+                else
+                {
+                    valueList.set(index, valueToSet);
+                }
             }
         }
     }
