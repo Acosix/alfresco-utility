@@ -35,6 +35,7 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.config.PlaceholderConfigurerSupport;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -42,6 +43,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProce
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.ManagedMap;
+import org.springframework.util.PropertyPlaceholderHelper;
 
 /**
  * Base class for post processors that need to emit, enhance or remove bean definitions based on simple configuration in properties files
@@ -93,6 +95,14 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
     protected List<String> beanTypes;
 
     protected Properties propertiesSource;
+
+    protected String placeholderPrefix = PlaceholderConfigurerSupport.DEFAULT_PLACEHOLDER_PREFIX;
+
+    protected String placeholderSuffix = PlaceholderConfigurerSupport.DEFAULT_PLACEHOLDER_SUFFIX;
+
+    protected String valueSeparator = PlaceholderConfigurerSupport.DEFAULT_VALUE_SEPARATOR;
+
+    protected PropertyPlaceholderHelper placeholderHelper;
 
     /**
      * {@inheritDoc}
@@ -150,6 +160,33 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         this.propertiesSource = propertiesSource;
     }
 
+    /**
+     * @param placeholderPrefix
+     *            the placeholderPrefix to set
+     */
+    public void setPlaceholderPrefix(final String placeholderPrefix)
+    {
+        this.placeholderPrefix = placeholderPrefix;
+    }
+
+    /**
+     * @param placeholderSuffix
+     *            the placeholderSuffix to set
+     */
+    public void setPlaceholderSuffix(final String placeholderSuffix)
+    {
+        this.placeholderSuffix = placeholderSuffix;
+    }
+
+    /**
+     * @param valueSeparator
+     *            the valueSeparator to set
+     */
+    public void setValueSeparator(final String valueSeparator)
+    {
+        this.valueSeparator = valueSeparator;
+    }
+
     @Override
     public void afterPropertiesSet()
     {
@@ -167,6 +204,8 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         {
             throw new IllegalStateException("propertiesSource has not been set");
         }
+
+        this.placeholderHelper = new PropertyPlaceholderHelper(this.placeholderPrefix, this.placeholderSuffix, this.valueSeparator, true);
     }
 
     /**
@@ -285,7 +324,10 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                         final String beanType = beanDefinitionKey.substring(0, firstDot);
                         if (this.beanTypes.contains(beanType))
                         {
-                            LOGGER.trace("[{}] Processing entry {} = {}", this.beanName, key, value);
+                            final String resolvedValue = this.placeholderHelper.replacePlaceholders(String.valueOf(value),
+                                    this.propertiesSource);
+
+                            LOGGER.trace("[{}] Processing entry {} = {}", this.beanName, key, resolvedValue);
 
                             final int propertyFragmentIdx = beanDefinitionKey.indexOf(FRAGMENT_PROPERTY);
 
@@ -295,7 +337,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                                 {
                                     final String beanName = beanDefinitionKey.substring(0,
                                             beanDefinitionKey.length() - SUFFIX_BEAN_REMOVE.length());
-                                    if (Boolean.parseBoolean(String.valueOf(value)))
+                                    if (Boolean.parseBoolean(resolvedValue))
                                     {
                                         LOGGER.debug("[{}] Removing bean {}", this.beanName, beanName);
                                         removeBeanDefinition.apply(beanName);
@@ -309,39 +351,39 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                                 {
                                     final String beanName = beanDefinitionKey.substring(0,
                                             beanDefinitionKey.length() - SUFFIX_CLASS_NAME.length());
-                                    LOGGER.debug("[{}] Setting class name of bean {} to {}", this.beanName, beanName, value);
-                                    getOrCreateBeanDefinition.apply(beanName).setBeanClassName(String.valueOf(value));
+                                    LOGGER.debug("[{}] Setting class name of bean {} to {}", this.beanName, beanName, resolvedValue);
+                                    getOrCreateBeanDefinition.apply(beanName).setBeanClassName(resolvedValue);
                                 }
                                 else if (keyStr.endsWith(SUFFIX_PARENT))
                                 {
                                     final String beanName = beanDefinitionKey.substring(0,
                                             beanDefinitionKey.length() - SUFFIX_PARENT.length());
-                                    LOGGER.debug("[{}] Setting parent of bean {} to {}", this.beanName, beanName, value);
-                                    getOrCreateBeanDefinition.apply(beanName).setParentName(String.valueOf(value));
+                                    LOGGER.debug("[{}] Setting parent of bean {} to {}", this.beanName, beanName, resolvedValue);
+                                    getOrCreateBeanDefinition.apply(beanName).setParentName(resolvedValue);
                                 }
                                 else if (keyStr.endsWith(SUFFIX_SCOPE))
                                 {
                                     final String beanName = beanDefinitionKey.substring(0,
                                             beanDefinitionKey.length() - SUFFIX_SCOPE.length());
-                                    LOGGER.debug("[{}] Setting scope of bean {} to {}", this.beanName, beanName, value);
-                                    getOrCreateBeanDefinition.apply(beanName).setScope(String.valueOf(value));
+                                    LOGGER.debug("[{}] Setting scope of bean {} to {}", this.beanName, beanName, resolvedValue);
+                                    getOrCreateBeanDefinition.apply(beanName).setScope(resolvedValue);
                                 }
                                 else if (keyStr.endsWith(SUFFIX_DEPENDS_ON))
                                 {
                                     final String beanName = beanDefinitionKey.substring(0,
                                             beanDefinitionKey.length() - SUFFIX_DEPENDS_ON.length());
-                                    LOGGER.debug("[{}] Setting dependsOn of bean {} to {}", this.beanName, beanName, value);
-                                    getOrCreateBeanDefinition.apply(beanName).setDependsOn(String.valueOf(value).split(","));
+                                    LOGGER.debug("[{}] Setting dependsOn of bean {} to {}", this.beanName, beanName, resolvedValue);
+                                    getOrCreateBeanDefinition.apply(beanName).setDependsOn(resolvedValue.split(","));
                                 }
                                 else if (keyStr.endsWith(SUFFIX_ABSTRACT))
                                 {
                                     final String beanName = beanDefinitionKey.substring(0,
                                             beanDefinitionKey.length() - SUFFIX_ABSTRACT.length());
-                                    LOGGER.debug("[{}] Setting abstract of bean {} to {}", this.beanName, beanName, value);
+                                    LOGGER.debug("[{}] Setting abstract of bean {} to {}", this.beanName, beanName, resolvedValue);
                                     final BeanDefinition beanDefinition = getOrCreateBeanDefinition.apply(beanName);
                                     if (beanDefinition instanceof AbstractBeanDefinition)
                                     {
-                                        ((AbstractBeanDefinition) beanDefinition).setAbstract(Boolean.parseBoolean(String.valueOf(value)));
+                                        ((AbstractBeanDefinition) beanDefinition).setAbstract(Boolean.parseBoolean(resolvedValue));
                                     }
                                 }
                             }
@@ -350,7 +392,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                                 final String beanName = beanDefinitionKey.substring(0, propertyFragmentIdx);
                                 final String propertyDefinitionKey = beanDefinitionKey
                                         .substring(propertyFragmentIdx + FRAGMENT_PROPERTY.length());
-                                this.processPropertyDefinition(beanName, propertyDefinitionKey, value,
+                                this.processPropertyDefinition(beanName, propertyDefinitionKey, resolvedValue,
                                         getOrCreateBeanDefinition.apply(beanName), paddedListRegistrator);
                             }
                         }
@@ -360,7 +402,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         });
     }
 
-    protected void processPropertyDefinition(final String beanName, final String propertyDefinitionKey, final Object value,
+    protected void processPropertyDefinition(final String beanName, final String propertyDefinitionKey, final String value,
             final BeanDefinition beanDefinition, final Consumer<ManagedList<?>> paddedListRegistrator)
     {
         final String propertyName;
@@ -397,7 +439,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         }
         else if (isRemove)
         {
-            if (value instanceof String && Boolean.parseBoolean(String.valueOf(value)))
+            if (value instanceof String && Boolean.parseBoolean(value))
             {
                 LOGGER.debug("[{}] Removing property {} from {}", this.beanName, propertyName, beanName);
                 propertyValues.removePropertyValue(propertyName);
@@ -423,7 +465,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
     }
 
     protected void processListPropertyDefinition(final String beanName, final String propertyName, final String definitionKey,
-            final Object value, final MutablePropertyValues propertyValues, final Consumer<ManagedList<?>> paddedListRegistrator)
+            final String value, final MutablePropertyValues propertyValues, final Consumer<ManagedList<?>> paddedListRegistrator)
     {
         boolean isCsv = false;
         int index = 0;
@@ -470,10 +512,9 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         {
             if (isCsv)
             {
-                final String strValue = String.valueOf(value);
-                if (!strValue.trim().isEmpty())
+                if (!value.trim().isEmpty())
                 {
-                    final String[] strValues = strValue.trim().split("\\s*(?<!\\\\),\\s*");
+                    final String[] strValues = value.trim().split("\\s*(?<!\\\\),\\s*");
 
                     for (final String singleValue : strValues)
                     {
@@ -505,7 +546,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
     }
 
     protected void processMapPropertryDefinition(final String beanName, final String propertyName, final String definitionKey,
-            final Object value, final MutablePropertyValues propertyValues)
+            final String value, final MutablePropertyValues propertyValues)
     {
         String key;
 
@@ -607,15 +648,15 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         return valueMap;
     }
 
-    protected Object getAsValue(final String beanName, final String propertyName, final String definitionKey, final Object value)
+    protected Object getAsValue(final String beanName, final String propertyName, final String definitionKey, final String value)
     {
         final Object result;
         if (SUFFIX_PROPERTY_REF.equals(definitionKey))
         {
             LOGGER.trace("[{}] Treating value of property {} on {} as reference to bean {}", this.beanName, beanName, propertyName, value);
-            result = new RuntimeBeanReference(String.valueOf(value));
+            result = new RuntimeBeanReference(value);
         }
-        else if (SUFFIX_PROPERTY_NULL.equals(definitionKey) && Boolean.parseBoolean(String.valueOf(value)))
+        else if (SUFFIX_PROPERTY_NULL.equals(definitionKey) && Boolean.parseBoolean(value))
         {
             LOGGER.trace("[{}] Treating value of property {} on {} as null", this.beanName, beanName, propertyName);
             result = null;
