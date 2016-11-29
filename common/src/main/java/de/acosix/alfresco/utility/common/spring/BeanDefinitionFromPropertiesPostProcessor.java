@@ -43,6 +43,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProce
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.ManagedMap;
+import org.springframework.beans.factory.support.ManagedSet;
 import org.springframework.util.PropertyPlaceholderHelper;
 
 /**
@@ -58,7 +59,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
 
     private static final String SUFFIX_PROPERTY_REF = "ref";
 
-    private static final String SUFFIX_LIST_PROPERTY_CSV = "csv";
+    private static final String SUFFIX_CSV_PROPERTY = "csv";
 
     private static final String DOT = ".";
 
@@ -67,6 +68,8 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
     private static final String PREFIX_MAP = "map.";
 
     private static final String PREFIX_LIST = "list.";
+
+    private static final String PREFIX_SET = "set.";
 
     private static final String FRAGMENT_PROPERTY = ".property.";
 
@@ -324,8 +327,11 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                         final String beanType = beanDefinitionKey.substring(0, firstDot);
                         if (this.beanTypes.contains(beanType))
                         {
-                            final String resolvedValue = this.placeholderHelper.replacePlaceholders(String.valueOf(value),
-                                    this.propertiesSource);
+                            String resolvedValue = this.placeholderHelper.replacePlaceholders(String.valueOf(value), this.propertiesSource);
+                            if (resolvedValue != null)
+                            {
+                                resolvedValue = resolvedValue.trim();
+                            }
 
                             LOGGER.trace("[{}] Processing entry {} = {}", this.beanName, key, resolvedValue);
 
@@ -424,6 +430,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
 
         final boolean isRemove = definitionKeyRemainder.equals(SUFFIX_PROPERTY_REMOVE);
         final boolean isList = definitionKeyRemainder.startsWith(PREFIX_LIST);
+        final boolean isSet = definitionKeyRemainder.startsWith(PREFIX_LIST);
         final boolean isMap = definitionKeyRemainder.startsWith(PREFIX_MAP);
 
         if (isList)
@@ -431,6 +438,11 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
             definitionKeyRemainder = definitionKeyRemainder.substring(PREFIX_LIST.length());
             this.processListPropertyDefinition(beanName, propertyName, definitionKeyRemainder, value, propertyValues,
                     paddedListRegistrator);
+        }
+        else if (isSet)
+        {
+            definitionKeyRemainder = definitionKeyRemainder.substring(PREFIX_SET.length());
+            this.processSetPropertyDefinition(beanName, propertyName, definitionKeyRemainder, value, propertyValues);
         }
         else if (isMap)
         {
@@ -468,58 +480,101 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
             final String value, final MutablePropertyValues propertyValues, final Consumer<ManagedList<?>> paddedListRegistrator)
     {
         boolean isCsv = false;
-        int index = 0;
 
         String definitionKeyRemainder = definitionKey;
 
-        if (definitionKeyRemainder.startsWith(SUFFIX_LIST_PROPERTY_CSV + "."))
+        int nextDot = definitionKeyRemainder.indexOf('.');
+        if (definitionKeyRemainder.startsWith(SUFFIX_CSV_PROPERTY) && (nextDot == -1 || nextDot == SUFFIX_CSV_PROPERTY.length()))
         {
             isCsv = true;
-            definitionKeyRemainder = definitionKeyRemainder.substring(SUFFIX_LIST_PROPERTY_CSV.length() + 1);
+            definitionKeyRemainder = nextDot != -1 ? definitionKeyRemainder.substring(nextDot + 1) : "";
         }
 
-        final int nextDot = definitionKeyRemainder.indexOf('.');
+        nextDot = definitionKeyRemainder.indexOf('.');
+        final String potentialIndex;
         if (nextDot != -1)
         {
-            index = Integer.parseInt(definitionKeyRemainder.substring(0, nextDot));
+            potentialIndex = definitionKeyRemainder.substring(0, nextDot);
             definitionKeyRemainder = definitionKeyRemainder.substring(nextDot + 1);
         }
         else
         {
-            index = Integer.parseInt(definitionKeyRemainder);
+            potentialIndex = definitionKeyRemainder;
             definitionKeyRemainder = "";
+        }
+
+        // potentialIndex may just be used as a differentiator for multiple list additions / removals for the same property
+        final int index;
+        if (potentialIndex.matches("^\\d+$"))
+        {
+            index = Integer.parseInt(potentialIndex);
+        }
+        else
+        {
+            if (definitionKeyRemainder.isEmpty())
+            {
+                definitionKeyRemainder = potentialIndex;
+            }
+            else
+            {
+                definitionKeyRemainder = potentialIndex + DOT + definitionKeyRemainder;
+            }
+            index = -1;
         }
 
         final ManagedList<Object> valueList = this.initListPropertyValue(beanName, propertyName, propertyValues);
 
-        if (valueList.size() < index)
-        {
-            paddedListRegistrator.accept(valueList);
-
-            while (valueList.size() < index)
-            {
-                // pad with null values
-                // may be replaced with actual value if another property defines value for index
-                valueList.add(null);
-            }
-        }
-
         if (definitionKeyRemainder.endsWith(DOT + SUFFIX_PROPERTY_REMOVE))
         {
-            valueList.remove(index);
+            if (index != -1)
+            {
+                valueList.remove(index);
+            }
+            else
+            {
+                if (isCsv)
+                {
+                    if (!value.isEmpty())
+                    {
+                        final String[] strValues = value.split("\\s*(?<!\\\\),\\s*");
+                        for (final String singleValue : strValues)
+                        {
+                            final Object valueToRemove = this.getAsValue(beanName, propertyName, definitionKeyRemainder, singleValue);
+                            valueList.remove(valueToRemove);
+                        }
+                    }
+                }
+                else
+                {
+                    final Object valueToRemove = this.getAsValue(beanName, propertyName, definitionKeyRemainder, value);
+                    valueList.remove(valueToRemove);
+                }
+            }
         }
         else
         {
+            if (valueList.size() < index)
+            {
+                paddedListRegistrator.accept(valueList);
+
+                while (valueList.size() < index)
+                {
+                    // pad with null values
+                    // may be replaced with actual value if another property defines value for index
+                    valueList.add(null);
+                }
+            }
+
             if (isCsv)
             {
-                if (!value.trim().isEmpty())
+                if (!value.isEmpty())
                 {
-                    final String[] strValues = value.trim().split("\\s*(?<!\\\\),\\s*");
+                    final String[] strValues = value.split("\\s*(?<!\\\\),\\s*");
 
                     for (final String singleValue : strValues)
                     {
                         final Object valueToSet = this.getAsValue(beanName, propertyName, definitionKeyRemainder, singleValue);
-                        if (valueList.size() == index)
+                        if (index == -1 || valueList.size() == index)
                         {
                             valueList.add(valueToSet);
                         }
@@ -533,7 +588,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
             else
             {
                 final Object valueToSet = this.getAsValue(beanName, propertyName, definitionKeyRemainder, value);
-                if (valueList.size() == index)
+                if (index == -1 || valueList.size() == index)
                 {
                     valueList.add(valueToSet);
                 }
@@ -541,6 +596,76 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                 {
                     valueList.set(index, valueToSet);
                 }
+            }
+        }
+    }
+
+    protected void processSetPropertyDefinition(final String beanName, final String propertyName, final String definitionKey,
+            final String value, final MutablePropertyValues propertyValues)
+    {
+        boolean isCsv = false;
+
+        String definitionKeyRemainder = definitionKey;
+
+        int nextDot = definitionKeyRemainder.indexOf('.');
+        if (definitionKeyRemainder.startsWith(SUFFIX_CSV_PROPERTY) && (nextDot == -1 || nextDot == SUFFIX_CSV_PROPERTY.length()))
+        {
+            isCsv = true;
+            definitionKeyRemainder = nextDot != -1 ? definitionKeyRemainder.substring(nextDot + 1) : "";
+        }
+
+        // we support having a dummy differentiator between multiple set additions / removals for the same property
+        nextDot = definitionKeyRemainder.indexOf('.');
+        if (nextDot != -1)
+        {
+            definitionKeyRemainder = definitionKeyRemainder.substring(nextDot + 1);
+        }
+        else
+        {
+            definitionKeyRemainder = "";
+        }
+
+        final ManagedSet<Object> valueSet = this.initSetPropertyValue(beanName, propertyName, propertyValues);
+
+        if (definitionKeyRemainder.endsWith(DOT + SUFFIX_PROPERTY_REMOVE))
+        {
+            if (isCsv)
+            {
+                if (!value.isEmpty())
+                {
+                    final String[] strValues = value.split("\\s*(?<!\\\\),\\s*");
+                    for (final String singleValue : strValues)
+                    {
+                        final Object valueToRemove = this.getAsValue(beanName, propertyName, definitionKeyRemainder, singleValue);
+                        valueSet.remove(valueToRemove);
+                    }
+                }
+            }
+            else
+            {
+                final Object valueToRemove = this.getAsValue(beanName, propertyName, definitionKeyRemainder, value);
+                valueSet.remove(valueToRemove);
+            }
+        }
+        else
+        {
+            if (isCsv)
+            {
+                if (!value.isEmpty())
+                {
+                    final String[] strValues = value.split("\\s*(?<!\\\\),\\s*");
+
+                    for (final String singleValue : strValues)
+                    {
+                        final Object valueToAdd = this.getAsValue(beanName, propertyName, definitionKeyRemainder, singleValue);
+                        valueSet.add(valueToAdd);
+                    }
+                }
+            }
+            else
+            {
+                final Object valueToAdd = this.getAsValue(beanName, propertyName, definitionKeyRemainder, value);
+                valueSet.add(valueToAdd);
             }
         }
     }
@@ -617,6 +742,35 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
             propertyValues.addPropertyValue(propertyValue);
         }
         return valueList;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected ManagedSet<Object> initSetPropertyValue(final String beanName, final String propertyName,
+            final MutablePropertyValues propertyValues)
+    {
+        ManagedSet<Object> valueSet;
+        PropertyValue propertyValue = propertyValues.getPropertyValue(propertyName);
+        if (propertyValue == null)
+        {
+            LOGGER.trace("[{}] Property {} on {} not defined yet - initializing new managed set", this.beanName, beanName, propertyName);
+            valueSet = new ManagedSet<>();
+            propertyValue = new PropertyValue(propertyName, valueSet);
+            propertyValues.addPropertyValue(propertyValue);
+        }
+        else if (propertyValue.getValue() instanceof ManagedList<?>)
+        {
+            LOGGER.trace("[{}] Property {} on {} already has a set value - amending", this.beanName, beanName, propertyName);
+            valueSet = (ManagedSet<Object>) propertyValue.getValue();
+        }
+        else
+        {
+            LOGGER.info("[{}] Property {} on {} already defined with value {} - overriding with set value based on properties",
+                    this.beanName, beanName, propertyName, propertyValue.getValue());
+            valueSet = new ManagedSet<>();
+            propertyValue = new PropertyValue(propertyName, valueSet);
+            propertyValues.addPropertyValue(propertyValue);
+        }
+        return valueSet;
     }
 
     @SuppressWarnings("unchecked")

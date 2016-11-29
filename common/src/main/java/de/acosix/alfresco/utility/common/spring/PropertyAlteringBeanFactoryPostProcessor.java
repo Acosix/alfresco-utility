@@ -17,9 +17,11 @@ package de.acosix.alfresco.utility.common.spring;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.function.Function;
 
 import org.slf4j.Logger;
@@ -34,6 +36,7 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.ManagedMap;
+import org.springframework.beans.factory.support.ManagedSet;
 
 /**
  * {@link BeanFactoryPostProcessor Bean factory post processor} to alter a property of a bean definition with adapted configuration before
@@ -58,13 +61,17 @@ public class PropertyAlteringBeanFactoryPostProcessor implements BeanFactoryPost
 
     protected String beanReferenceName;
 
-    protected List<Object> values;
+    protected List<Object> valueList;
 
-    protected List<String> beanReferenceNames;
+    protected List<String> beanReferenceNameList;
 
-    protected Map<Object, Object> mappedValues;
+    protected Set<Object> valueSet;
 
-    protected Map<Object, String> mappedBeanReferenceNames;
+    protected Set<String> beanReferenceNameSet;
+
+    protected Map<Object, Object> valueMap;
+
+    protected Map<Object, String> beanReferenceNameMap;
 
     protected boolean addAsFirst = false;
 
@@ -129,39 +136,105 @@ public class PropertyAlteringBeanFactoryPostProcessor implements BeanFactoryPost
     }
 
     /**
+     *
      * @param values
      *            the values to set
+     *
+     * @deprecated Included only for backwards compatibility - use {@link #setValueList(List) setValueList} instead
      */
+    @Deprecated
     public void setValues(final List<Object> values)
     {
-        this.values = values;
+        this.setValueList(values);
     }
 
     /**
+     * @param valueList
+     *            the valueList to set
+     */
+    public void setValueList(final List<Object> valueList)
+    {
+        this.valueList = valueList;
+    }
+
+    /**
+     *
      * @param beanReferenceNames
      *            the beanReferenceNames to set
+     *
+     * @deprecated Included only for backwards compatibility - use {@link #setBeanReferenceNameList(List) setBeanReferenceNameList} instead
      */
+    @Deprecated
     public void setBeanReferenceNames(final List<String> beanReferenceNames)
     {
-        this.beanReferenceNames = beanReferenceNames;
+        this.setBeanReferenceNameList(beanReferenceNames);
+    }
+
+    /**
+     * @param beanReferenceNameList
+     *            the beanReferenceNameList to set
+     */
+    public void setBeanReferenceNameList(final List<String> beanReferenceNameList)
+    {
+        this.beanReferenceNameList = beanReferenceNameList;
+    }
+
+    /**
+     * @param valueSet
+     *            the valueSet to set
+     */
+    public void setValueSet(final Set<Object> valueSet)
+    {
+        this.valueSet = valueSet;
+    }
+
+    /**
+     * @param beanReferenceNameSet
+     *            the beanReferenceNameSet to set
+     */
+    public void setBeanReferenceNameSet(final Set<String> beanReferenceNameSet)
+    {
+        this.beanReferenceNameSet = beanReferenceNameSet;
     }
 
     /**
      * @param mappedValues
      *            the mappedValues to set
+     * @deprecated Included only for backwards compatibility - use {@link #setValueMap(Map) setValueMap} instead
      */
+    @Deprecated
     public void setMappedValues(final Map<Object, Object> mappedValues)
     {
-        this.mappedValues = mappedValues;
+        this.setValueMap(mappedValues);
+    }
+
+    /**
+     * @param valueMap
+     *            the valueMap to set
+     */
+    public void setValueMap(final Map<Object, Object> valueMap)
+    {
+        this.valueMap = valueMap;
     }
 
     /**
      * @param mappedBeanReferenceNames
      *            the mappedBeanReferenceNames to set
+     * @deprecated Included only for backwards compatibility - use {@link #setBeanReferenceNameMap(Map) setBeanReferenceNameMap} instead
      */
+    @Deprecated
     public void setMappedBeanReferenceNames(final Map<Object, String> mappedBeanReferenceNames)
     {
-        this.mappedBeanReferenceNames = mappedBeanReferenceNames;
+        this.setBeanReferenceNameMap(mappedBeanReferenceNames);
+    }
+
+    /**
+     * @param beanReferenceNameMap
+     *            the beanReferenceNameMap to set
+     */
+    public void setBeanReferenceNameMap(final Map<Object, String> beanReferenceNameMap)
+    {
+        this.beanReferenceNameMap = beanReferenceNameMap;
     }
 
     /**
@@ -234,11 +307,15 @@ public class PropertyAlteringBeanFactoryPostProcessor implements BeanFactoryPost
 
             final Object value;
 
-            if (this.values != null || this.beanReferenceNames != null)
+            if (this.valueList != null || this.beanReferenceNameList != null)
             {
                 value = this.handleListValues(configuredValue);
             }
-            else if (this.mappedValues != null || this.mappedBeanReferenceNames != null)
+            else if (this.valueSet != null || this.beanReferenceNameSet != null)
+            {
+                value = this.handleSetValues(configuredValue);
+            }
+            else if (this.valueMap != null || this.beanReferenceNameMap != null)
             {
                 value = this.handleMapValues(configuredValue);
             }
@@ -300,18 +377,18 @@ public class PropertyAlteringBeanFactoryPostProcessor implements BeanFactoryPost
         }
 
         List<Object> valuesToAdd;
-        if (this.values != null)
+        if (this.valueList != null)
         {
             LOGGER.debug("[{}] List of configured values for {} of {}: ", this.beanName, this.propertyName, this.targetBeanName,
-                    this.values);
-            valuesToAdd = this.values;
+                    this.valueList);
+            valuesToAdd = this.valueList;
         }
         else
         {
             LOGGER.debug("[{}] List of configured bean reference names for {} of {}: ", this.beanName, this.propertyName,
-                    this.targetBeanName, this.beanReferenceNames);
+                    this.targetBeanName, this.beanReferenceNameList);
             valuesToAdd = new ArrayList<>();
-            for (final String beanReferenceName : this.beanReferenceNames)
+            for (final String beanReferenceName : this.beanReferenceNameList)
             {
                 valuesToAdd.add(new RuntimeBeanReference(beanReferenceName));
             }
@@ -343,6 +420,60 @@ public class PropertyAlteringBeanFactoryPostProcessor implements BeanFactoryPost
         return value;
     }
 
+    protected Object handleSetValues(final PropertyValue configuredValue)
+    {
+        final Object value;
+        LOGGER.debug("[{}] Set of values / bean reference names has been configured - treating property {} of {} as <set>", this.beanName,
+                this.propertyName, this.targetBeanName);
+
+        final ManagedSet<Object> set = new ManagedSet<>();
+
+        if (this.merge && configuredValue != null)
+        {
+            final Object configuredValueDefinition = configuredValue.getValue();
+            if (configuredValueDefinition instanceof ManagedSet<?>)
+            {
+                final ManagedSet<?> oldSet = (ManagedSet<?>) configuredValueDefinition;
+                set.setElementTypeName(oldSet.getElementTypeName());
+                set.setMergeEnabled(oldSet.isMergeEnabled());
+                set.setSource(oldSet.getSource());
+
+                set.addAll(oldSet);
+
+                LOGGER.debug("[{}] Merged existing value set values: {}", this.beanName, oldSet);
+            }
+        }
+
+        Set<Object> valuesToAdd;
+        if (this.valueSet != null)
+        {
+            LOGGER.debug("[{}] Set of configured values for {} of {}: ", this.beanName, this.propertyName, this.targetBeanName,
+                    this.valueSet);
+            valuesToAdd = this.valueSet;
+        }
+        else
+        {
+            LOGGER.debug("[{}] Set of configured bean reference names for {} of {}: ", this.beanName, this.propertyName,
+                    this.targetBeanName, this.beanReferenceNameSet);
+            valuesToAdd = new HashSet<>();
+            for (final String beanReferenceName : this.beanReferenceNameSet)
+            {
+                valuesToAdd.add(new RuntimeBeanReference(beanReferenceName));
+            }
+        }
+
+        LOGGER.debug("[{}] Adding new entries to set for {} of {}", this.beanName, this.propertyName, this.targetBeanName);
+        set.addAll(valuesToAdd);
+
+        if (!set.isMergeEnabled() && this.mergeParent)
+        {
+            LOGGER.debug("[{}] Enabling \"merge\" for <set> on {} of {}", this.beanName, this.propertyName, this.targetBeanName);
+        }
+        set.setMergeEnabled(set.isMergeEnabled() || this.mergeParent);
+        value = set;
+        return value;
+    }
+
     protected Object handleMapValues(final PropertyValue configuredValue)
     {
         final Object value;
@@ -370,24 +501,24 @@ public class PropertyAlteringBeanFactoryPostProcessor implements BeanFactoryPost
         }
 
         Map<Object, Object> valuesToMap;
-        if (this.mappedValues != null)
+        if (this.valueMap != null)
         {
             LOGGER.debug("[{}] Map of configured values for {} of {}: ", this.beanName, this.propertyName, this.targetBeanName,
-                    this.mappedValues);
-            valuesToMap = this.mappedValues;
+                    this.valueMap);
+            valuesToMap = this.valueMap;
         }
         else
         {
             LOGGER.debug("[{}] Map of configured bean reference names for {} of {}: ", this.beanName, this.propertyName,
-                    this.targetBeanName, this.mappedBeanReferenceNames);
+                    this.targetBeanName, this.beanReferenceNameMap);
             valuesToMap = new HashMap<>();
-            for (final Entry<Object, String> beanReferenceEntry : this.mappedBeanReferenceNames.entrySet())
+            for (final Entry<Object, String> beanReferenceEntry : this.beanReferenceNameMap.entrySet())
             {
                 valuesToMap.put(beanReferenceEntry.getKey(), new RuntimeBeanReference(beanReferenceEntry.getValue()));
             }
         }
 
-        LOGGER.debug("[{}] Putting new entries into map list for {} of {}", this.beanName, this.propertyName, this.targetBeanName);
+        LOGGER.debug("[{}] Putting new entries into map for {} of {}", this.beanName, this.propertyName, this.targetBeanName);
         map.putAll(valuesToMap);
 
         if (!map.isMergeEnabled() && this.mergeParent)
