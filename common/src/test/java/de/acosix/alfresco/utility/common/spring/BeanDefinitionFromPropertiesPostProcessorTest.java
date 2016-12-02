@@ -18,8 +18,10 @@ package de.acosix.alfresco.utility.common.spring;
 import java.util.Arrays;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.internal.ArrayComparisonFailure;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -30,6 +32,9 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 @RunWith(BlockJUnit4ClassRunner.class)
 public class BeanDefinitionFromPropertiesPostProcessorTest
 {
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void singleton()
@@ -80,6 +85,36 @@ public class BeanDefinitionFromPropertiesPostProcessorTest
             final TestDummyBean refBean3 = context.getBean("beanTypeX.refBean3", TestDummyBean.class);
 
             this.verifyBean(concreteInstance, refBean1, refBean2, refBean3);
+        }
+    }
+
+    @Test
+    public void renameBean()
+    {
+        try (final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+                "classpath:BeanDefinitionFromPropertiesPostProcessorTest/renameBean-context.xml"))
+        {
+            Assert.assertFalse("beanTypeX.bean1 should have been renamed", context.containsBean("beanTypeX.bean1"));
+            Assert.assertTrue("beanTypeX.bean2 should not have been renamed", context.containsBean("beanTypeX.bean2"));
+
+            final TestDummyBean simpleBean = context.getBean("beanTypeY.bean1", TestDummyBean.class);
+
+            final TestDummyBean refBean1 = context.getBean("beanTypeX.refBean1", TestDummyBean.class);
+            final TestDummyBean refBean2 = context.getBean("beanTypeX.refBean2", TestDummyBean.class);
+            final TestDummyBean refBean3 = context.getBean("beanTypeX.refBean3", TestDummyBean.class);
+
+            this.verifyBean(simpleBean, refBean1, refBean2, refBean3);
+        }
+    }
+
+    @Test
+    public void removeBean()
+    {
+        try (final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+                "classpath:BeanDefinitionFromPropertiesPostProcessorTest/removeBean-context.xml"))
+        {
+            Assert.assertFalse("beanTypeX.bean1 should have been removed", context.containsBean("beanTypeX.bean1"));
+            Assert.assertTrue("beanTypeX.bean2 should not have been removed", context.containsBean("beanTypeX.bean2"));
         }
     }
 

@@ -76,12 +76,7 @@ public class PropertyAlteringBeanDefinitionRegistryPostProcessor extends Propert
     @Override
     public void postProcessBeanDefinitionRegistry(final BeanDefinitionRegistry registry) throws BeansException
     {
-        boolean enabled = this.enabled;
-        if (this.enabledPropertyKey != null && !this.enabledPropertyKey.isEmpty() && this.propertiesSource != null)
-        {
-            final String property = this.propertiesSource.getProperty(this.enabledPropertyKey);
-            enabled = enabled || (property != null ? Boolean.parseBoolean(property) : false);
-        }
+        final boolean enabled = this.isEnabled();
 
         if (enabled && this.targetBeanName != null && this.propertyName != null)
         {
@@ -97,6 +92,17 @@ public class PropertyAlteringBeanDefinitionRegistryPostProcessor extends Propert
         {
             LOGGER.warn("[{}] patch cannnot be applied as its configuration is incomplete", this.beanName);
         }
+    }
+
+    protected boolean isEnabled()
+    {
+        boolean enabled = this.enabled;
+        if (this.enabledPropertyKey != null && !this.enabledPropertyKey.isEmpty() && this.propertiesSource != null)
+        {
+            final String property = this.propertiesSource.getProperty(this.enabledPropertyKey);
+            enabled = enabled || (property != null ? Boolean.parseBoolean(property) : false);
+        }
+        return enabled;
     }
 
 }
