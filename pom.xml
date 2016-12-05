@@ -14,7 +14,7 @@
     <version>1.0.1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>Acosix Alfresco utility - Parent</name>
+    <name>Acosix Alfresco Utility - Parent</name>
     <url>https://github.com/Acosix/alfresco-utility</url>
 
     <licenses>

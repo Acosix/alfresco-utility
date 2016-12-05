@@ -140,7 +140,12 @@
                 <groupId>org.alfresco.maven.plugin</groupId>
                 <artifactId>alfresco-maven-plugin</artifactId>
             </plugin>
-            <!-- <plugin> <groupId>com.cj.jshintmojo</groupId> <artifactId>jshint-maven-plugin</artifactId> </plugin> -->
+
+            <plugin>
+                <groupId>de.acosix.maven</groupId>
+                <artifactId>jshint-maven-plugin</artifactId>
+            </plugin>
+
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>findbugs-maven-plugin</artifactId>
