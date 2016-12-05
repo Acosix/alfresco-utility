@@ -45,7 +45,7 @@
         <dependencySet>
             <outputDirectory>lib</outputDirectory>
             <includes>
-                <include>de.acosix.alfresco.utility:de.acosix.alfresco.utility.common:*</include>
+                <include>de.acosix.alfresco.utility:${common.artifactId}:*</include>
             </includes>
         </dependencySet>
     </dependencySets>

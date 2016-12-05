@@ -4,9 +4,9 @@
            http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
-    <bean id="beanTypeX.bean1" class="de.acosix.alfresco.utility.common.spring.TestDummyBean" />
+    <bean id="beanTypeX.bean1" class="${common.artifactId}.spring.TestDummyBean" />
     
-    <bean id="beanTypeX.bean2" class="de.acosix.alfresco.utility.common.spring.TestDummyBean" />
+    <bean id="beanTypeX.bean2" class="${common.artifactId}.spring.TestDummyBean" />
 
     <bean class="${project.artifactId}.spring.BeanDefinitionFromPropertiesPostProcessor">
         <property name="enabled" value="true" />

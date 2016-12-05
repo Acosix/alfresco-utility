@@ -32,7 +32,7 @@
         <property name="propertiesSource" ref="${moduleId}-properties" />
     </bean>
     
-    <bean class="de.acosix.alfresco.utility.common.spring.BeanDefinitionFromPropertiesPostProcessor">
+    <bean class="${common.artifactId}.spring.BeanDefinitionFromPropertiesPostProcessor">
         <property name="enabledPropertyKey" value="${moduleId}.logConfig.support.enabled" />
         <property name="propertyPrefix" value="${moduleId}" />
         <property name="beanTypes">

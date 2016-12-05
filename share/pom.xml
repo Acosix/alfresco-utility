@@ -18,7 +18,7 @@
     <dependencies>
         <dependency>
             <groupId>de.acosix.alfresco.utility</groupId>
-            <artifactId>de.acosix.alfresco.utility.common</artifactId>
+            <artifactId>${common.artifactId}</artifactId>
             <version>${project.version}</version>
         </dependency>
 

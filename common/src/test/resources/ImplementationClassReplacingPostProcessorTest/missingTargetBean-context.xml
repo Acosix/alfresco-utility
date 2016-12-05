@@ -8,7 +8,7 @@
 
     <bean class="${project.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
         <property name="enabled" value="true" />
-        <property name="replacementClassName" value="de.acosix.alfresco.utility.common.spring.TestDummyBean" />
+        <property name="replacementClassName" value="${common.artifactId}.spring.TestDummyBean" />
     </bean>
 
 </beans>

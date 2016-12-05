@@ -10,7 +10,7 @@
         <property name="enabled" value="true" />
         <property name="targetBeanName" value="testBean" />
         <property name="originalClassName" value="org.alfresco.util.exec.RuntimeExec" />
-        <property name="replacementClassName" value="de.acosix.alfresco.utility.common.spring.TestDummyBean" />
+        <property name="replacementClassName" value="${common.artifactId}.spring.TestDummyBean" />
     </bean>
 
 </beans>
