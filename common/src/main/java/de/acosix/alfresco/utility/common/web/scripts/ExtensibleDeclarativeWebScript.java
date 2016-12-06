@@ -111,4 +111,7 @@ public class ExtensibleDeclarativeWebScript extends DeclarativeWebScript
             }
         }
     }
+
+    // TODO Find a way to add support for surf.include.resources to customizatoin resource bundles
+    // Unfortunately getResources() is final and can't be overriden
 }
