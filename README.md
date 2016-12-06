@@ -10,16 +10,18 @@ This module is built to be compatible with Alfresco 5.0d and above. It may be us
 ## Features
 
 ### Common
-- Collection of Spring bean factory / bean definition registry post processors for customizing out-of-the-box Alfresco Spring beans without overriding / copy&pasting Spring XML
-- thread-safe SSL socket factory (default Alfresco SSL socket factory uses static, shared state)
+- Collection of Spring bean factory / bean definition registry post processors for customising out-of-the-box Alfresco Spring beans without overriding / copy&pasting Spring XML
+- Thread-safe SSL socket factory (default Alfresco SSL socket factory uses static, shared state)
+- Enhanced default declarative web script which respects the web script format during lookup of JS customisations (e.g. site.put.json.js will look for site.put.json.js and site.put.js customisation files instead of only site.put.js) 
 
 ### Repository-tier
 - Enhanced subsystem factory/manager classes that allow reverse-lookup of the subsystem instance ID from its application context as well as access to the resolved locations of *.properties files
 - Subsystem properties factory bean allowing subsystem properties to be exposed to other components as regular java.util.Properties objects
+- Enhanced web script container capable of handling [web script extensibility](https://www.alfresco.com/blogs/developer/2012/05/23/webscript-extensibility-on-the-alfresco-repository/) - raised via [ALF-21794](https://issues.alfresco.com/jira/browse/ALF-21794)
 
 ### Share-tier
 - Support for share-global.properties files to hold simple configuration key-value pairs which can be provided by modules (similarily to Repository-tier) and overriden by administrators via a share-global.properties file in the Tomcat configuration root folder (./shared/classes/) - properties provided that way are automatically exposed in Spring XML files for placeholder resolution
-- Suport for log4j.properties files to be provided by modules (similarily to Repository-tier) and overriden by administrators via a *-log4j.properties in the Tomcat configuration root folder (./shared/classes/alfresco/web-extension/)
+- Support for log4j.properties files to be provided by modules (similarily to Repository-tier) and overriden by administrators via a *-log4j.properties in the Tomcat configuration root folder (./shared/classes/alfresco/web-extension/) - raised by an Enterprise customer in 2013 via [MNT-14972](https://issues.alfresco.com/jira/browse/MNT-14972)
 - Minor enhancements to Surf CSS theme handlers (clean state separation between different theme CSS tokens)
 - Minor enhancements to Surf Dojo widget dependency collection (JSON instead of RegEx-parsing instead of widget models; improved RegEx-pattern for dependencies detection in JS source files)
 
