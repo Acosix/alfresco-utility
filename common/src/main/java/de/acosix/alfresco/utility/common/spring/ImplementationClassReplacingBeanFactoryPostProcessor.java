@@ -120,7 +120,7 @@ public class ImplementationClassReplacingBeanFactoryPostProcessor implements Bea
         {
             if (this.originalClassName == null || this.originalClassName.equals(beanDefinition.getBeanClassName()))
             {
-                LOGGER.info("[{}] Patching implementation class Spring bean {} to {}", this.beanName, this.targetBeanName,
+                LOGGER.debug("[{}] Patching implementation class Spring bean {} to {}", this.beanName, this.targetBeanName,
                         this.replacementClassName);
                 beanDefinition.setBeanClassName(this.replacementClassName);
             }

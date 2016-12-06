@@ -580,7 +580,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
 
             if (propertyValue != null && propertyValue.getValue() != null)
             {
-                LOGGER.info("[{}] Property {} on {} already defined with value {} - overriding with different value", this.beanName,
+                LOGGER.debug("[{}] Property {} on {} already defined with value {} - overriding with different value", this.beanName,
                         beanName, propertyName, propertyValue.getValue());
             }
             propertyValue = new PropertyValue(propertyName, valueToSet);
@@ -865,7 +865,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         }
         else
         {
-            LOGGER.info("[{}] Property {} on {} already defined with value {} - overriding with list value based on properties",
+            LOGGER.debug("[{}] Property {} on {} already defined with value {} - overriding with list value based on properties",
                     this.beanName, beanName, propertyName, propertyValue.getValue());
             valueList = new ManagedList<>();
             propertyValue = new PropertyValue(propertyName, valueList);
@@ -894,7 +894,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         }
         else
         {
-            LOGGER.info("[{}] Property {} on {} already defined with value {} - overriding with set value based on properties",
+            LOGGER.debug("[{}] Property {} on {} already defined with value {} - overriding with set value based on properties",
                     this.beanName, beanName, propertyName, propertyValue.getValue());
             valueSet = new ManagedSet<>();
             propertyValue = new PropertyValue(propertyName, valueSet);
@@ -923,7 +923,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         }
         else
         {
-            LOGGER.info("[{}] Property {} on {} already defined with value {} - overriding with map value based on properties",
+            LOGGER.debug("[{}] Property {} on {} already defined with value {} - overriding with map value based on properties",
                     this.beanName, beanName, propertyName, propertyValue.getValue());
             valueMap = new ManagedMap<>();
             propertyValue = new PropertyValue(propertyName, valueMap);

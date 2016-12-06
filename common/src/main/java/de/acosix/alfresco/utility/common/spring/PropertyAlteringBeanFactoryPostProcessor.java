@@ -300,7 +300,7 @@ public class PropertyAlteringBeanFactoryPostProcessor implements BeanFactoryPost
         final BeanDefinition beanDefinition = getBeanDefinition.apply(this.targetBeanName);
         if (beanDefinition != null)
         {
-            LOGGER.info("[{}] Patching property {} of Spring bean {}", this.beanName, this.propertyName, this.targetBeanName);
+            LOGGER.debug("[{}] Patching property {} of Spring bean {}", this.beanName, this.propertyName, this.targetBeanName);
 
             final MutablePropertyValues propertyValues = beanDefinition.getPropertyValues();
             final PropertyValue configuredValue = propertyValues.getPropertyValue(this.propertyName);
