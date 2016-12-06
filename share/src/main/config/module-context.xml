@@ -64,4 +64,12 @@
         <property name="replacementClassName" value="${project.artifactId}.surf.JSONAwareWidgetsDependencyRule" />
         <property name="enabled" value="\${${moduleId}.surf.jsonAwareDojoWidgetsRule.enabled}" />
     </bean>
+    
+    <bean class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
+        <property name="enabled" value="\${${moduleId}.web.scripts.correctScriptCustomizationLookup.enabled}" />
+        <property name="targetBeanName" value="webscript.default" />
+        <!-- this should be the default -->
+        <property name="originalClassName" value="org.springframework.extensions.webscripts.DeclarativeWebScript" />
+        <property name="replacementClassName" value="${common.artifactId}.web.scripts.ExtensibleDeclarativeWebScript" />
+    </bean>
 </beans>

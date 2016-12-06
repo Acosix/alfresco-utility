@@ -19,6 +19,14 @@
         <property name="originalClassName" value="org.alfresco.repo.web.scripts.RepositoryContainer" />
         <property name="replacementClassName" value="org.alfresco.repo.web.scripts.ExtensibilityContainer" />
     </bean>
+    
+    <bean class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
+        <property name="enabled" value="\${${moduleId}.web.scripts.extensibleContainer.enabled}" />
+        <property name="targetBeanName" value="webscript.default" />
+        <!-- this should be the default -->
+        <property name="originalClassName" value="org.springframework.extensions.webscripts.DeclarativeWebScript" />
+        <property name="replacementClassName" value="${common.artifactId}.web.scripts.ExtensibleDeclarativeWebScript" />
+    </bean>
 
     <bean class="${common.artifactId}.spring.PropertyAlteringBeanFactoryPostProcessor">
         <property name="enabled" value="\${${moduleId}.web.scripts.extensibleContainer.enabled}" />

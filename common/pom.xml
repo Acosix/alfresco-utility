@@ -33,6 +33,13 @@
             </dependency>
 
             <dependency>
+                <groupId>org.springframework.extensions.surf</groupId>
+                <artifactId>spring-webscripts</artifactId>
+                <version>${alfresco.distribution.version}</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>${slf4j.version}</version>
@@ -77,6 +84,11 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.extensions.surf</groupId>
+            <artifactId>spring-webscripts</artifactId>
         </dependency>
 
         <dependency>
