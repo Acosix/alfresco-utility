@@ -4,18 +4,16 @@
            http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
-    <bean class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
-        <property name="enabledPropertyKey" value="${moduleId}.web.scripts.extensibleContainer.enabled" />
-        <property name="propertiesSource" ref="global-properties" />
+    <bean class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
+        <property name="enabled" value="\${${moduleId}.web.scripts.extensibleContainer.enabled}" />
         <property name="targetBeanName" value="webscripts.container" />
         <!-- this should be the default -->
         <property name="originalClassName" value="org.alfresco.repo.web.scripts.TenantRepositoryContainer" />
         <property name="replacementClassName" value="${project.artifactId}.web.scripts.TenantExtensibilityContainer" />
     </bean>
 
-    <bean class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
-        <property name="enabledPropertyKey" value="${moduleId}.web.scripts.extensibleContainer.enabled" />
-        <property name="propertiesSource" ref="global-properties" />
+    <bean class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
+        <property name="enabled" value="\${${moduleId}.web.scripts.extensibleContainer.enabled}" />
         <property name="targetBeanName" value="webscripts.container" />
         <!-- this is the default based on the original 2012 blog post -->
         <property name="originalClassName" value="org.alfresco.repo.web.scripts.RepositoryContainer" />
@@ -23,8 +21,7 @@
     </bean>
 
     <bean class="${common.artifactId}.spring.PropertyAlteringBeanFactoryPostProcessor">
-        <property name="enabledPropertyKey" value="${moduleId}.web.scripts.extensibleContainer.enabled" />
-        <property name="propertiesSource" ref="global-properties" />
+        <property name="enabled" value="\${${moduleId}.web.scripts.extensibleContainer.enabled}" />
         <property name="targetBeanName" value="webscripts.container" />
         <property name="propertyName" value="extensibilityModuleHandler" />
         <property name="beanReferenceName" value="extensibility.handler" />
