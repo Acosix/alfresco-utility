@@ -39,7 +39,7 @@ The simplest option to include the addon in an All-in-One project is by declarin
 
 ### Using SNAPSHOT builds
 
-In order to use a pre-built SNAPSHOT artifact published to the Open Source Sonatype Repository Hosting site, theartifact repository may need to be added to the POM, global settings.xml or an artifact repository proxy server. The following is the XML snippet for inclusion in a POM file.
+In order to use a pre-built SNAPSHOT artifact published to the Open Source Sonatype Repository Hosting site, the artifact repository may need to be added to the POM, global settings.xml or an artifact repository proxy server. The following is the XML snippet for inclusion in a POM file.
 
 ```xml
 <repositories>
