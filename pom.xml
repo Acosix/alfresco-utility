@@ -15,6 +15,7 @@
     <packaging>pom</packaging>
 
     <name>Acosix Alfresco Utility - Parent</name>
+    <description>Addon for reusable components, utilities and patches / improvements to Alfresco</description>
     <url>https://github.com/Acosix/alfresco-utility</url>
 
     <licenses>
