@@ -180,3 +180,29 @@ For Alfresco SDK 3 beta users:
     </moduleDependency>
 </shareModules>
 ```
+
+# Other installation methods
+
+Using Maven to build the Alfresco WAR is the **recommended** approach to install this module. As an alternative it can be installed manually.
+
+## alfresco-mmt.jar / apply_amps
+
+The default Alfresco installer creates folders *amps* and *amps_share* where you can place AMP files for modules which Alfresco will install when you use the apply_amps script. Place the AMP for the *de.acosix.alfresco.utility.repo* module in the *amps* directory, *de.acosix.alfresco.utility.share* in the *amps_share* directory, and execute the script to install them. You must restart Alfresco for the installation to take effect.
+
+Alternatively you can use the alfresco-mmt.jar to install the modules as [described in the documentation](http://docs.alfresco.com/5.1/concepts/dev-extensions-modules-management-tool.html).
+
+## Manual "installation" using JAR files
+
+Some addons and some other sources on the net suggest that you can install **any** addon by putting their JARs in a path like &lt;tomcat&gt;/lib, &lt;tomcat&gt;/shared or &lt;tomcat&gt;/shared/lib. This is **not** correct. Only the most trivial addons / extensions can be installed that way - "trivial" in this case means that these addons have no Java class-level dependencies on any component that Alfresco ships, e.g. addons that only consist of static resources, configuration files or web scripts using pure JavaScript / Freemarker.
+
+The only way to manually install an addon using JARs that is **guaranteed** not to cause Java classpath issues is by dropping the JAR files directly into the &lt;tomcat&gt;/webapps/alfresco/WEB-INF/lib (Repository-tier) or &lt;tomcat&gt;/webapps/share/WEB-INF/lib (Share-tier) folders.
+
+For this addon the following JARs need to be dropped into &lt;tomcat&gt;/webapps/alfresco/WEB-INF/lib:
+
+ - de.acosix.alfresco.utility.common-&lt;version&gt;.jar
+ - de.acosix.alfresco.utility.repo-&lt;version&gt;-installable.jar
+ 
+ For this addon the following JARs need to be dropped into &lt;tomcat&gt;/webapps/share/WEB-INF/lib:
+
+ - de.acosix.alfresco.utility.common-&lt;version&gt;.jar
+ - de.acosix.alfresco.utility.share-&lt;version&gt;-installable.jar
