@@ -202,7 +202,7 @@ For this addon the following JARs need to be dropped into &lt;tomcat&gt;/webapps
  - de.acosix.alfresco.utility.common-&lt;version&gt;.jar
  - de.acosix.alfresco.utility.repo-&lt;version&gt;-installable.jar
  
- For this addon the following JARs need to be dropped into &lt;tomcat&gt;/webapps/share/WEB-INF/lib:
+For this addon the following JARs need to be dropped into &lt;tomcat&gt;/webapps/share/WEB-INF/lib:
 
  - de.acosix.alfresco.utility.common-&lt;version&gt;.jar
  - de.acosix.alfresco.utility.share-&lt;version&gt;-installable.jar
