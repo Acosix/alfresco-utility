@@ -1,0 +1,117 @@
+// Customised layout within dialog
+// copied mostly from BaseFormControl.css and enhanced with .formRootSubstitute
+.alfresco-dialog-AlfDialog {
+   .dialog-body {
+      .alfresco-forms-Form.root-dialog-form {
+         > form .formRootSubstitute {
+            > .alfresco-forms-controls-BaseFormControl:first-child {
+               margin-top: 5px;
+            }
+
+            > .alfresco-forms-controls-BaseFormControl {
+               min-width: @dialog-control-section + 2;
+               > .description-row > .description {
+                  margin: 0 0 @standard-line-height @dialog-label-section + 4;
+               }
+               > .alfresco-forms-controls-BaseFormControl__warning-row {
+                  > .alfresco-forms-controls-BaseFormControl__warning-row__warning {
+                     margin: 0 0 @standard-line-height @dialog-label-section + 4;
+                  }
+               }
+               > .title-row {
+                  display: inline;
+                  float: left;
+                  margin-right: 8px;
+                  margin-top: 2px;
+                  text-align: right;
+                  width: @dialog-label-section - 4;
+                  > .label {
+                     word-break: break-word
+                  }
+                  > label:after {
+                     content: ":";
+                  }
+                  > .validation-message {
+                     margin: 7px 0 0 -5px;
+                  }
+               }
+               &--no-label {
+                  > .title-row {
+                     display: none;
+
+                     > label:after {
+                        content: "";
+                     }
+                  }
+                  > .description-row {
+                     > .description {
+                        margin: 0;
+                     }
+                  }
+                  > .alfresco-forms-controls-BaseFormControl__warning-row {
+                     > .alfresco-forms-controls-BaseFormControl__warning-row__warning {
+                        margin: 0;
+                     }
+                  }
+               }
+               &--invalid {
+                  > .title-row {
+                     display: block;
+                     > span.validation-message {
+                        display: block;
+                     }
+                  }
+                  > .description-row {
+                     > .description {
+                        margin: 0 0 @standard-line-height @dialog-label-section + 4;
+                     }
+                  }
+                  > .alfresco-forms-controls-BaseFormControl__warning-row {
+                     > .alfresco-forms-controls-BaseFormControl__warning-row__warning {
+                        margin: 0 0 @standard-line-height @dialog-label-section + 4;
+                     }
+                  }
+               }
+               &--validation-hidden {
+                  > .title-row {
+                     span.validation-message {
+                        display: none;
+                     }
+                  }
+               }
+               &--validation-hidden.alfresco-forms-controls-BaseFormControl--no-label {
+                  > .title-row {
+                     display: none;
+                  }
+                  > .control-row {
+                     width: initial;
+                  }
+                  > .description-row {
+                     > .description {
+                        margin: 0;
+                     }
+                  }> .alfresco-forms-controls-BaseFormControl__warning-row {
+                     > .alfresco-forms-controls-BaseFormControl__warning-row__warning {
+                        margin: 0;
+                     }
+                  }
+               }
+               > .control-row {
+                  width: ~"calc(100% -" @dialog-label-section ~"- 10px)";
+               }
+            }
+         }
+      }
+   }
+   &--no-min-width {
+      .dialog-body {
+         .alfresco-forms-Form.root-dialog-form {
+            > form .formRootSubstitute {
+               > .alfresco-forms-controls-BaseFormControl {
+                  min-width: 0
+               }
+            }
+         }
+      }
+   }
+}

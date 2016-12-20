@@ -1,0 +1,6 @@
+.alfresco-layout-Twister.withoutInset {
+   > .label,
+   > .content {
+      margin-left: 0px;
+   }
+}

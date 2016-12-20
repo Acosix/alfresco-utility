@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<extension>
+    <modules>
+        <module>
+            <id>${moduleId} - Base Extensions</id>
+            <description>${project.name} - Base Extensions</description>
+            <version>${noSnapshotVersion}</version>
+            <auto-deploy>true</auto-deploy>
+
+            <components>
+
+            </components>
+
+
+            <customizations>
+
+            </customizations>
+
+            <configurations>
+                <config evaluator="string-compare" condition="WebFramework">
+                    <web-framework>
+                        <dojo-pages>
+                            <packages>
+                                <!-- this stupid name is to avoid ACE-5305 -->
+                                <!-- would have preferred just "acosix" -->
+                                <package name="aco6-aikau" location="acosix/aikau" />
+                            </packages>
+                        </dojo-pages>
+                    </web-framework>
+                </config>
+            </configurations>
+        </module>
+    </modules>
+</extension>
