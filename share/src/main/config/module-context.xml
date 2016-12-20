@@ -46,16 +46,37 @@
         <property name="replacementClassName" value="${project.artifactId}.surf.StateSafeExternalLessCssThemeHandler" />
     </bean>
 
-    <!-- better detection of widget configs in JS sources -->
+    <!-- better detection of widget configs -->
     <!-- this supports single- and multi-widget configs -->
+    <!-- this allows use of single quotes in addition to double-quotes -->
     <!-- this supports variables and members -->
     <!-- this supports aggregated variable / member names -->
     <bean class="${common.artifactId}.spring.PropertyAlteringBeanFactoryPostProcessor">
         <property name="targetBeanName" value="define.dojo.widgets.dependency.rule" />
         <property name="propertyName" value="declarationRegex" />
         <property name="value"
-            value="&quot;?(?:_+)?(?:widgets?|[\w]+Widgets?|widgets?[A-Z]\w+)(?:_+)?&quot;?[^:=]*?[:=][\r\s\t\n]*\[?(\{(.*)\})\]?" />
+            value="[&quot;']?(?:_+)?(?:widgets?|[\w]+Widgets?|widgets?[A-Z]\w+)(?:_+)?[&quot;']?[^:=]*?[:=][\r\s\t\n]*\[?(\{(.*)\})\]?" />
         <property name="enabled" value="\${${moduleId}.surf.betterRegexDojoWidgetsRule.enabled}" />
+    </bean>
+    
+    <!-- better detection of CSS dependency configs -->
+    <!-- this allows use of single quotes in addition to double-quotes -->
+    <!-- this allows different source styling with whitespace leniency -->
+    <!-- this supports detection in JSON model in addition to in JS files -->
+    <bean class="${common.artifactId}.spring.PropertyAlteringBeanFactoryPostProcessor">
+        <property name="targetBeanName" value="define.dojo.css.dependency.rule.abstract" />
+        <property name="propertyName" value="dependencyRegex" />
+        <property name="value"
+            value="[&quot;']?cssFile[&quot;']?:[\r\s\t\n]*[&quot;'](.*?)[&quot;']([\r\s\t\n]*,[\r\s\t\n]*[&quot;']?mediaType[&quot;']?:[\r\s\t\n]*[&quot;'](.*?)[&quot;'])?" />
+        <property name="enabled" value="\${${moduleId}.surf.betterRegexDojoCSSDependencyRule.enabled}" />
+    </bean>
+    
+    <bean class="${common.artifactId}.spring.PropertyAlteringBeanFactoryPostProcessor">
+        <property name="targetBeanName" value="define.dojo.css.dependency.rule.abstract" />
+        <property name="propertyName" value="declarationRegex" />
+        <property name="value"
+            value="([&quot;']?cssRequirements[&quot;']?:[\r\s\t\n]*\[[\r\s\t\n]*\{(.*)\}[\r\s\t\n]*\])" />
+        <property name="enabled" value="\${${moduleId}.surf.betterRegexDojoCSSDependencyRule.enabled}" />
     </bean>
 
     <bean class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
@@ -66,10 +87,25 @@
     </bean>
     
     <bean class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
+        <property name="targetBeanName" value="define.dojo.css.dependency.rule" />
+        <property name="originalClassName" value="org.springframework.extensions.surf.DojoCssDependencyRule" />
+        <property name="replacementClassName" value="${project.artifactId}.surf.JSONAwareCssDependencyRule" />
+        <property name="enabled" value="\${${moduleId}.surf.jsonAwareDojoCssRule.enabled}" />
+    </bean>
+    
+    <bean class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
         <property name="enabled" value="\${${moduleId}.web.scripts.correctScriptCustomizationLookup.enabled}" />
         <property name="targetBeanName" value="webscript.default" />
         <!-- this should be the default -->
         <property name="originalClassName" value="org.springframework.extensions.webscripts.DeclarativeWebScript" />
         <property name="replacementClassName" value="${common.artifactId}.web.scripts.ExtensibleDeclarativeWebScript" />
+    </bean>
+
+    <bean class="org.alfresco.i18n.ResourceBundleBootstrapComponent">
+        <property name="resourceBundles">
+            <list>
+                <value>alfresco.messages.${messages.packageId}.labels</value>
+            </list>
+        </property>
     </bean>
 </beans>

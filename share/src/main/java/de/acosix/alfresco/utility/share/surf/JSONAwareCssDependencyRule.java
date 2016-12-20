@@ -25,28 +25,27 @@ import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.extensions.surf.DojoCssDependencyRule;
 import org.springframework.extensions.surf.DojoDependencies;
-import org.springframework.extensions.surf.DojoWidgetsDependencyRule;
 
 /**
  * This special rule implementation will attempt to parse and process the declarative widget model of a page as JSON before falling back to
- * the less efficient and more error prone default RegEx evaluation. Tests have shown that the Regex evaluation scales non-linearily with
- * increasing size / depth of the declarative model and can take multiple and even a two-digit amount of seconds to complete.
+ * the less efficient and more error prone default RegEx evaluation.
  *
  * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
  */
-public class JSONAwareWidgetsDependencyRule extends DojoWidgetsDependencyRule implements InitializingBean
+public class JSONAwareCssDependencyRule extends DojoCssDependencyRule implements InitializingBean
 {
 
-    private static final String WIDGET_CONFIG = "config";
+    private static final String CSS_FILE = "cssFile";
 
-    private static final String WIDGET_NAME = "name";
+    private static final String MEDIA_TYPE = "mediaType";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JSONAwareWidgetsDependencyRule.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JSONAwareCssDependencyRule.class);
 
-    protected String widgetKeyRegex = "^((?:_+)?(?:widgets?|[\\w]+Widgets?|widgets?[A-Z]\\w+)(?:_+)?)$";
+    protected String cssDependencyKeyRegex = "^(cssRequirements)$";
 
-    protected Pattern widgetKeyPattern;
+    protected Pattern cssDependencyKeyPattern;
 
     /**
      * {@inheritDoc}
@@ -54,17 +53,17 @@ public class JSONAwareWidgetsDependencyRule extends DojoWidgetsDependencyRule im
     @Override
     public void afterPropertiesSet()
     {
-        PropertyCheck.mandatory(this, "widgetKeyRegex", this.widgetKeyRegex);
-        this.widgetKeyPattern = Pattern.compile(this.widgetKeyRegex);
+        PropertyCheck.mandatory(this, "cssDependencyKeyRegex", this.cssDependencyKeyRegex);
+        this.cssDependencyKeyPattern = Pattern.compile(this.cssDependencyKeyRegex);
     }
 
     /**
-     * @param widgetKeyRegex
-     *            the widgetKeyRegex to set
+     * @param cssDependencyKeyRegex
+     *            the cssDependencyKeyRegex to set
      */
-    public void setWidgetKeyRegex(final String widgetKeyRegex)
+    public void setCssDependencyKeyRegex(final String cssDependencyKeyRegex)
     {
-        this.widgetKeyRegex = widgetKeyRegex;
+        this.cssDependencyKeyRegex = cssDependencyKeyRegex;
     }
 
     /**
@@ -141,15 +140,15 @@ public class JSONAwareWidgetsDependencyRule extends DojoWidgetsDependencyRule im
                 {
                     final Object value = jsonModel.get(key);
 
-                    if (this.widgetKeyPattern.matcher(key).matches())
+                    if (this.cssDependencyKeyPattern.matcher(key).matches())
                     {
                         if (value instanceof JSONObject)
                         {
-                            this.processSingleWidgetImpl((JSONObject) value, dependencies, fileContents);
+                            this.processSingleDependencyImpl((JSONObject) value, dependencies, fileContents);
                         }
                         else if (value instanceof JSONArray)
                         {
-                            this.processMultiWidgetsImpl((JSONArray) value, dependencies, fileContents);
+                            this.processMultiDependenciesImpl((JSONArray) value, dependencies, fileContents);
                         }
                     }
                     else
@@ -197,36 +196,31 @@ public class JSONAwareWidgetsDependencyRule extends DojoWidgetsDependencyRule im
         }
     }
 
-    protected void processMultiWidgetsImpl(final JSONArray widgetsModel, final DojoDependencies dependencies, final String fileContents)
+    protected void processMultiDependenciesImpl(final JSONArray dependenciesModel, final DojoDependencies dependencies,
+            final String fileContents)
     {
-        for (int idx = 0; idx < widgetsModel.length(); idx++)
+        for (int idx = 0; idx < dependenciesModel.length(); idx++)
         {
-            final JSONObject widget = widgetsModel.optJSONObject(idx);
-            if (widget != null)
+            final JSONObject dependencyModel = dependenciesModel.optJSONObject(idx);
+            if (dependencyModel != null)
             {
-                this.processSingleWidgetImpl(widget, dependencies, fileContents);
+                this.processSingleDependencyImpl(dependencyModel, dependencies, fileContents);
             }
         }
     }
 
-    protected void processSingleWidgetImpl(final JSONObject widgetModel, final DojoDependencies dependencies, final String fileContents)
+    protected void processSingleDependencyImpl(final JSONObject dependencyModel, final DojoDependencies dependencies,
+            final String fileContents)
     {
-        // TODO Do we want to make name / config key names configurable? Unlikely to be different than these defaults
-        final String widgetName = widgetModel.optString(WIDGET_NAME);
-        if (widgetName != null)
+        // TODO Do we want to make cssFile / mediaType key names configurable? Unlikely to be different than these defaults
+        final String cssFile = dependencyModel.optString(CSS_FILE);
+        String mediaType = dependencyModel.optString(MEDIA_TYPE);
+        if (mediaType == null || mediaType.trim().isEmpty())
         {
-            final JSONObject configModel = widgetModel.optJSONObject(WIDGET_CONFIG);
-            if (configModel != null)
-            {
-                this.processModelImpl(configModel, dependencies, fileContents);
-            }
+            mediaType = "screen";
+        }
 
-            final String depPath = this.getDojoDependencyHandler().getPath(null, widgetName) + ".js";
-            this.addJavaScriptDependency(dependencies, depPath);
-        }
-        else
-        {
-            this.processModelImpl(widgetModel, dependencies, fileContents);
-        }
+        final String cssPath = this.getDojoDependencyHandler().getPath(null, cssFile);
+        dependencies.addCssDep(cssPath, mediaType);
     }
 }
