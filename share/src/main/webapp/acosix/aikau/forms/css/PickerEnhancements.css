@@ -1,0 +1,11 @@
+.alfresco-dialog-AlfDialog {
+   .dialog-body {
+      .alfresco-forms-Form.root-dialog-form > form {
+         .alfresco-forms-controls-BaseFormControl.betterInlinePicker {
+            > .control-row > .control > .alfresco-core-ProcessWidgets > .alfresco-lists-views-AlfListView > table > tbody > tr > td {
+               padding: calc(@standard-line-height/4) @standard-column-width calc(@standard-line-height/4) 0;
+            }
+         }
+      }
+   }
+}
