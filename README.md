@@ -18,6 +18,7 @@ This module is built to be compatible with Alfresco 5.0d and above. It may be us
 - Enhanced subsystem factory/manager classes that allow reverse-lookup of the subsystem instance ID from its application context as well as access to the resolved locations of *.properties files
 - Subsystem properties factory bean allowing subsystem properties to be exposed to other components as regular java.util.Properties objects
 - Enhanced web script container capable of handling [web script extensibility](https://www.alfresco.com/blogs/developer/2012/05/23/webscript-extensibility-on-the-alfresco-repository/) - raised via [ALF-21794](https://issues.alfresco.com/jira/browse/ALF-21794)
+- Simple override to site.get.json.ftl to allow web script extension templates to augment the site data (as basis for simpler "Edit Site" dialog customisations either in YUI or Aikau)  
 
 ### Share-tier
 - Support for share-global.properties files to hold simple configuration key-value pairs which can be provided by modules (similarily to Repository-tier) and overriden by administrators via a share-global.properties file in the Tomcat configuration root folder (./shared/classes/) - properties provided that way are automatically exposed in Spring XML files for placeholder resolution
