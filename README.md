@@ -24,7 +24,8 @@ This module is built to be compatible with Alfresco 5.0d and above. It may be us
 - Support for share-global.properties files to hold simple configuration key-value pairs which can be provided by modules (similarily to Repository-tier) and overriden by administrators via a share-global.properties file in the Tomcat configuration root folder (./shared/classes/) - properties provided that way are automatically exposed in Spring XML files for placeholder resolution
 - Support for log4j.properties files to be provided by modules (similarily to Repository-tier) and overriden by administrators via a *-log4j.properties in the Tomcat configuration root folder (./shared/classes/alfresco/web-extension/) - raised by an Enterprise customer in 2013 via [MNT-14972](https://issues.alfresco.com/jira/browse/MNT-14972)
 - Minor enhancements to Surf CSS theme handlers (clean state separation between different theme CSS tokens)
-- Minor enhancements to Surf Dojo widget dependency collection (JSON instead of RegEx-parsing instead of widget models; improved RegEx-pattern for dependencies detection in JS source files)
+- Minor enhancements to Surf Dojo widget dependency collection (JSON instead of RegEx-parsing instead of JSON model; improved RegEx-pattern for dependencies detection in JS source files)
+- Minor enhancements to Surf CSS dependency collection (JSON instead of RegEx-parsing of JSON model; improved RegEx-pattern for dependencies detection in JS source files) - effectively adding the ability to load additional CSS files via JSON model
 
 # Maven usage
 
