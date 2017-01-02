@@ -15,7 +15,9 @@
  */
 package de.acosix.alfresco.utility.common.spring;
 
+import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,9 +41,11 @@ public class ImplementationClassReplacingBeanDefinitionRegistryPostProcessor ext
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ImplementationClassReplacingBeanDefinitionRegistryPostProcessor.class);
 
-    protected boolean enabled;
+    protected Boolean enabled;
 
     protected String enabledPropertyKey;
+
+    protected List<String> enabledPropertyKeys;
 
     protected Properties propertiesSource;
 
@@ -62,6 +66,15 @@ public class ImplementationClassReplacingBeanDefinitionRegistryPostProcessor ext
     public void setEnabledPropertyKey(final String enabledPropertyKey)
     {
         this.enabledPropertyKey = enabledPropertyKey;
+    }
+
+    /**
+     * @param enabledPropertyKeys
+     *            the enabledPropertyKeys to set
+     */
+    public void setEnabledPropertyKeys(final List<String> enabledPropertyKeys)
+    {
+        this.enabledPropertyKeys = enabledPropertyKeys;
     }
 
     /**
@@ -108,12 +121,23 @@ public class ImplementationClassReplacingBeanDefinitionRegistryPostProcessor ext
 
     protected boolean isEnabled()
     {
-        boolean enabled = this.enabled;
-        if (this.enabledPropertyKey != null && !this.enabledPropertyKey.isEmpty() && this.propertiesSource != null)
+        Boolean enabled = this.enabled;
+        if (!Boolean.FALSE.equals(enabled) && this.enabledPropertyKey != null && !this.enabledPropertyKey.isEmpty())
         {
             final String property = this.propertiesSource.getProperty(this.enabledPropertyKey);
-            enabled = enabled || (property != null ? Boolean.parseBoolean(property) : false);
+            enabled = (property != null ? Boolean.valueOf(property) : Boolean.FALSE);
         }
-        return enabled;
+
+        if (!Boolean.FALSE.equals(enabled) && this.enabledPropertyKeys != null && !this.enabledPropertyKeys.isEmpty())
+        {
+            final AtomicBoolean enabled2 = new AtomicBoolean(true);
+            this.enabledPropertyKeys.forEach(key -> {
+                final String property = this.propertiesSource.getProperty(key);
+                enabled2.compareAndSet(true, property != null ? Boolean.parseBoolean(property) : false);
+            });
+            enabled = Boolean.valueOf(enabled2.get());
+        }
+
+        return Boolean.TRUE.equals(enabled);
     }
 }

@@ -25,6 +25,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -94,9 +95,11 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
 
     protected String beanName;
 
-    protected boolean enabled;
+    protected Boolean enabled;
 
     protected String enabledPropertyKey;
+
+    protected List<String> enabledPropertyKeys;
 
     protected String propertyPrefix;
 
@@ -137,6 +140,15 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
     public void setEnabledPropertyKey(final String enabledPropertyKey)
     {
         this.enabledPropertyKey = enabledPropertyKey;
+    }
+
+    /**
+     * @param enabledPropertyKeys
+     *            the enabledPropertyKeys to set
+     */
+    public void setEnabledPropertyKeys(final List<String> enabledPropertyKeys)
+    {
+        this.enabledPropertyKeys = enabledPropertyKeys;
     }
 
     /**
@@ -279,13 +291,24 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
 
     protected boolean isEnabled()
     {
-        boolean enabled = this.enabled;
-        if (this.enabledPropertyKey != null && !this.enabledPropertyKey.isEmpty())
+        Boolean enabled = this.enabled;
+        if (!Boolean.FALSE.equals(enabled) && this.enabledPropertyKey != null && !this.enabledPropertyKey.isEmpty())
         {
             final String property = this.propertiesSource.getProperty(this.enabledPropertyKey);
-            enabled = enabled || (property != null ? Boolean.parseBoolean(property) : false);
+            enabled = (property != null ? Boolean.valueOf(property) : Boolean.FALSE);
         }
-        return enabled;
+
+        if (!Boolean.FALSE.equals(enabled) && this.enabledPropertyKeys != null && !this.enabledPropertyKeys.isEmpty())
+        {
+            final AtomicBoolean enabled2 = new AtomicBoolean(true);
+            this.enabledPropertyKeys.forEach(key -> {
+                final String property = this.propertiesSource.getProperty(key);
+                enabled2.compareAndSet(true, property != null ? Boolean.parseBoolean(property) : false);
+            });
+            enabled = Boolean.valueOf(enabled2.get());
+        }
+
+        return Boolean.TRUE.equals(enabled);
     }
 
     protected void compressPaddedLists(final Collection<ManagedList<?>> paddedLists)

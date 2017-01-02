@@ -53,7 +53,7 @@ public class PropertyAlteringBeanFactoryPostProcessor implements BeanFactoryPost
 
     protected String targetBeanName;
 
-    protected boolean enabled;
+    protected Boolean enabled;
 
     protected String propertyName;
 
