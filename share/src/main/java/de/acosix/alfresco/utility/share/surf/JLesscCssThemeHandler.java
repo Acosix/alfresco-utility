@@ -173,7 +173,7 @@ public class JLesscCssThemeHandler extends CssThemeHandler
     {
         String compiledCss = null;
         // may be called on already processed CSS contents
-        if (cssContents.indexOf(LESS_PROCESSED_MARKER) == -1)
+        if (cssContents.indexOf(LESS_PROCESSED_MARKER) != 0)
         {
             LOGGER.debug("Processing CSS file {}", path);
 
