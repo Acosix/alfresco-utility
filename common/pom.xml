@@ -6,7 +6,7 @@
     <parent>
         <groupId>de.acosix.alfresco.utility</groupId>
         <artifactId>de.acosix.alfresco.utility.parent</artifactId>
-        <version>1.0.1.0</version>
+        <version>1.0.1.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>de.acosix.alfresco.utility.common</artifactId>

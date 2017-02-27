@@ -598,16 +598,26 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         }
         else
         {
-            PropertyValue propertyValue = propertyValues.getPropertyValue(propertyName);
-            final Object valueToSet = this.getAsValue(beanName, propertyName, definitionKeyRemainder, value);
-
-            if (propertyValue != null && propertyValue.getValue() != null)
+            if (definitionKeyRemainder.endsWith(SUFFIX_REMOVE) || definitionKeyRemainder.equals(SUFFIX_SIMPLE_REMOVE))
             {
-                LOGGER.debug("[{}] Property {} on {} already defined with value {} - overriding with different value", this.beanName,
-                        beanName, propertyName, propertyValue.getValue());
+                if (Boolean.parseBoolean(value))
+                {
+                    propertyValues.removePropertyValue(propertyName);
+                }
             }
-            propertyValue = new PropertyValue(propertyName, valueToSet);
-            propertyValues.addPropertyValue(propertyValue);
+            else
+            {
+                PropertyValue propertyValue = propertyValues.getPropertyValue(propertyName);
+                final Object valueToSet = this.getAsValue(beanName, propertyName, definitionKeyRemainder, value);
+
+                if (propertyValue != null && propertyValue.getValue() != null)
+                {
+                    LOGGER.debug("[{}] Property {} on {} already defined with value {} - overriding with different value", this.beanName,
+                            beanName, propertyName, propertyValue.getValue());
+                }
+                propertyValue = new PropertyValue(propertyName, valueToSet);
+                propertyValues.addPropertyValue(propertyValue);
+            }
         }
     }
 
@@ -859,7 +869,10 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
 
         if (definitionKeyRemainder.equals(SUFFIX_SIMPLE_REMOVE))
         {
-            valueMap.remove(key);
+            if (Boolean.parseBoolean(value))
+            {
+                valueMap.remove(key);
+            }
         }
         else
         {
