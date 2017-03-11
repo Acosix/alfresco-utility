@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
@@ -33,11 +34,14 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 
 /**
- * Instances of this class allow client code to identity the specific ID of a subsystem instance.
+ * This class provides a slightly enhanced variant of the Alfresco default {@link DefaultChildApplicationContextManager} which allows
+ * interested client code to identify a specific subsystem instance based on its application context and to obtain the effective
+ * {@code *.properties} files used to define the configuration of that specific subsystem instance. It can be used as a drop-in replacement
+ * to the original class in all out-of-the-box use cases.
  *
  * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
  */
-public class SubsystemChildApplicationContextManager extends DefaultChildApplicationContextManager
+public class SubsystemChildApplicationContextManager extends DefaultChildApplicationContextManager implements MultiInstanceSubsystemHandler
 {
 
     /** The default type name. */
@@ -67,14 +71,10 @@ public class SubsystemChildApplicationContextManager extends DefaultChildApplica
     }
 
     /**
-     * Determines the instance ID for a specific child application context from within all the child application contexts managed by this
-     * instance.
      *
-     * @param childApplicationContext
-     *            the child application context
-     * @return the ID of the child application instance or {@code null} if none of the currently active child application contexts match the
-     *         provided one
+     * {@inheritDoc}
      */
+    @Override
     public String determineInstanceId(final ApplicationContext childApplicationContext)
     {
         this.lock.readLock().lock();
@@ -109,12 +109,10 @@ public class SubsystemChildApplicationContextManager extends DefaultChildApplica
     }
 
     /**
-     * Looks up the default subsystem configuration properties files for the provided subsystem instance.
      *
-     * @param instanceId
-     *            the ID of the subsystem instance for which to look up the default configuration properties files
-     * @return the list of default configuration properties files
+     * {@inheritDoc}
      */
+    @Override
     public Resource[] getSubsystemDefaultPropertiesResources(final String instanceId)
     {
         this.lock.readLock().lock();
@@ -133,12 +131,10 @@ public class SubsystemChildApplicationContextManager extends DefaultChildApplica
     }
 
     /**
-     * Looks up the extension subsystem configuration properties files for the provided subsystem instance.
      *
-     * @param instanceId
-     *            the ID of the subsystem instance for which to look up the extension configuration properties files
-     * @return the list of extension configuration properties files
+     * {@inheritDoc}
      */
+    @Override
     public Resource[] getSubsystemExtensionPropertiesResources(final String instanceId)
     {
         this.lock.readLock().lock();
@@ -148,6 +144,29 @@ public class SubsystemChildApplicationContextManager extends DefaultChildApplica
             final SubsystemChildApplicationContextFactory applicationContextFactory = state.getApplicationContextFactory(instanceId);
             final Resource[] subsystemExtensionPropertiesResources = applicationContextFactory.getSubsystemExtensionPropertiesResources();
             return subsystemExtensionPropertiesResources;
+        }
+        finally
+
+        {
+            this.lock.readLock().unlock();
+        }
+    }
+
+    /**
+     *
+     * {@inheritDoc}
+     */
+    @Override
+    public Properties getSubsystemEffectiveProperties(final String instanceId)
+    {
+        this.lock.readLock().lock();
+        try
+        {
+            final SubsystemApplicationContextManagerState state = (SubsystemApplicationContextManagerState) this.getState(false);
+            final SubsystemChildApplicationContextFactory applicationContextFactory = state.getApplicationContextFactory(instanceId);
+
+            final Properties effectiveProperties = applicationContextFactory.getSubsystemEffectiveProperties();
+            return effectiveProperties;
         }
         finally
 

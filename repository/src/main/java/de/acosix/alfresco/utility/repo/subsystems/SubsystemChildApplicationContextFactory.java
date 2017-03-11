@@ -27,9 +27,13 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 
 /**
+ * This class provides a slightly enhanced variant of the Alfresco default {@link ChildApplicationContextFactory} which allows interested
+ * client code to obtain the effective {@code *.properties} files used to define the configuration of a subsystem. It can be used as a
+ * drop-in replacement to the original class in all out-of-the-box use cases.
+ *
  * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
  */
-public class SubsystemChildApplicationContextFactory extends ChildApplicationContextFactory
+public class SubsystemChildApplicationContextFactory extends ChildApplicationContextFactory implements SingleInstanceSubsystemHandler
 {
 
     public SubsystemChildApplicationContextFactory()
@@ -45,10 +49,10 @@ public class SubsystemChildApplicationContextFactory extends ChildApplicationCon
     }
 
     /**
-     * Looks up the default subsystem configuration properties files for the this subsystem instance.
      *
-     * @return the list of default configuration properties files
+     * {@inheritDoc}
      */
+    @Override
     public Resource[] getSubsystemDefaultPropertiesResources()
     {
         try
@@ -72,10 +76,10 @@ public class SubsystemChildApplicationContextFactory extends ChildApplicationCon
     }
 
     /**
-     * Looks up the extension subsystem configuration properties files for the this subsystem instance.
      *
-     * @return the list of extension configuration properties files
+     * {@inheritDoc}
      */
+    @Override
     public Resource[] getSubsystemExtensionPropertiesResources()
     {
         try
@@ -100,6 +104,33 @@ public class SubsystemChildApplicationContextFactory extends ChildApplicationCon
         catch (final IOException ioex)
         {
             throw new AlfrescoRuntimeException("Error loading resources", ioex);
+        }
+    }
+
+    /**
+     *
+     * {@inheritDoc}
+     */
+    @Override
+    public Properties getSubsystemEffectiveProperties()
+    {
+        this.lock.readLock().lock();
+        try
+        {
+            final Properties effectiveProperties = new Properties();
+
+            for (final String propertyName : this.getPropertyNames())
+            {
+                final String propertyValue = this.getProperty(propertyName);
+                effectiveProperties.put(propertyName, propertyValue);
+            }
+
+            return effectiveProperties;
+        }
+        finally
+
+        {
+            this.lock.readLock().unlock();
         }
     }
 

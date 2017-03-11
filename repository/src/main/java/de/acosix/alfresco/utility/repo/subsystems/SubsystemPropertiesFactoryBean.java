@@ -19,6 +19,7 @@ import java.util.Properties;
 
 import org.alfresco.repo.management.subsystems.ChildApplicationContextFactory;
 import org.alfresco.repo.management.subsystems.ChildApplicationContextManager;
+import org.alfresco.repo.management.subsystems.PropertyBackedBean;
 import org.alfresco.util.PropertyCheck;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +31,24 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PropertiesLoaderSupport;
 
 /**
+ * Instances of this class allow constructing property beans for the current subsystem based on exposed paths for {@code *.properties} files
+ * for subsystems via one of the following methods:
+ * <ul>
+ * <li>{@link SingleInstanceSubsystemHandler#getSubsystemDefaultPropertiesResources() simple subsystem default properties}</li>
+ * <li>{@link SingleInstanceSubsystemHandler#getSubsystemExtensionPropertiesResources() simple subsystem extension properties}</li>
+ * <li>{@link MultiInstanceSubsystemHandler#getSubsystemDefaultPropertiesResources(String) multi-instance subsystem default
+ * properties}</li>
+ * <li>{@link MultiInstanceSubsystemHandler#getSubsystemExtensionPropertiesResources(String) multi-instance subsystem extension
+ * properties}</li>
+ * </ul>
+ *
+ * Instances of this class require the {@link ApplicationContextAware currently active application context} and either the
+ * {@link #setSubsystemChildApplicationContextManager(ChildApplicationContextManager) subsystem child application context manager} and
+ * {@link #setSubsystemChildApplicationContextFactory(ChildApplicationContextFactory) subsystem child application context factory}
+ * responsible for managing the subsystem.
+ *
+ * This class does not incorporate any properties set at runtime via the {@link PropertyBackedBean} API.
+ *
  * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
  */
 public class SubsystemPropertiesFactoryBean extends PropertiesLoaderSupport
@@ -67,9 +86,9 @@ public class SubsystemPropertiesFactoryBean extends PropertiesLoaderSupport
         {
             PropertyCheck.mandatory(this, "childApplicationContextManager", this.subsystemChildApplicationContextManager);
 
-            if (this.subsystemChildApplicationContextManager instanceof SubsystemChildApplicationContextManager)
+            if (this.subsystemChildApplicationContextManager instanceof MultiInstanceSubsystemHandler)
             {
-                final String instanceId = ((SubsystemChildApplicationContextManager) this.subsystemChildApplicationContextManager)
+                final String instanceId = ((MultiInstanceSubsystemHandler) this.subsystemChildApplicationContextManager)
                         .determineInstanceId(this.applicationContext);
                 if (instanceId == null)
                 {
@@ -78,12 +97,12 @@ public class SubsystemPropertiesFactoryBean extends PropertiesLoaderSupport
 
                 if (this.extensionProperties)
                 {
-                    locations = ((SubsystemChildApplicationContextManager) this.subsystemChildApplicationContextManager)
+                    locations = ((MultiInstanceSubsystemHandler) this.subsystemChildApplicationContextManager)
                             .getSubsystemExtensionPropertiesResources(instanceId);
                 }
                 else
                 {
-                    locations = ((SubsystemChildApplicationContextManager) this.subsystemChildApplicationContextManager)
+                    locations = ((MultiInstanceSubsystemHandler) this.subsystemChildApplicationContextManager)
                             .getSubsystemDefaultPropertiesResources(instanceId);
                 }
             }
@@ -91,21 +110,21 @@ public class SubsystemPropertiesFactoryBean extends PropertiesLoaderSupport
             {
                 locations = new Resource[0];
                 LOGGER.warn(
-                        "subsystemChildApplicationContextManager is not of type SubsystemChildApplicationContextManager - original Alfresco bean may not have been enhanced");
+                        "subsystemChildApplicationContextManager does not conform to the interface MultiInstanceSubsystemHandler - either subsystem has not been configured properly or original Alfresco bean may not have been enhanced");
             }
         }
         else
         {
-            if (this.subsystemChildApplicationContextFactory instanceof SubsystemChildApplicationContextFactory)
+            if (this.subsystemChildApplicationContextFactory instanceof SingleInstanceSubsystemHandler)
             {
                 if (this.extensionProperties)
                 {
-                    locations = ((SubsystemChildApplicationContextFactory) this.subsystemChildApplicationContextFactory)
+                    locations = ((SingleInstanceSubsystemHandler) this.subsystemChildApplicationContextFactory)
                             .getSubsystemExtensionPropertiesResources();
                 }
                 else
                 {
-                    locations = ((SubsystemChildApplicationContextFactory) this.subsystemChildApplicationContextFactory)
+                    locations = ((SingleInstanceSubsystemHandler) this.subsystemChildApplicationContextFactory)
                             .getSubsystemDefaultPropertiesResources();
                 }
             }
@@ -113,7 +132,7 @@ public class SubsystemPropertiesFactoryBean extends PropertiesLoaderSupport
             {
                 locations = new Resource[0];
                 LOGGER.warn(
-                        "subsystemChildApplicationContextFactory is not of type SubsystemChildApplicationContextFactory - original Alfresco bean may not have been enhanced");
+                        "subsystemChildApplicationContextFactory does not conform to the interface SingleInstanceSubsystemHandler - either subsystem has not been configured properly or original Alfresco bean may not have been enhanced");
             }
         }
         this.setLocations(locations);
