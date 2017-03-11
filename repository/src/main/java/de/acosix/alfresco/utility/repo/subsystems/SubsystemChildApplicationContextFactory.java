@@ -57,15 +57,12 @@ public class SubsystemChildApplicationContextFactory extends ChildApplicationCon
     {
         try
         {
-            final StringBuilder propertiesLocationBuilder = new StringBuilder();
-            propertiesLocationBuilder.append("classpath*:alfresco");
-            propertiesLocationBuilder.append("/subsystems/");
-            propertiesLocationBuilder.append(this.getCategory());
-            propertiesLocationBuilder.append('/');
-            propertiesLocationBuilder.append(this.getTypeName());
-            propertiesLocationBuilder.append("/*.properties");
+            final String category = this.getCategory();
+            final String type = this.getTypeName();
 
-            final String defaultPropertiesPattern = propertiesLocationBuilder.toString();
+            final String defaultPropertiesPattern = SubsystemWithClassLoaderState.CLASSPATH_ALFRESCO_SUBSYSTEMS + category
+                    + SubsystemWithClassLoaderState.CLASSPATH_DELIMITER + type + +SubsystemWithClassLoaderState.CLASSPATH_DELIMITER
+                    + SubsystemWithClassLoaderState.PROPERTIES_FILE_PATTERN;
             final Resource[] resources = this.getParent().getResources(defaultPropertiesPattern);
             return resources;
         }
@@ -85,19 +82,13 @@ public class SubsystemChildApplicationContextFactory extends ChildApplicationCon
         try
         {
             final List<String> idList = this.getId();
+            final String category = this.getCategory();
+            final String type = this.getTypeName();
+            final String id = idList.get(idList.size() - 1);
 
-            final StringBuilder propertiesLocationBuilder = new StringBuilder();
-            propertiesLocationBuilder.append("classpath*:alfresco");
-            propertiesLocationBuilder.append("/extension");
-            propertiesLocationBuilder.append("/subsystems/");
-            propertiesLocationBuilder.append(this.getCategory());
-            propertiesLocationBuilder.append('/');
-            propertiesLocationBuilder.append(this.getTypeName());
-            propertiesLocationBuilder.append("/");
-            propertiesLocationBuilder.append(idList.get(idList.size() - 1));
-            propertiesLocationBuilder.append("/*.properties");
-
-            final String extensionPropertiesPattern = propertiesLocationBuilder.toString();
+            final String extensionPropertiesPattern = SubsystemWithClassLoaderState.CLASSPATH_ALFRESCO_EXTENSION_SUBSYSTEMS + category
+                    + SubsystemWithClassLoaderState.CLASSPATH_DELIMITER + type + SubsystemWithClassLoaderState.CLASSPATH_DELIMITER + id
+                    + SubsystemWithClassLoaderState.CLASSPATH_DELIMITER + SubsystemWithClassLoaderState.PROPERTIES_FILE_PATTERN;
             final Resource[] resources = this.getParent().getResources(extensionPropertiesPattern);
             return resources;
         }

@@ -17,6 +17,7 @@ package de.acosix.alfresco.utility.repo.subsystems;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Properties;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -44,6 +45,31 @@ public class SubsystemChildApplicationContextManagerTest
 
                 Assert.assertNotNull("subsystem " + id + " was not started", childCtxt);
             });
+        }
+    }
+
+    @Test
+    public void effectiveProperties()
+    {
+        try (final ClassPathXmlApplicationContext ctxt = new ClassPathXmlApplicationContext(
+                "classpath:subsystem-manager-test-context.xml"))
+        {
+            final SubsystemChildApplicationContextManager manager = ctxt.getBean("SubsystemManagerTest",
+                    SubsystemChildApplicationContextManager.class);
+            Assert.assertNotNull("Subsystem manager bean not found", manager);
+
+            final Properties effectivePropertiesInst1 = manager.getSubsystemEffectiveProperties("inst1");
+
+            Assert.assertEquals("Property 1 of inst1 does not match expectation", "global-value1",
+                    effectivePropertiesInst1.get("subsystem.manager.prop1"));
+            Assert.assertEquals("Property 2 of inst1 does not match expectation", "value2",
+                    effectivePropertiesInst1.get("subsystem.manager.prop2"));
+
+            final Properties effectivePropertiesInst2 = manager.getSubsystemEffectiveProperties("inst2");
+            Assert.assertEquals("Property 1 of inst2 does not match expectation", "extension-value1",
+                    effectivePropertiesInst2.get("subsystem.manager.prop1"));
+            Assert.assertEquals("Property 2 of inst2 does not match expectation", "value2",
+                    effectivePropertiesInst2.get("subsystem.manager.prop2"));
         }
     }
 
