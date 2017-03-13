@@ -15,11 +15,15 @@
  */
 package de.acosix.alfresco.utility.repo.subsystems;
 
+import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.Properties;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.slf4j.impl.StaticLoggerBinder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -29,13 +33,16 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class SubsystemWithClassLoaderFactoryTest
 {
 
+    @Rule
+    public ExpectedException exRule = ExpectedException.none();
+
     @Test
     public void effectiveProperties()
     {
         try (final ClassPathXmlApplicationContext ctxt = new ClassPathXmlApplicationContext(
-                "classpath:subsystem-with-classloader-factory-test-context.xml"))
+                "classpath:subsystem-with-classloader-factory-test-simple-context.xml"))
         {
-            final SubsystemWithClassLoaderFactory factory = ctxt.getBean("SubsystemWithClassLoaderFactoryTest",
+            final SubsystemWithClassLoaderFactory factory = ctxt.getBean("SubsystemWithClassLoaderFactoryTest-simple",
                     SubsystemWithClassLoaderFactory.class);
             Assert.assertNotNull("Subsystem factory bean not found", factory);
 
@@ -48,13 +55,92 @@ public class SubsystemWithClassLoaderFactoryTest
     }
 
     @Test
+    public void isolatedProperties()
+    {
+        try (final ClassPathXmlApplicationContext ctxt = new ClassPathXmlApplicationContext(
+                "classpath:subsystem-with-classloader-factory-test-simple-context.xml"))
+        {
+            final SubsystemWithClassLoaderFactory factory = ctxt.getBean("SubsystemWithClassLoaderFactoryTest-simple",
+                    SubsystemWithClassLoaderFactory.class);
+            Assert.assertNotNull("Subsystem factory bean not found", factory);
+
+            final ApplicationContext innerCtxt = factory.getApplicationContext();
+            final Properties isolatedProperties = innerCtxt.getBean("isolatedProperties", Properties.class);
+
+            Assert.assertEquals("Default value does not match", "value1", isolatedProperties.get("subsystem.isolated.prop1"));
+            Assert.assertEquals("Extension value does not match", "extension-value2", isolatedProperties.get("subsystem.isolated.prop2"));
+        }
+    }
+
+    @Test
+    public void defaultJarInSubsystem() throws Exception
+    {
+        try (final ClassPathXmlApplicationContext ctxt = new ClassPathXmlApplicationContext(
+                "classpath:subsystem-with-classloader-factory-test-jar-context.xml"))
+        {
+            final SubsystemWithClassLoaderFactory factory = ctxt.getBean("SubsystemWithClassLoaderFactoryTest-jar",
+                    SubsystemWithClassLoaderFactory.class);
+            Assert.assertNotNull("Subsystem factory bean not found", factory);
+
+            final ApplicationContext innerCtxt = factory.getApplicationContext();
+            final Object logbackConsoleAppender = innerCtxt.getBean("logback-console-appender");
+
+            Assert.assertEquals("Class name does not match", "ch.qos.logback.core.ConsoleAppender",
+                    logbackConsoleAppender.getClass().getName());
+
+            final Object staticLoggerBinder = innerCtxt.getBean("staticLoggerBinder");
+            final Class<? extends Object> staticLoggerBinderClassFromJar = staticLoggerBinder.getClass();
+            Assert.assertEquals("Class name does not match", "org.slf4j.impl.StaticLoggerBinder", staticLoggerBinderClassFromJar.getName());
+            final Field requestedApiVersionJarField = staticLoggerBinderClassFromJar.getField("REQUESTED_API_VERSION");
+            final Object requestedApiVersionJar = requestedApiVersionJarField.get(null);
+            Assert.assertEquals("Constant for SLF4J API version in subsystem does not match", "1.6", requestedApiVersionJar);
+        }
+
+        this.exRule.expect(ClassNotFoundException.class);
+        final Class<?> logbackConsoleAppenderClass = Class.forName("ch.qos.logback.core.ConsoleAppender");
+        Assert.assertFalse("Class ch.qos.logback.core.ConsoleAppender should not have been found in global scope",
+                logbackConsoleAppenderClass != null);
+
+        final Object requestedApiVersionJar = StaticLoggerBinder.REQUESTED_API_VERSION;
+        Assert.assertEquals("Constant for SLF4J API version in global scope does not match", "1.6.99", requestedApiVersionJar);
+    }
+
+    @Test
+    public void overrideJarInSubsystem() throws Exception
+    {
+        try (final ClassPathXmlApplicationContext ctxt = new ClassPathXmlApplicationContext(
+                "classpath:subsystem-with-classloader-factory-test-jarWithOverride-context.xml"))
+        {
+            final SubsystemWithClassLoaderFactory factory = ctxt.getBean("SubsystemWithClassLoaderFactoryTest-jarWithOverride",
+                    SubsystemWithClassLoaderFactory.class);
+            Assert.assertNotNull("Subsystem factory bean not found", factory);
+
+            final ApplicationContext innerCtxt = factory.getApplicationContext();
+            final Object staticLoggerBinder = innerCtxt.getBean("staticLoggerBinder");
+            final Class<? extends Object> staticLoggerBinderClassFromJar = staticLoggerBinder.getClass();
+            Assert.assertEquals("Class name does not match", "org.slf4j.impl.StaticLoggerBinder", staticLoggerBinderClassFromJar.getName());
+            final Field requestedApiVersionJarField = staticLoggerBinderClassFromJar.getField("REQUESTED_API_VERSION");
+            final Object requestedApiVersionJar = requestedApiVersionJarField.get(null);
+            Assert.assertEquals("Constant for SLF4J API version in subsystem does not match", "1.7.16", requestedApiVersionJar);
+        }
+
+        this.exRule.expect(ClassNotFoundException.class);
+        final Class<?> logbackConsoleAppenderClass = Class.forName("ch.qos.logback.core.ConsoleAppender");
+        Assert.assertFalse("Class ch.qos.logback.core.ConsoleAppender should not have been found in global scope",
+                logbackConsoleAppenderClass != null);
+
+        final Object requestedApiVersionJar = StaticLoggerBinder.REQUESTED_API_VERSION;
+        Assert.assertEquals("Constant for SLF4J API version in global scope does not match", "1.6.99", requestedApiVersionJar);
+    }
+
+    @Test
     @SuppressWarnings("rawtypes")
     public void beanDefinitionsAndPlaceholderResolution()
     {
         try (final ClassPathXmlApplicationContext ctxt = new ClassPathXmlApplicationContext(
-                "classpath:subsystem-with-classloader-factory-test-context.xml"))
+                "classpath:subsystem-with-classloader-factory-test-simple-context.xml"))
         {
-            final SubsystemWithClassLoaderFactory factory = ctxt.getBean("SubsystemWithClassLoaderFactoryTest",
+            final SubsystemWithClassLoaderFactory factory = ctxt.getBean("SubsystemWithClassLoaderFactoryTest-simple",
                     SubsystemWithClassLoaderFactory.class);
             Assert.assertNotNull("Subsystem factory bean not found", factory);
 

@@ -6,19 +6,6 @@
             http://www.springframework.org/schema/util
             http://www.springframework.org/schema/util/spring-util-2.0.xsd">
 
-    <util:map id="defaultMap">
-        <entry key="prop1">
-            <value>${subsystem.manager.prop1}</value>
-        </entry>
-        <entry key="prop2">
-            <value>${subsystem.manager.prop2}</value>
-        </entry>
-    </util:map>
-    
-    <util:map id="modifiableMap">
-        <entry key="prop1">
-            <value>${subsystem.manager.prop1}</value>
-        </entry>
-    </util:map>
+    <bean id="staticLoggerBinder" class="org.slf4j.impl.StaticLoggerBinder" factory-method="getSingleton" />
 
 </beans>

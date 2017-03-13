@@ -41,8 +41,9 @@
         <property name="encryptedPropertyDefaults" ref="encrypted-properties" />
     </bean>
 
-    <bean id="SubsystemManagerTest" class="${project.artifactId}.subsystems.SubsystemChildApplicationContextManager" parent="abstractPropertyBackedBean">
-        <property name="defaultChain" value="inst1:default,inst2:default" />
+    <bean id="SubsystemWithClassLoaderFactoryTest-simple" class="${project.artifactId}.subsystems.SubsystemWithClassLoaderFactory" parent="abstractPropertyBackedBean">
+        <property name="autoStart" value="true" />
+        <property name="globalProperties" ref="global-properties" />
     </bean>
 
 </beans>

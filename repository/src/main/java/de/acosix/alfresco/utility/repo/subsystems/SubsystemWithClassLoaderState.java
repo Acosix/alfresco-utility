@@ -15,11 +15,17 @@
  */
 package de.acosix.alfresco.utility.repo.subsystems;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -65,13 +71,19 @@ public class SubsystemWithClassLoaderState implements PropertyBackedBeanState
 
     public static final String BASE_SUBSYSTEM_CONTEXT = "classpath:alfresco/module/acosix-utility/default-subsystem-context.xml";
 
-    public static final String CLASSPATH_ALFRESCO_SUBSYSTEMS = "classpath*:alfresco/subsystems/";
+    public static final String CLASSPATH_WILDCARD_PROTOCOL = "classpath*:";
 
-    public static final String CLASSPATH_ALFRESCO_EXTENSION_SUBSYSTEMS = "classpath*:alfresco/extension/subsystems/";
+    public static final String CLASSPATH_ALFRESCO_SUBSYSTEMS = CLASSPATH_WILDCARD_PROTOCOL + "alfresco/subsystems/";
+
+    public static final String CLASSPATH_ALFRESCO_EXTENSION_SUBSYSTEMS = CLASSPATH_WILDCARD_PROTOCOL + "alfresco/extension/subsystems/";
 
     public static final String PROPERTIES_FILE_PATTERN = "*.properties";
 
     public static final String CONTEXT_FILE_PATTERN = "*-context.xml";
+
+    public static final String CLASSES_FOLDER_NAME = "classes";
+
+    public static final String JAR_FILE_LOOKUP_PATTERN = "lib/*.jar";
 
     public static final String CONTEXT_ENTERPRISE_FILE_PATTERN = "*-enterprise-context.xml";
 
@@ -193,8 +205,12 @@ public class SubsystemWithClassLoaderState implements PropertyBackedBeanState
                 this.applicationContext.getEnvironment().getPropertySources()
                         .addLast(new PropertiesPropertySource("instanceIdProps", instanceIdProps));
 
-                this.applicationContext.setClassLoader(this.parentContext.getClassLoader());
-                // TODO set custom classloader
+                // build custom loader
+                final List<URL> classLoaderURLs = this.buildClassLoaderURLs();
+                final ClassLoader classLoader = AccessController.<ClassLoader> doPrivileged(
+                        (PrivilegedAction<ClassLoader>) () -> new SubsystemClassLoader(this.parentContext.getClassLoader(),
+                                classLoaderURLs));
+                this.applicationContext.setClassLoader(classLoader);
 
                 this.applicationContext.refresh();
 
@@ -202,8 +218,8 @@ public class SubsystemWithClassLoaderState implements PropertyBackedBeanState
 
                 if (this.applicationContext.containsBean(BEAN_NAME_MONITOR))
                 {
-                    LOGGER.debug("got a monitor object");
                     final Object m = this.applicationContext.getBean(BEAN_NAME_MONITOR);
+                    LOGGER.debug("Got a monitor object {} for '{}' subsystem, ID: {}", m, this.category, this.id);
                     this.monitor = m;
                 }
             }
@@ -403,7 +419,8 @@ public class SubsystemWithClassLoaderState implements PropertyBackedBeanState
         }
         catch (final IOException e)
         {
-            LOGGER.error("Failed to load configuration properties from subsystem classpath resources", e);
+            LOGGER.error("Failed to load configuration properties from classpath resources for '{}' subsystem, ID: {}", this.category,
+                    this.id, e);
             throw new AlfrescoRuntimeException("Failed to load subsystem configuration", e);
         }
     }
@@ -425,4 +442,96 @@ public class SubsystemWithClassLoaderState implements PropertyBackedBeanState
         }
     }
 
+    protected List<URL> buildClassLoaderURLs()
+    {
+        /*
+         * We need to identify all JAR / class files found within the subsystem context (on the current classpath) and derive the base URLs
+         * for these so URLClassLoader can work with that. We also want there to be a sane priority order between the base URLs so that
+         * class files may override JAR-bundled classes, and extension path may override default path.
+         */
+
+        final List<URL> allUrls = new ArrayList<>();
+
+        // class folders in extension path have utmost priority
+        allUrls.addAll(this.resolveClassesDirectoryURLs(
+                CLASSPATH_ALFRESCO_EXTENSION_SUBSYSTEMS + this.category + CLASSPATH_DELIMITER + this.type + CLASSPATH_DELIMITER + this.id));
+
+        // extension JARs have priority over anything in regular paths
+        allUrls.addAll(this.resolveJarURLs(
+                CLASSPATH_ALFRESCO_EXTENSION_SUBSYSTEMS + this.category + CLASSPATH_DELIMITER + this.type + CLASSPATH_DELIMITER + this.id));
+
+        // class folders in regular path have priority over JARs
+        allUrls.addAll(this.resolveClassesDirectoryURLs(CLASSPATH_ALFRESCO_SUBSYSTEMS + this.category + CLASSPATH_DELIMITER + this.type));
+
+        // JARs in regular path have lowest priority
+        allUrls.addAll(this.resolveJarURLs(CLASSPATH_ALFRESCO_SUBSYSTEMS + this.category + CLASSPATH_DELIMITER + this.type));
+
+        LOGGER.debug("Resolved class loader URLs {} for '{}' subsystem, ID: {}", allUrls, this.category, this.id);
+
+        return allUrls;
+    }
+
+    protected List<URL> resolveClassesDirectoryURLs(final String classpathBase)
+    {
+        final Set<URL> urls = new HashSet<>();
+        try
+        {
+            final Resource[] simpleLookupResources = this.parentContext
+                    .getResources(classpathBase + CLASSPATH_DELIMITER + CLASSES_FOLDER_NAME);
+            if (simpleLookupResources != null)
+            {
+                for (final Resource resource : simpleLookupResources)
+                {
+                    try
+                    {
+                        final File file = resource.getFile();
+                        urls.add(file.toURI().toURL());
+                    }
+                    catch (final IOException fileEx)
+                    {
+                        LOGGER.debug("Failed to resolve resource {} to file for '{}' subsystem, ID: {}", resource.getDescription(),
+                                this.category, this.id);
+                    }
+                }
+            }
+        }
+        catch (final IOException ex)
+        {
+            throw new AlfrescoRuntimeException("Failed to resolve subsystem classes directory URL(s)");
+        }
+
+        return new ArrayList<>(urls);
+    }
+
+    protected List<URL> resolveJarURLs(final String classpathBase)
+    {
+        final Set<URL> urls = new HashSet<>();
+        try
+        {
+            final Resource[] simpleLookupResources = this.parentContext
+                    .getResources(classpathBase + CLASSPATH_DELIMITER + JAR_FILE_LOOKUP_PATTERN);
+            if (simpleLookupResources != null)
+            {
+                for (final Resource resource : simpleLookupResources)
+                {
+                    try
+                    {
+                        final File file = resource.getFile();
+                        urls.add(file.toURI().toURL());
+                    }
+                    catch (final IOException fileEx)
+                    {
+                        LOGGER.debug("Failed to resolve resource {} to JAR file for '{}' subsystem, ID: {}", resource.getDescription(),
+                                this.category, this.id);
+                    }
+                }
+            }
+        }
+        catch (final IOException ex)
+        {
+            throw new AlfrescoRuntimeException("Failed to resolve subsystem JAR file URL(s)");
+        }
+
+        return new ArrayList<>(urls);
+    }
 }

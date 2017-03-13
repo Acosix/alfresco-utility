@@ -2,6 +2,17 @@
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
     xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.0.xsd">
 
+    <bean id="log4JHierarchyInit" class="org.alfresco.repo.admin.Log4JHierarchyInit" init-method="init">
+        <property name="extraLog4jUrls">
+            <list>
+                <value>classpath*:alfresco/module/*/log4j.properties</value>
+                <value>classpath*:alfresco/enterprise/*-log4j.properties</value>
+                <value>classpath*:alfresco/extension/*-log4j.properties</value>
+                <value>classpath*:alfresco/extension/dev-log4j.properties</value>
+            </list>
+        </property>
+    </bean>
+
     <util:map id="encrypted-properties">
         <!-- A dummy value -->
         <entry key="empty.enc">
@@ -30,7 +41,7 @@
         <property name="encryptedPropertyDefaults" ref="encrypted-properties" />
     </bean>
 
-    <bean id="SubsystemWithClassLoaderFactoryTest" class="${project.artifactId}.subsystems.SubsystemWithClassLoaderFactory" parent="abstractPropertyBackedBean">
+    <bean id="SubsystemWithClassLoaderFactoryTest-jar" class="${project.artifactId}.subsystems.SubsystemWithClassLoaderFactory" parent="abstractPropertyBackedBean">
         <property name="autoStart" value="true" />
         <property name="globalProperties" ref="global-properties" />
     </bean>
