@@ -39,9 +39,10 @@ public class SubsystemWithClassLoaderFactory extends AbstractPropertyBackedBean
 
     protected String typeName;
 
-    protected Properties globalProperties;
-
     protected PropertiesPersister persister = new DefaultPropertiesPersister();
+
+    // field in super is inaccessible and getter is only introduced in 5.2
+    protected Properties encryptedPropertyDefaults;
 
     /**
      * Sets the type name.
@@ -63,21 +64,24 @@ public class SubsystemWithClassLoaderFactory extends AbstractPropertyBackedBean
     }
 
     /**
-     * @param globalProperties
-     *            the globalProperties to set
-     */
-    public void setGlobalProperties(final Properties globalProperties)
-    {
-        this.globalProperties = globalProperties;
-    }
-
-    /**
      * @param persister
      *            the persister to set
      */
     public void setPersister(final PropertiesPersister persister)
     {
+        ParameterCheck.mandatory("persister", persister);
         this.persister = persister;
+    }
+
+    /**
+     *
+     * {@inheritDoc}
+     */
+    @Override
+    public void setEncryptedPropertyDefaults(final Properties propertyDefaults)
+    {
+        super.setEncryptedPropertyDefaults(propertyDefaults);
+        this.encryptedPropertyDefaults = propertyDefaults;
     }
 
     /**
@@ -87,7 +91,7 @@ public class SubsystemWithClassLoaderFactory extends AbstractPropertyBackedBean
     @Override
     public void afterPropertiesSet() throws Exception
     {
-        PropertyCheck.mandatory(this, "globalProperties", this.globalProperties);
+        PropertyCheck.mandatory(this, "encryptedPropertyDefaults", this.encryptedPropertyDefaults);
 
         final List<String> idList = this.getInstancePath();
         if (idList.isEmpty())
@@ -155,6 +159,24 @@ public class SubsystemWithClassLoaderFactory extends AbstractPropertyBackedBean
         try
         {
             return ((SubsystemWithClassLoaderState) this.getState(true)).getApplicationContext();
+        }
+        finally
+        {
+            this.lock.readLock().unlock();
+        }
+    }
+
+    /**
+     * Gets the application context. Will not start a subsystem.
+     *
+     * @return the application context or null
+     */
+    public ApplicationContext getReadOnlyApplicationContext()
+    {
+        this.lock.readLock().lock();
+        try
+        {
+            return ((SubsystemWithClassLoaderState) this.getState(false)).getApplicationContext();
         }
         finally
         {
@@ -270,14 +292,37 @@ public class SubsystemWithClassLoaderFactory extends AbstractPropertyBackedBean
      * {@inheritDoc}
      */
     @Override
+    public void destroy(final boolean permanent)
+    {
+        this.lock.writeLock().lock();
+        try
+        {
+            super.destroy(permanent);
+        }
+        finally
+        {
+            this.lock.writeLock().unlock();
+        }
+    }
+
+    /**
+     *
+     * {@inheritDoc}
+     */
+    @Override
     protected PropertyBackedBeanState createInitialState() throws IOException
     {
         final List<String> idList = this.getId();
         final String id = idList.get(idList.size() - 1);
         final String instancePath = this.getInstancePath().toString();
 
-        return new SubsystemWithClassLoaderState(this.getParent(), this.globalProperties, this.persister, this.getCategory(),
-                this.getTypeName(), id, instancePath);
+        final Properties globalProperties = new Properties();
+        globalProperties.putAll(this.getPropertyDefaults());
+        globalProperties.putAll(this.encryptedPropertyDefaults);
+
+        final SubsystemWithClassLoaderState state = new SubsystemWithClassLoaderState(this.getParent(), globalProperties, this.persister,
+                this.getCategory(), this.getTypeName(), id, instancePath);
+        return state;
     }
 
     /**

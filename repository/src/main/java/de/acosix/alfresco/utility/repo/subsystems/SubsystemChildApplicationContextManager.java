@@ -165,7 +165,8 @@ public class SubsystemChildApplicationContextManager extends DefaultChildApplica
             final SubsystemApplicationContextManagerState state = (SubsystemApplicationContextManagerState) this.getState(false);
             final SubsystemChildApplicationContextFactory applicationContextFactory = state.getApplicationContextFactory(instanceId);
 
-            final Properties effectiveProperties = applicationContextFactory.getSubsystemEffectiveProperties();
+            final Properties effectiveProperties = applicationContextFactory != null
+                    ? applicationContextFactory.getSubsystemEffectiveProperties() : new Properties();
             return effectiveProperties;
         }
         finally

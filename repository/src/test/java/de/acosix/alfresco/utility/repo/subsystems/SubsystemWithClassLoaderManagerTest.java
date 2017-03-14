@@ -15,28 +15,36 @@
  */
 package de.acosix.alfresco.utility.repo.subsystems;
 
+import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Properties;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.slf4j.impl.StaticLoggerBinder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
  * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
  */
-public class SubsystemChildApplicationContextManagerTest
+public class SubsystemWithClassLoaderManagerTest
 {
+
+    @Rule
+    public ExpectedException exRule = ExpectedException.none();
 
     @Test
     public void simplyStartAll()
     {
-        try (final ClassPathXmlApplicationContext ctxt = new ClassPathXmlApplicationContext("classpath:subsystem-manager-test-context.xml"))
+        try (final ClassPathXmlApplicationContext ctxt = new ClassPathXmlApplicationContext(
+                "classpath:subsystem-with-classtloader-manager-test-context.xml"))
         {
-            final SubsystemChildApplicationContextManager manager = ctxt.getBean("SubsystemManagerTest",
-                    SubsystemChildApplicationContextManager.class);
+            final SubsystemWithClassLoaderManager manager = ctxt.getBean("SubsystemWithClassLoaderManagerTest",
+                    SubsystemWithClassLoaderManager.class);
             Assert.assertNotNull("manager bean was not found", manager);
 
             final Collection<String> instanceIds = manager.getInstanceIds();
@@ -53,10 +61,10 @@ public class SubsystemChildApplicationContextManagerTest
     public void effectiveProperties()
     {
         try (final ClassPathXmlApplicationContext ctxt = new ClassPathXmlApplicationContext(
-                "classpath:subsystem-manager-test-context.xml"))
+                "classpath:subsystem-with-classtloader-manager-test-context.xml"))
         {
-            final SubsystemChildApplicationContextManager manager = ctxt.getBean("SubsystemManagerTest",
-                    SubsystemChildApplicationContextManager.class);
+            final SubsystemWithClassLoaderManager manager = ctxt.getBean("SubsystemWithClassLoaderManagerTest",
+                    SubsystemWithClassLoaderManager.class);
             Assert.assertNotNull("Subsystem manager bean not found", manager);
 
             final Properties effectivePropertiesInst1 = manager.getSubsystemEffectiveProperties("inst1");
@@ -77,10 +85,11 @@ public class SubsystemChildApplicationContextManagerTest
     @Test
     public void correctPropertyPriorities()
     {
-        try (final ClassPathXmlApplicationContext ctxt = new ClassPathXmlApplicationContext("classpath:subsystem-manager-test-context.xml"))
+        try (final ClassPathXmlApplicationContext ctxt = new ClassPathXmlApplicationContext(
+                "classpath:subsystem-with-classtloader-manager-test-context.xml"))
         {
-            final SubsystemChildApplicationContextManager manager = ctxt.getBean("SubsystemManagerTest",
-                    SubsystemChildApplicationContextManager.class);
+            final SubsystemWithClassLoaderManager manager = ctxt.getBean("SubsystemWithClassLoaderManagerTest",
+                    SubsystemWithClassLoaderManager.class);
             Assert.assertNotNull("manager bean was not found", manager);
 
             final ApplicationContext inst1Ctxt = manager.getApplicationContext("inst1");
@@ -105,5 +114,45 @@ public class SubsystemChildApplicationContextManagerTest
             Assert.assertEquals("missing default value should have been provided by alfresco-global.properties", "global-value3",
                     inst2Values.get("prop3"));
         }
+    }
+
+    @Test
+    public void defaultAndOverrideJar() throws Exception
+    {
+        try (final ClassPathXmlApplicationContext ctxt = new ClassPathXmlApplicationContext(
+                "classpath:subsystem-with-classtloader-manager-test-context.xml"))
+        {
+            final SubsystemWithClassLoaderManager manager = ctxt.getBean("SubsystemWithClassLoaderManagerTest",
+                    SubsystemWithClassLoaderManager.class);
+            Assert.assertNotNull("Subsystem factory bean not found", manager);
+
+            final ApplicationContext inst1Ctxt = manager.getApplicationContext("inst1");
+            Assert.assertNotNull("subsystem inst1 was not started", inst1Ctxt);
+
+            Object staticLoggerBinder = inst1Ctxt.getBean("staticLoggerBinder");
+            Class<? extends Object> staticLoggerBinderClassFromJar = staticLoggerBinder.getClass();
+            Assert.assertEquals("Class name does not match", "org.slf4j.impl.StaticLoggerBinder", staticLoggerBinderClassFromJar.getName());
+            Field requestedApiVersionJarField = staticLoggerBinderClassFromJar.getField("REQUESTED_API_VERSION");
+            Object requestedApiVersionJar = requestedApiVersionJarField.get(null);
+            Assert.assertEquals("Constant for SLF4J API version in subsystem does not match", "1.7.16", requestedApiVersionJar);
+
+            final ApplicationContext inst2Ctxt = manager.getApplicationContext("inst2");
+            Assert.assertNotNull("subsystem inst2 was not started", inst1Ctxt);
+
+            staticLoggerBinder = inst2Ctxt.getBean("staticLoggerBinder");
+            staticLoggerBinderClassFromJar = staticLoggerBinder.getClass();
+            Assert.assertEquals("Class name does not match", "org.slf4j.impl.StaticLoggerBinder", staticLoggerBinderClassFromJar.getName());
+            requestedApiVersionJarField = staticLoggerBinderClassFromJar.getField("REQUESTED_API_VERSION");
+            requestedApiVersionJar = requestedApiVersionJarField.get(null);
+            Assert.assertEquals("Constant for SLF4J API version in subsystem does not match", "1.6", requestedApiVersionJar);
+        }
+
+        this.exRule.expect(ClassNotFoundException.class);
+        final Class<?> logbackConsoleAppenderClass = Class.forName("ch.qos.logback.core.ConsoleAppender");
+        Assert.assertFalse("Class ch.qos.logback.core.ConsoleAppender should not have been found in global scope",
+                logbackConsoleAppenderClass != null);
+
+        final Object requestedApiVersionJar = StaticLoggerBinder.REQUESTED_API_VERSION;
+        Assert.assertEquals("Constant for SLF4J API version in global scope does not match", "1.6.99", requestedApiVersionJar);
     }
 }

@@ -43,7 +43,6 @@
 
     <bean id="SubsystemWithClassLoaderFactoryTest-simple" class="${project.artifactId}.subsystems.SubsystemWithClassLoaderFactory" parent="abstractPropertyBackedBean">
         <property name="autoStart" value="true" />
-        <property name="globalProperties" ref="global-properties" />
     </bean>
 
 </beans>

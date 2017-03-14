@@ -41,8 +41,11 @@
         <property name="encryptedPropertyDefaults" ref="encrypted-properties" />
     </bean>
 
-    <bean id="SubsystemWithClassLoaderFactoryTest-jar" class="${project.artifactId}.subsystems.SubsystemWithClassLoaderFactory" parent="abstractPropertyBackedBean">
-        <property name="autoStart" value="true" />
+    <bean id="SubsystemWithClassLoaderManagerTest" class="${project.artifactId}.subsystems.SubsystemWithClassLoaderManager" parent="abstractPropertyBackedBean">
+        <property name="defaultChain" value="inst1:default,inst2:default" />
+        <property name="persister">
+            <bean class="org.alfresco.config.AlfrescoPropertiesPersister" />
+        </property>
     </bean>
 
 </beans>

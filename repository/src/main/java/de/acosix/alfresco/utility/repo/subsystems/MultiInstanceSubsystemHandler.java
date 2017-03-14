@@ -67,7 +67,7 @@ public interface MultiInstanceSubsystemHandler extends ChildApplicationContextMa
      *
      * @param instanceId
      *            the ID of the subsystem instance for which to look up the effective configuration properties
-     * @return the effective configuration properties
+     * @return the effective configuration properties - may be empty if the subystem was not be properly initialised / started
      */
     Properties getSubsystemEffectiveProperties(String instanceId);
 }
