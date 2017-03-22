@@ -18,8 +18,6 @@ package de.acosix.alfresco.utility.repo.subsystems;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -30,17 +28,16 @@ import org.alfresco.util.ParameterCheck;
 /**
  * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
  */
-public class SubsystemClassLoader extends ClassLoader
+public class SubsystemClassLoader extends URLClassLoader
 {
 
-    protected final ClassLoader actualSubsystemLoader;
+    protected final ClassLoader parentLoader;
 
     public SubsystemClassLoader(final ClassLoader parentLoader, final List<URL> urls)
     {
-        super(parentLoader);
-        ParameterCheck.mandatoryCollection("urls", urls);
-        this.actualSubsystemLoader = AccessController
-                .<URLClassLoader> doPrivileged((PrivilegedAction<URLClassLoader>) () -> new URLClassLoader(urls.toArray(new URL[0]), null));
+        // parentLoader is not passed to the super class so it does not delegate-first during class loading
+        super(urls.toArray(new URL[0]), null);
+        this.parentLoader = parentLoader;
     }
 
     /**
@@ -52,11 +49,11 @@ public class SubsystemClassLoader extends ClassLoader
         Class<?> c = null;
         try
         {
-            c = this.actualSubsystemLoader.loadClass(name);
+            c = super.loadClass(name);
         }
         catch (final ClassNotFoundException cnf)
         {
-            c = super.loadClass(name);
+            c = this.parentLoader.loadClass(name);
         }
         return c;
     }
@@ -67,10 +64,10 @@ public class SubsystemClassLoader extends ClassLoader
     @Override
     public URL getResource(final String name)
     {
-        URL r = this.actualSubsystemLoader.getResource(name);
+        URL r = super.getResource(name);
         if (r == null)
         {
-            r = super.getResource(name);
+            r = this.parentLoader.getResource(name);
         }
         return r;
     }
@@ -81,8 +78,8 @@ public class SubsystemClassLoader extends ClassLoader
     @Override
     public Enumeration<URL> getResources(final String name) throws IOException
     {
-        final Enumeration<URL> resourcesActual = this.actualSubsystemLoader.getResources(name);
-        final Enumeration<URL> resourcesParent = super.getResources(name);
+        final Enumeration<URL> resourcesActual = super.getResources(name);
+        final Enumeration<URL> resourcesParent = this.parentLoader.getResources(name);
         return new CompoundURLEnumeration(Arrays.asList(resourcesParent, resourcesActual));
     }
 

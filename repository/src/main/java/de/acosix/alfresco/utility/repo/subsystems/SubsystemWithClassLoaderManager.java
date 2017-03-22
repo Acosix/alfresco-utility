@@ -69,7 +69,7 @@ public class SubsystemWithClassLoaderManager extends AbstractPropertyBackedBean 
      * @param defaultChain
      *            a comma separated list in the following format:
      *            <ul>
-     *            <li>&lt;id1>:&lt;typeName1>,&lt;id2>:&lt;typeName2>,...,&lt;id<i>n</i>>:&lt;typeName<i>n</i>>
+     *            <li>&lt;id1&gt;:&lt;typeName1&gt;,&lt;id2&gt;:&lt;typeName2&gt;,...,&lt;id<i>n</i>&gt;:&lt;typeName<i>n</i>&gt;
      *            </ul>
      */
     public void setDefaultChain(final String defaultChain)

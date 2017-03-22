@@ -212,7 +212,18 @@ public class SubsystemWithClassLoaderState implements PropertyBackedBeanState
                                 classLoaderURLs));
                 this.applicationContext.setClassLoader(classLoader);
 
-                this.applicationContext.refresh();
+                // for initialisation of the context (incl singletons) we should set the proper class loader as the context
+                // some API (i.e. java.util.ServiceLoader) use that instead of applicationContext class loader
+                final ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+                Thread.currentThread().setContextClassLoader(classLoader);
+                try
+                {
+                    this.applicationContext.refresh();
+                }
+                finally
+                {
+                    Thread.currentThread().setContextClassLoader(contextClassLoader);
+                }
 
                 LOGGER.info("Startup of '{}' subsystem, ID: {} complete", this.category, this.id);
 
