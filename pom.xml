@@ -51,10 +51,11 @@
     <properties>
         <messages.path>acosix/utility</messages.path>
         <messages.packageId>acosix.utility</messages.packageId>
-        <moduleId>acosix-utility</moduleId>
-        <common.artifactId>de.acosix.alfresco.utility.common</common.artifactId>
 
         <alfresco.distribution.version>5.0.d</alfresco.distribution.version>
+
+        <common.artifactId>de.acosix.alfresco.utility.common</common.artifactId>
+        <moduleId>acosix-utility</moduleId>
     </properties>
     
     <repositories>
