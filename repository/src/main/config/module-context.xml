@@ -4,15 +4,15 @@
            http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
-    <bean class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
+    <bean class="de.acosix.alfresco.utility.common.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
         <property name="enabled" value="\${${moduleId}.web.scripts.extensibleContainer.enabled}" />
         <property name="targetBeanName" value="webscripts.container" />
         <!-- this should be the default -->
         <property name="originalClassName" value="org.alfresco.repo.web.scripts.TenantRepositoryContainer" />
-        <property name="replacementClassName" value="${project.artifactId}.web.scripts.TenantExtensibilityContainer" />
+        <property name="replacementClassName" value="de.acosix.alfresco.utility.repo.web.scripts.TenantExtensibilityContainer" />
     </bean>
 
-    <bean class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
+    <bean class="de.acosix.alfresco.utility.common.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
         <property name="enabled" value="\${${moduleId}.web.scripts.extensibleContainer.enabled}" />
         <property name="targetBeanName" value="webscripts.container" />
         <!-- this is the default based on the original 2012 blog post -->
@@ -20,15 +20,15 @@
         <property name="replacementClassName" value="org.alfresco.repo.web.scripts.ExtensibilityContainer" />
     </bean>
     
-    <bean class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
+    <bean class="de.acosix.alfresco.utility.common.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
         <property name="enabled" value="\${${moduleId}.web.scripts.extensibleContainer.enabled}" />
         <property name="targetBeanName" value="webscript.default" />
         <!-- this should be the default -->
         <property name="originalClassName" value="org.springframework.extensions.webscripts.DeclarativeWebScript" />
-        <property name="replacementClassName" value="${common.artifactId}.web.scripts.ExtensibleDeclarativeWebScript" />
+        <property name="replacementClassName" value="de.acosix.alfresco.utility.common.web.scripts.ExtensibleDeclarativeWebScript" />
     </bean>
 
-    <bean class="${common.artifactId}.spring.PropertyAlteringBeanFactoryPostProcessor">
+    <bean class="de.acosix.alfresco.utility.common.spring.PropertyAlteringBeanFactoryPostProcessor">
         <property name="enabled" value="\${${moduleId}.web.scripts.extensibleContainer.enabled}" />
         <property name="targetBeanName" value="webscripts.container" />
         <property name="propertyName" value="extensibilityModuleHandler" />

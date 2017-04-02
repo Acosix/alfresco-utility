@@ -12,6 +12,6 @@
         <appender-ref ref="STDOUT" />
     </root>
 
-    <logger name="${project.artifactId}" level="DEBUG" />
+    <logger name="de.acosix.alfresco.utility.common" level="DEBUG" />
 
 </configuration>

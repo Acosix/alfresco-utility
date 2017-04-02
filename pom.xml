@@ -6,15 +6,15 @@
     <parent>
         <groupId>de.acosix.alfresco.maven</groupId>
         <artifactId>de.acosix.alfresco.maven.module.parent</artifactId>
-        <version>1.0.0.2-SNAPSHOT</version>
+        <version>1.0.0.2</version>
     </parent>
 
-    <groupId>de.acosix.alfresco.utility</groupId>
-    <artifactId>de.acosix.alfresco.utility.parent</artifactId>
+    <groupId>de.acosix.alfresco.utility42</groupId>
+    <artifactId>de.acosix.alfresco.utility42.parent</artifactId>
     <version>1.0.2.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>Acosix Alfresco Utility - Parent</name>
+    <name>Acosix Alfresco (4.2) Utility - Parent</name>
     <description>Addon for reusable components, utilities and patches / improvements to Alfresco</description>
     <url>https://github.com/Acosix/alfresco-utility</url>
 
@@ -51,12 +51,21 @@
     <properties>
         <messages.path>acosix/utility</messages.path>
         <messages.packageId>acosix.utility</messages.packageId>
-        <moduleId>acosix-utility</moduleId>
-        <common.artifactId>de.acosix.alfresco.utility.common</common.artifactId>
 
-        <alfresco.distribution.version>5.0.d</alfresco.distribution.version>
+        <spring.version>3.0.5.RELEASE</spring.version>
+        <slf4j.version>1.5.11</slf4j.version>
+        <logback.version>0.9.20</logback.version>
+
+        <alfresco.distribution.version>4.2.f</alfresco.distribution.version>
+        <surf.version>1.2.0-M14</surf.version>
+
+        <maven.compiler.target>1.7</maven.compiler.target>
+        <maven.compiler.source>1.7</maven.compiler.source>
+
+        <common.artifactId>de.acosix.alfresco.utility42.common</common.artifactId>
+        <moduleId>acosix-utility</moduleId>
     </properties>
-    
+
     <repositories>
         <repository>
             <id>ossrh</id>
@@ -68,7 +77,72 @@
     </repositories>
 
     <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+                <scope>provided</scope>
+            </dependency>
 
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-log4j12</artifactId>
+                <version>${slf4j.version}</version>
+                <scope>compile</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.11</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.alfresco</groupId>
+                <artifactId>share</artifactId>
+                <version>${alfresco.distribution.version}</version>
+                <type>jar</type>
+                <classifier>classes</classifier>
+                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.extensions.surf</groupId>
+                <artifactId>spring-surf</artifactId>
+                <version>${surf.version}</version>
+                <scope>provided</scope>
+                <!-- can mess with tests using a Servlet 3.0 container -->
+                <exclusions>
+                    <exclusion>
+                        <groupId>javax.servlet</groupId>
+                        <artifactId>servlet-api</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.extensions.surf</groupId>
+                <artifactId>spring-surf-api</artifactId>
+                <version>${surf.version}</version>
+                <scope>provided</scope>
+                <!-- can mess with tests using a Servlet 3.0 container -->
+                <exclusions>
+                    <exclusion>
+                        <groupId>javax.servlet</groupId>
+                        <artifactId>servlet-api</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.extensions.surf</groupId>
+                <artifactId>spring-webscripts</artifactId>
+                <version>${surf.version}</version>
+                <scope>provided</scope>
+            </dependency>
+        </dependencies>
     </dependencyManagement>
 
     <build>

@@ -6,11 +6,11 @@
 
     <bean id="testBean" class="org.alfresco.util.exec.RuntimeExec" />
 
-    <bean class="${project.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
+    <bean class="de.acosix.alfresco.utility.common.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
         <property name="enabled" value="true" />
         <property name="targetBeanName" value="testBean" />
         <property name="originalClassName" value="org.alfresco.util.exec.RuntimeExec" />
-        <property name="replacementClassName" value="${common.artifactId}.spring.TestDummyBean" />
+        <property name="replacementClassName" value="de.acosix.alfresco.utility.common.spring.TestDummyBean" />
     </bean>
 
 </beans>
