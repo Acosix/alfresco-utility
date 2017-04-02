@@ -191,16 +191,6 @@ public class TenantExtensibilityContainer extends TenantRepositoryContainer impl
 
     /**
      *
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isExtensibilitySuppressed()
-    {
-        return false;
-    }
-
-    /**
-     *
      * Opens a new {@link ExtensibilityModel}, defers execution to the extended {@link RepositoryContainer} and
      * then closes the {@link ExtensibilityModel}.
      *

@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
@@ -93,8 +94,18 @@ public class PropertyAlteringBeanDefinitionRegistryPostProcessor extends Propert
 
         if (enabled && this.targetBeanName != null && this.propertyName != null)
         {
-            this.applyChange(beanName -> {
-                return registry.getBeanDefinition(beanName);
+            this.applyChange(new BeanDefinitionLookup()
+            {
+
+                /**
+                 *
+                 * {@inheritDoc}
+                 */
+                @Override
+                public BeanDefinition lookup(final String beanName)
+                {
+                    return registry.getBeanDefinition(beanName);
+                }
             });
         }
         else if (!enabled)
@@ -119,10 +130,11 @@ public class PropertyAlteringBeanDefinitionRegistryPostProcessor extends Propert
         if (!Boolean.FALSE.equals(enabled) && this.enabledPropertyKeys != null && !this.enabledPropertyKeys.isEmpty())
         {
             final AtomicBoolean enabled2 = new AtomicBoolean(true);
-            this.enabledPropertyKeys.forEach(key -> {
+            for (final String key : this.enabledPropertyKeys)
+            {
                 final String property = this.propertiesSource.getProperty(key);
                 enabled2.compareAndSet(true, property != null ? Boolean.parseBoolean(property) : false);
-            });
+            }
             enabled = Boolean.valueOf(enabled2.get());
         }
 

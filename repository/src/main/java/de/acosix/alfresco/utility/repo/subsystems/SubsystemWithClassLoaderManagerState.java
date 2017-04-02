@@ -44,7 +44,6 @@ public class SubsystemWithClassLoaderManagerState implements PropertyBackedBeanS
      *
      * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
      */
-    @FunctionalInterface
     public interface SubsystemWithClassLoaderFactoryInitialiser
     {
 
@@ -123,13 +122,14 @@ public class SubsystemWithClassLoaderManagerState implements PropertyBackedBeanS
                 try
                 {
                     final StringBuilder chainBuilder = new StringBuilder();
-                    this.instanceIds.forEach(id -> {
+                    for (final String id : this.instanceIds)
+                    {
                         if (chainBuilder.length() > 0)
                         {
                             chainBuilder.append(',');
                         }
                         chainBuilder.append(id).append(',').append(this.subsystems.get(id).getTypeName());
-                    });
+                    }
                     result = chainBuilder.toString();
                 }
                 finally

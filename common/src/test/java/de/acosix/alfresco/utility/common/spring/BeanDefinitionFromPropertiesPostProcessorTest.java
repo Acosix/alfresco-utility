@@ -39,83 +39,73 @@ public class BeanDefinitionFromPropertiesPostProcessorTest
     @Test
     public void singleton()
     {
-        try (final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-                "classpath:BeanDefinitionFromPropertiesPostProcessorTest/singleton-context.xml"))
-        {
-            final TestDummyBean simpleBean = context.getBean("beanTypeX.simpleBean", TestDummyBean.class);
+        final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+                "classpath:BeanDefinitionFromPropertiesPostProcessorTest/singleton-context.xml");
+        final TestDummyBean simpleBean = context.getBean("beanTypeX.simpleBean", TestDummyBean.class);
 
-            final TestDummyBean refBean1 = context.getBean("beanTypeX.refBean1", TestDummyBean.class);
-            final TestDummyBean refBean2 = context.getBean("beanTypeX.refBean2", TestDummyBean.class);
-            final TestDummyBean refBean3 = context.getBean("beanTypeX.refBean3", TestDummyBean.class);
+        final TestDummyBean refBean1 = context.getBean("beanTypeX.refBean1", TestDummyBean.class);
+        final TestDummyBean refBean2 = context.getBean("beanTypeX.refBean2", TestDummyBean.class);
+        final TestDummyBean refBean3 = context.getBean("beanTypeX.refBean3", TestDummyBean.class);
 
-            this.verifyBean(simpleBean, refBean1, refBean2, refBean3);
-        }
+        this.verifyBean(simpleBean, refBean1, refBean2, refBean3);
     }
 
     @Test
     public void prototype()
     {
-        try (final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-                "classpath:BeanDefinitionFromPropertiesPostProcessorTest/proto-context.xml"))
-        {
-            final TestDummyBean instance1 = context.getBean("beanTypeX.simpleBean.proto", TestDummyBean.class);
-            final TestDummyBean instance2 = context.getBean("beanTypeX.simpleBean.proto", TestDummyBean.class);
+        final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+                "classpath:BeanDefinitionFromPropertiesPostProcessorTest/proto-context.xml");
+        final TestDummyBean instance1 = context.getBean("beanTypeX.simpleBean.proto", TestDummyBean.class);
+        final TestDummyBean instance2 = context.getBean("beanTypeX.simpleBean.proto", TestDummyBean.class);
 
-            final TestDummyBean refBean1 = context.getBean("beanTypeX.refBean1", TestDummyBean.class);
-            final TestDummyBean refBean2 = context.getBean("beanTypeX.refBean2", TestDummyBean.class);
-            final TestDummyBean refBean3 = context.getBean("beanTypeX.refBean3", TestDummyBean.class);
+        final TestDummyBean refBean1 = context.getBean("beanTypeX.refBean1", TestDummyBean.class);
+        final TestDummyBean refBean2 = context.getBean("beanTypeX.refBean2", TestDummyBean.class);
+        final TestDummyBean refBean3 = context.getBean("beanTypeX.refBean3", TestDummyBean.class);
 
-            Assert.assertFalse("instance1 is not a different object than instance 2", instance1 == instance2);
+        Assert.assertFalse("instance1 is not a different object than instance 2", instance1 == instance2);
 
-            this.verifyBean(instance1, refBean1, refBean2, refBean3);
-            this.verifyBean(instance2, refBean1, refBean2, refBean3);
-        }
+        this.verifyBean(instance1, refBean1, refBean2, refBean3);
+        this.verifyBean(instance2, refBean1, refBean2, refBean3);
     }
 
     @Test
     public void abstractParent()
     {
-        try (final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-                "classpath:BeanDefinitionFromPropertiesPostProcessorTest/abstractParent-context.xml"))
-        {
-            final TestDummyBean concreteInstance = context.getBean("beanTypeX.simpleBean.withParent", TestDummyBean.class);
+        final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+                "classpath:BeanDefinitionFromPropertiesPostProcessorTest/abstractParent-context.xml");
+        final TestDummyBean concreteInstance = context.getBean("beanTypeX.simpleBean.withParent", TestDummyBean.class);
 
-            final TestDummyBean refBean1 = context.getBean("beanTypeX.refBean1", TestDummyBean.class);
-            final TestDummyBean refBean2 = context.getBean("beanTypeX.refBean2", TestDummyBean.class);
-            final TestDummyBean refBean3 = context.getBean("beanTypeX.refBean3", TestDummyBean.class);
+        final TestDummyBean refBean1 = context.getBean("beanTypeX.refBean1", TestDummyBean.class);
+        final TestDummyBean refBean2 = context.getBean("beanTypeX.refBean2", TestDummyBean.class);
+        final TestDummyBean refBean3 = context.getBean("beanTypeX.refBean3", TestDummyBean.class);
 
-            this.verifyBean(concreteInstance, refBean1, refBean2, refBean3);
-        }
+        this.verifyBean(concreteInstance, refBean1, refBean2, refBean3);
     }
 
     @Test
     public void renameBean()
     {
-        try (final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-                "classpath:BeanDefinitionFromPropertiesPostProcessorTest/renameBean-context.xml"))
-        {
-            Assert.assertFalse("beanTypeX.bean1 should have been renamed", context.containsBean("beanTypeX.bean1"));
-            Assert.assertTrue("beanTypeX.bean2 should not have been renamed", context.containsBean("beanTypeX.bean2"));
+        final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+                "classpath:BeanDefinitionFromPropertiesPostProcessorTest/renameBean-context.xml");
+        Assert.assertFalse("beanTypeX.bean1 should have been renamed", context.containsBean("beanTypeX.bean1"));
+        Assert.assertTrue("beanTypeX.bean2 should not have been renamed", context.containsBean("beanTypeX.bean2"));
 
-            final TestDummyBean simpleBean = context.getBean("beanTypeY.bean1", TestDummyBean.class);
+        final TestDummyBean simpleBean = context.getBean("beanTypeY.bean1", TestDummyBean.class);
 
-            final TestDummyBean refBean1 = context.getBean("beanTypeX.refBean1", TestDummyBean.class);
-            final TestDummyBean refBean2 = context.getBean("beanTypeX.refBean2", TestDummyBean.class);
-            final TestDummyBean refBean3 = context.getBean("beanTypeX.refBean3", TestDummyBean.class);
+        final TestDummyBean refBean1 = context.getBean("beanTypeX.refBean1", TestDummyBean.class);
+        final TestDummyBean refBean2 = context.getBean("beanTypeX.refBean2", TestDummyBean.class);
+        final TestDummyBean refBean3 = context.getBean("beanTypeX.refBean3", TestDummyBean.class);
 
-            this.verifyBean(simpleBean, refBean1, refBean2, refBean3);
-        }
+        this.verifyBean(simpleBean, refBean1, refBean2, refBean3);
     }
 
     @Test
     public void removeBean()
     {
-        try (final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-                "classpath:BeanDefinitionFromPropertiesPostProcessorTest/removeBean-context.xml"))
-        {
-            Assert.assertFalse("beanTypeX.bean1 should have been removed", context.containsBean("beanTypeX.bean1"));
-            Assert.assertTrue("beanTypeX.bean2 should not have been removed", context.containsBean("beanTypeX.bean2"));
-        }
+        final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+                "classpath:BeanDefinitionFromPropertiesPostProcessorTest/removeBean-context.xml");
+        Assert.assertFalse("beanTypeX.bean1 should have been removed", context.containsBean("beanTypeX.bean1"));
+        Assert.assertTrue("beanTypeX.bean2 should not have been removed", context.containsBean("beanTypeX.bean2"));
     }
 
     // TODO Test constructs with override / removal of predefined beans

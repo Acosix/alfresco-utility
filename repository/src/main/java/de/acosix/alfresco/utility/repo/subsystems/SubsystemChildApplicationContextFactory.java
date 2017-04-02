@@ -132,7 +132,7 @@ public class SubsystemChildApplicationContextFactory extends ChildApplicationCon
     @Override
     protected PropertyBackedBeanState createInitialState() throws IOException
     {
-        return new SubsystemApplicationContextState(true);
+        return new SubsystemApplicationContextState();
     }
 
     /**
@@ -164,9 +164,9 @@ public class SubsystemChildApplicationContextFactory extends ChildApplicationCon
     protected class SubsystemApplicationContextState extends ApplicationContextState
     {
 
-        public SubsystemApplicationContextState(final boolean allowInitAccess) throws IOException
+        public SubsystemApplicationContextState() throws IOException
         {
-            super(allowInitAccess);
+            super();
         }
 
     }

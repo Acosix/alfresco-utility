@@ -23,7 +23,7 @@
     <bean id="global-properties" class="org.alfresco.config.JndiPropertiesFactoryBean">
         <property name="locations">
             <list>
-                <value>classpath:alfresco/repository.properties</value>
+                <value>classpath*:alfresco/repository.properties</value>
                 <value>classpath*:alfresco-global.properties</value>
             </list>
         </property>
@@ -38,10 +38,9 @@
     <bean id="abstractPropertyBackedBean" class="org.alfresco.repo.management.subsystems.AbstractPropertyBackedBean" abstract="true">
         <property name="registry" ref="propertyBackedBeanRegistry" />
         <property name="propertyDefaults" ref="global-properties" />
-        <property name="encryptedPropertyDefaults" ref="encrypted-properties" />
     </bean>
 
-    <bean id="SubsystemManagerTest" class="${project.artifactId}.subsystems.SubsystemChildApplicationContextManager" parent="abstractPropertyBackedBean">
+    <bean id="SubsystemManagerTest" class="de.acosix.alfresco.utility.repo.subsystems.SubsystemChildApplicationContextManager" parent="abstractPropertyBackedBean">
         <property name="defaultChain" value="inst1:default,inst2:default" />
     </bean>
 

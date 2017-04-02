@@ -23,7 +23,7 @@
     <bean id="global-properties" class="org.alfresco.config.JndiPropertiesFactoryBean">
         <property name="locations">
             <list>
-                <value>classpath:alfresco/repository.properties</value>
+                <value>classpath*:alfresco/repository.properties</value>
                 <value>classpath*:alfresco-global.properties</value>
             </list>
         </property>
@@ -38,10 +38,9 @@
     <bean id="abstractPropertyBackedBean" class="org.alfresco.repo.management.subsystems.AbstractPropertyBackedBean" abstract="true">
         <property name="registry" ref="propertyBackedBeanRegistry" />
         <property name="propertyDefaults" ref="global-properties" />
-        <property name="encryptedPropertyDefaults" ref="encrypted-properties" />
     </bean>
 
-    <bean id="SubsystemWithClassLoaderFactoryTest-simple" class="${project.artifactId}.subsystems.SubsystemWithClassLoaderFactory" parent="abstractPropertyBackedBean">
+    <bean id="SubsystemWithClassLoaderFactoryTest-simple" class="de.acosix.alfresco.utility.repo.subsystems.SubsystemWithClassLoaderFactory" parent="abstractPropertyBackedBean">
         <property name="autoStart" value="true" />
     </bean>
 

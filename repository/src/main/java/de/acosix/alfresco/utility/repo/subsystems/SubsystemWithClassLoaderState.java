@@ -38,13 +38,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
+import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.io.Resource;
 import org.springframework.util.PropertiesPersister;
 
@@ -202,14 +202,26 @@ public class SubsystemWithClassLoaderState implements PropertyBackedBeanState
                 instanceIdProps.put(PROPERTY_TYPE, this.type);
                 instanceIdProps.put(PROPERTY_ID, this.id);
                 instanceIdProps.put(PROPERTY_INSTANCE_PATH, this.instancePath);
-                this.applicationContext.getEnvironment().getPropertySources()
-                        .addLast(new PropertiesPropertySource("instanceIdProps", instanceIdProps));
+
+                final PropertyPlaceholderConfigurer configurer = new PropertyPlaceholderConfigurer();
+                configurer.setPropertiesArray(new Properties[] { instanceIdProps });
+                configurer.setIgnoreUnresolvablePlaceholders(true);
+                configurer.setSearchSystemEnvironment(false);
+                this.applicationContext.addBeanFactoryPostProcessor(configurer);
 
                 // build custom loader
                 final List<URL> classLoaderURLs = this.buildClassLoaderURLs();
                 final ClassLoader classLoader = AccessController.<ClassLoader> doPrivileged(
-                        (PrivilegedAction<ClassLoader>) () -> new SubsystemClassLoader(this.parentContext.getClassLoader(),
-                                classLoaderURLs));
+                        new PrivilegedAction<ClassLoader>(){
+
+                            @Override
+                            public ClassLoader run()
+                            {
+                                return new SubsystemClassLoader(SubsystemWithClassLoaderState.this.parentContext.getClassLoader(),
+                                        classLoaderURLs);
+                            }
+
+                        });
                 this.applicationContext.setClassLoader(classLoader);
 
                 // for initialisation of the context (incl singletons) we should set the proper class loader as the context
@@ -230,13 +242,13 @@ public class SubsystemWithClassLoaderState implements PropertyBackedBeanState
                 if (this.applicationContext.containsBean(BEAN_NAME_MONITOR))
                 {
                     final Object m = this.applicationContext.getBean(BEAN_NAME_MONITOR);
-                    LOGGER.debug("Got a monitor object {} for '{}' subsystem, ID: {}", m, this.category, this.id);
+                    LOGGER.debug("Got a monitor object {} for '{}' subsystem, ID: {}", new Object[]{m, this.category, this.id});
                     this.monitor = m;
                 }
             }
             catch (final RuntimeException e)
             {
-                LOGGER.warn("Startup of '{}' subsystem, ID: {} failed", this.category, this.id, e);
+                LOGGER.warn("Startup of '{}' subsystem, ID: {} failed", new Object[] { this.category, this.id, e });
                 this.applicationContext = null;
                 this.lastStartupError = e;
                 throw e;
@@ -430,8 +442,8 @@ public class SubsystemWithClassLoaderState implements PropertyBackedBeanState
         }
         catch (final IOException e)
         {
-            LOGGER.error("Failed to load configuration properties from classpath resources for '{}' subsystem, ID: {}", this.category,
-                    this.id, e);
+            LOGGER.error("Failed to load configuration properties from classpath resources for '{}' subsystem, ID: {}",
+                    new Object[] { this.category, this.id, e });
             throw new AlfrescoRuntimeException("Failed to load subsystem configuration", e);
         }
     }
@@ -477,7 +489,7 @@ public class SubsystemWithClassLoaderState implements PropertyBackedBeanState
         // JARs in regular path have lowest priority
         allUrls.addAll(this.resolveJarURLs(CLASSPATH_ALFRESCO_SUBSYSTEMS + this.category + CLASSPATH_DELIMITER + this.type));
 
-        LOGGER.debug("Resolved class loader URLs {} for '{}' subsystem, ID: {}", allUrls, this.category, this.id);
+        LOGGER.debug("Resolved class loader URLs {} for '{}' subsystem, ID: {}", new Object[] { allUrls, this.category, this.id });
 
         return allUrls;
     }
@@ -500,8 +512,8 @@ public class SubsystemWithClassLoaderState implements PropertyBackedBeanState
                     }
                     catch (final IOException fileEx)
                     {
-                        LOGGER.debug("Failed to resolve resource {} to file for '{}' subsystem, ID: {}", resource.getDescription(),
-                                this.category, this.id);
+                        LOGGER.debug("Failed to resolve resource {} to file for '{}' subsystem, ID: {}",
+                                new Object[] { resource.getDescription(), this.category, this.id });
                     }
                 }
             }
@@ -532,8 +544,8 @@ public class SubsystemWithClassLoaderState implements PropertyBackedBeanState
                     }
                     catch (final IOException fileEx)
                     {
-                        LOGGER.debug("Failed to resolve resource {} to JAR file for '{}' subsystem, ID: {}", resource.getDescription(),
-                                this.category, this.id);
+                        LOGGER.debug("Failed to resolve resource {} to JAR file for '{}' subsystem, ID: {}",
+                                new Object[] { resource.getDescription(), this.category, this.id });
                     }
                 }
             }

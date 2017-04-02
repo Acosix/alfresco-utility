@@ -24,7 +24,6 @@ import org.alfresco.repo.management.subsystems.AbstractPropertyBackedBean;
 import org.alfresco.repo.management.subsystems.PropertyBackedBeanState;
 import org.alfresco.repo.management.subsystems.PropertyBackedBeanWithMonitor;
 import org.alfresco.util.ParameterCheck;
-import org.alfresco.util.PropertyCheck;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.util.DefaultPropertiesPersister;
@@ -40,9 +39,6 @@ public class SubsystemWithClassLoaderFactory extends AbstractPropertyBackedBean
     protected String typeName;
 
     protected PropertiesPersister persister = new DefaultPropertiesPersister();
-
-    // field in super is inaccessible and getter is only introduced in 5.2
-    protected Properties encryptedPropertyDefaults;
 
     /**
      * Sets the type name.
@@ -78,21 +74,8 @@ public class SubsystemWithClassLoaderFactory extends AbstractPropertyBackedBean
      * {@inheritDoc}
      */
     @Override
-    public void setEncryptedPropertyDefaults(final Properties propertyDefaults)
-    {
-        super.setEncryptedPropertyDefaults(propertyDefaults);
-        this.encryptedPropertyDefaults = propertyDefaults;
-    }
-
-    /**
-     *
-     * {@inheritDoc}
-     */
-    @Override
     public void afterPropertiesSet() throws Exception
     {
-        PropertyCheck.mandatory(this, "encryptedPropertyDefaults", this.encryptedPropertyDefaults);
-
         final List<String> idList = this.getInstancePath();
         if (idList.isEmpty())
         {
@@ -318,7 +301,6 @@ public class SubsystemWithClassLoaderFactory extends AbstractPropertyBackedBean
 
         final Properties globalProperties = new Properties();
         globalProperties.putAll(this.getPropertyDefaults());
-        globalProperties.putAll(this.encryptedPropertyDefaults);
 
         final SubsystemWithClassLoaderState state = new SubsystemWithClassLoaderState(this.getParent(), globalProperties, this.persister,
                 this.getCategory(), this.getTypeName(), id, instancePath);

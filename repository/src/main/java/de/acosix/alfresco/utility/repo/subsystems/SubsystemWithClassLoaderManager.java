@@ -44,9 +44,6 @@ public class SubsystemWithClassLoaderManager extends AbstractPropertyBackedBean 
 
     protected PropertiesPersister persister = new DefaultPropertiesPersister();
 
-    // field in super is inaccessible and getter is only introduced in 5.2
-    protected Properties encryptedPropertyDefaults;
-
     {
         this.setInstancePath(Collections.singletonList("manager"));
     }
@@ -85,17 +82,6 @@ public class SubsystemWithClassLoaderManager extends AbstractPropertyBackedBean 
     {
         ParameterCheck.mandatory("persister", persister);
         this.persister = persister;
-    }
-
-    /**
-     *
-     * {@inheritDoc}
-     */
-    @Override
-    public void setEncryptedPropertyDefaults(final Properties propertyDefaults)
-    {
-        super.setEncryptedPropertyDefaults(propertyDefaults);
-        this.encryptedPropertyDefaults = propertyDefaults;
     }
 
     /**
@@ -172,13 +158,22 @@ public class SubsystemWithClassLoaderManager extends AbstractPropertyBackedBean 
     @Override
     protected PropertyBackedBeanState createInitialState() throws IOException
     {
-        final SubsystemWithClassLoaderFactoryInitialiser initialiser = (subsystemContextFactory) -> {
-            subsystemContextFactory.setApplicationContext(this.getParent());
-            subsystemContextFactory.setCategory(this.getCategory());
-            subsystemContextFactory.setPropertyDefaults(this.getPropertyDefaults());
-            subsystemContextFactory.setEncryptedPropertyDefaults(this.encryptedPropertyDefaults);
-            subsystemContextFactory.setPersister(this.persister);
-            subsystemContextFactory.setRegistry(this.getRegistry());
+        final SubsystemWithClassLoaderFactoryInitialiser initialiser = new SubsystemWithClassLoaderFactoryInitialiser()
+        {
+
+            /**
+             * 
+             * {@inheritDoc}
+             */
+            @Override
+            public void initialise(final SubsystemWithClassLoaderFactory subsystemContextFactory)
+            {
+                subsystemContextFactory.setApplicationContext(SubsystemWithClassLoaderManager.this.getParent());
+                subsystemContextFactory.setCategory(SubsystemWithClassLoaderManager.this.getCategory());
+                subsystemContextFactory.setPropertyDefaults(SubsystemWithClassLoaderManager.this.getPropertyDefaults());
+                subsystemContextFactory.setPersister(SubsystemWithClassLoaderManager.this.persister);
+                subsystemContextFactory.setRegistry(SubsystemWithClassLoaderManager.this.getRegistry());
+            }
         };
         final SubsystemWithClassLoaderManagerState state = new SubsystemWithClassLoaderManagerState(this.defaultChain, this.defaultTypeName,
                 initialiser);

@@ -40,8 +40,8 @@ public class SubsystemWithClassLoaderManagerTest
     @Test
     public void simplyStartAll()
     {
-        try (final ClassPathXmlApplicationContext ctxt = new ClassPathXmlApplicationContext(
-                "classpath:subsystem-with-classtloader-manager-test-context.xml"))
+        final ClassPathXmlApplicationContext ctxt = new ClassPathXmlApplicationContext(
+                "classpath:subsystem-with-classtloader-manager-test-context.xml");
         {
             final SubsystemWithClassLoaderManager manager = ctxt.getBean("SubsystemWithClassLoaderManagerTest",
                     SubsystemWithClassLoaderManager.class);
@@ -49,19 +49,20 @@ public class SubsystemWithClassLoaderManagerTest
 
             final Collection<String> instanceIds = manager.getInstanceIds();
             Assert.assertEquals("Number of subsystems does not match", 2, instanceIds.size());
-            instanceIds.forEach(id -> {
+            for (final String id : instanceIds)
+            {
                 final ApplicationContext childCtxt = manager.getApplicationContext(id);
 
                 Assert.assertNotNull("subsystem " + id + " was not started", childCtxt);
-            });
+            }
         }
     }
 
     @Test
     public void effectiveProperties()
     {
-        try (final ClassPathXmlApplicationContext ctxt = new ClassPathXmlApplicationContext(
-                "classpath:subsystem-with-classtloader-manager-test-context.xml"))
+        final ClassPathXmlApplicationContext ctxt = new ClassPathXmlApplicationContext(
+                "classpath:subsystem-with-classtloader-manager-test-context.xml");
         {
             final SubsystemWithClassLoaderManager manager = ctxt.getBean("SubsystemWithClassLoaderManagerTest",
                     SubsystemWithClassLoaderManager.class);
@@ -85,8 +86,8 @@ public class SubsystemWithClassLoaderManagerTest
     @Test
     public void correctPropertyPriorities()
     {
-        try (final ClassPathXmlApplicationContext ctxt = new ClassPathXmlApplicationContext(
-                "classpath:subsystem-with-classtloader-manager-test-context.xml"))
+        final ClassPathXmlApplicationContext ctxt = new ClassPathXmlApplicationContext(
+                "classpath:subsystem-with-classtloader-manager-test-context.xml");
         {
             final SubsystemWithClassLoaderManager manager = ctxt.getBean("SubsystemWithClassLoaderManagerTest",
                     SubsystemWithClassLoaderManager.class);
@@ -119,8 +120,8 @@ public class SubsystemWithClassLoaderManagerTest
     @Test
     public void defaultAndOverrideJar() throws Exception
     {
-        try (final ClassPathXmlApplicationContext ctxt = new ClassPathXmlApplicationContext(
-                "classpath:subsystem-with-classtloader-manager-test-context.xml"))
+        final ClassPathXmlApplicationContext ctxt = new ClassPathXmlApplicationContext(
+                "classpath:subsystem-with-classtloader-manager-test-context.xml");
         {
             final SubsystemWithClassLoaderManager manager = ctxt.getBean("SubsystemWithClassLoaderManagerTest",
                     SubsystemWithClassLoaderManager.class);

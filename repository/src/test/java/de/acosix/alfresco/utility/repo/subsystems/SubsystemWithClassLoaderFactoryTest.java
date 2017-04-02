@@ -39,44 +39,40 @@ public class SubsystemWithClassLoaderFactoryTest
     @Test
     public void effectiveProperties()
     {
-        try (final ClassPathXmlApplicationContext ctxt = new ClassPathXmlApplicationContext(
-                "classpath:subsystem-with-classloader-factory-test-simple-context.xml"))
-        {
-            final SubsystemWithClassLoaderFactory factory = ctxt.getBean("SubsystemWithClassLoaderFactoryTest-simple",
-                    SubsystemWithClassLoaderFactory.class);
-            Assert.assertNotNull("Subsystem factory bean not found", factory);
+        final ClassPathXmlApplicationContext ctxt = new ClassPathXmlApplicationContext(
+                "classpath:subsystem-with-classloader-factory-test-simple-context.xml");
+        final SubsystemWithClassLoaderFactory factory = ctxt.getBean("SubsystemWithClassLoaderFactoryTest-simple",
+                SubsystemWithClassLoaderFactory.class);
+        Assert.assertNotNull("Subsystem factory bean not found", factory);
 
-            final Properties effectiveProperties = factory.getSubsystemEffectiveProperties();
+        final Properties effectiveProperties = factory.getSubsystemEffectiveProperties();
 
-            Assert.assertEquals("Global value does not match", "extension-value1", effectiveProperties.get("subsystem.manager.prop1"));
-            Assert.assertEquals("Default value does not match", "value2", effectiveProperties.get("subsystem.manager.prop2"));
-            Assert.assertEquals("Extension value does not match", "global-value3", effectiveProperties.get("subsystem.manager.prop3"));
-        }
+        Assert.assertEquals("Global value does not match", "extension-value1", effectiveProperties.get("subsystem.manager.prop1"));
+        Assert.assertEquals("Default value does not match", "value2", effectiveProperties.get("subsystem.manager.prop2"));
+        Assert.assertEquals("Extension value does not match", "global-value3", effectiveProperties.get("subsystem.manager.prop3"));
     }
 
     @Test
     public void isolatedProperties()
     {
-        try (final ClassPathXmlApplicationContext ctxt = new ClassPathXmlApplicationContext(
-                "classpath:subsystem-with-classloader-factory-test-simple-context.xml"))
-        {
-            final SubsystemWithClassLoaderFactory factory = ctxt.getBean("SubsystemWithClassLoaderFactoryTest-simple",
-                    SubsystemWithClassLoaderFactory.class);
-            Assert.assertNotNull("Subsystem factory bean not found", factory);
+        final ClassPathXmlApplicationContext ctxt = new ClassPathXmlApplicationContext(
+                "classpath:subsystem-with-classloader-factory-test-simple-context.xml");
+        final SubsystemWithClassLoaderFactory factory = ctxt.getBean("SubsystemWithClassLoaderFactoryTest-simple",
+                SubsystemWithClassLoaderFactory.class);
+        Assert.assertNotNull("Subsystem factory bean not found", factory);
 
-            final ApplicationContext innerCtxt = factory.getApplicationContext();
-            final Properties isolatedProperties = innerCtxt.getBean("isolatedProperties", Properties.class);
+        final ApplicationContext innerCtxt = factory.getApplicationContext();
+        final Properties isolatedProperties = innerCtxt.getBean("isolatedProperties", Properties.class);
 
-            Assert.assertEquals("Default value does not match", "value1", isolatedProperties.get("subsystem.isolated.prop1"));
-            Assert.assertEquals("Extension value does not match", "extension-value2", isolatedProperties.get("subsystem.isolated.prop2"));
-        }
+        Assert.assertEquals("Default value does not match", "value1", isolatedProperties.get("subsystem.isolated.prop1"));
+        Assert.assertEquals("Extension value does not match", "extension-value2", isolatedProperties.get("subsystem.isolated.prop2"));
     }
 
     @Test
     public void defaultJarInSubsystem() throws Exception
     {
-        try (final ClassPathXmlApplicationContext ctxt = new ClassPathXmlApplicationContext(
-                "classpath:subsystem-with-classloader-factory-test-jar-context.xml"))
+        final ClassPathXmlApplicationContext ctxt = new ClassPathXmlApplicationContext(
+                "classpath:subsystem-with-classloader-factory-test-jar-context.xml");
         {
             final SubsystemWithClassLoaderFactory factory = ctxt.getBean("SubsystemWithClassLoaderFactoryTest-jar",
                     SubsystemWithClassLoaderFactory.class);
@@ -94,6 +90,8 @@ public class SubsystemWithClassLoaderFactoryTest
             final Field requestedApiVersionJarField = staticLoggerBinderClassFromJar.getField("REQUESTED_API_VERSION");
             final Object requestedApiVersionJar = requestedApiVersionJarField.get(null);
             Assert.assertEquals("Constant for SLF4J API version in subsystem does not match", "1.6", requestedApiVersionJar);
+
+            ctxt.close();
         }
 
         this.exRule.expect(ClassNotFoundException.class);
@@ -108,8 +106,8 @@ public class SubsystemWithClassLoaderFactoryTest
     @Test
     public void overrideJarInSubsystem() throws Exception
     {
-        try (final ClassPathXmlApplicationContext ctxt = new ClassPathXmlApplicationContext(
-                "classpath:subsystem-with-classloader-factory-test-jarWithOverride-context.xml"))
+        final ClassPathXmlApplicationContext ctxt = new ClassPathXmlApplicationContext(
+                "classpath:subsystem-with-classloader-factory-test-jarWithOverride-context.xml");
         {
             final SubsystemWithClassLoaderFactory factory = ctxt.getBean("SubsystemWithClassLoaderFactoryTest-jarWithOverride",
                     SubsystemWithClassLoaderFactory.class);
@@ -137,8 +135,8 @@ public class SubsystemWithClassLoaderFactoryTest
     @SuppressWarnings("rawtypes")
     public void beanDefinitionsAndPlaceholderResolution()
     {
-        try (final ClassPathXmlApplicationContext ctxt = new ClassPathXmlApplicationContext(
-                "classpath:subsystem-with-classloader-factory-test-simple-context.xml"))
+        final ClassPathXmlApplicationContext ctxt = new ClassPathXmlApplicationContext(
+                "classpath:subsystem-with-classloader-factory-test-simple-context.xml");
         {
             final SubsystemWithClassLoaderFactory factory = ctxt.getBean("SubsystemWithClassLoaderFactoryTest-simple",
                     SubsystemWithClassLoaderFactory.class);

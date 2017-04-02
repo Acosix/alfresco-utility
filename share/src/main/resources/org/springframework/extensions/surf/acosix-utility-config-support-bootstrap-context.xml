@@ -19,7 +19,7 @@
            http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
-    <bean class="${project.artifactId}.spring.EarlyActingBeanDefinitionFromPropertiesPostProcessor">
+    <bean class="de.acosix.alfresco.utility.share.spring.EarlyActingBeanDefinitionFromPropertiesPostProcessor">
         <property name="enabledPropertyKey" value="${moduleId}.moduleConfig.support.enabled" />
         <property name="propertyPrefix" value="${moduleId}" />
         <property name="beanTypes">
@@ -32,7 +32,7 @@
         <property name="propertiesSource" ref="${moduleId}-properties" />
     </bean>
     
-    <bean class="${common.artifactId}.spring.BeanDefinitionFromPropertiesPostProcessor">
+    <bean class="de.acosix.alfresco.utility.common.spring.BeanDefinitionFromPropertiesPostProcessor">
         <property name="enabledPropertyKey" value="${moduleId}.logConfig.support.enabled" />
         <property name="propertyPrefix" value="${moduleId}" />
         <property name="beanTypes">
@@ -54,7 +54,7 @@
 
     <!-- This is simply a workaround for the lack of logging configuration support in Share -->
     <!-- abstract only to allow overridable properties-based enablement -->
-    <bean abstract="true" id="log4JHierarchyInit" class="${project.artifactId}.config.Log4jHierarchyInit">
+    <bean abstract="true" id="log4JHierarchyInit" class="de.acosix.alfresco.utility.share.config.Log4jHierarchyInit">
         <property name="extraLog4jUrls">
             <list>
                 <value>classpath*:alfresco/enterprise/*-log4j.properties</value>

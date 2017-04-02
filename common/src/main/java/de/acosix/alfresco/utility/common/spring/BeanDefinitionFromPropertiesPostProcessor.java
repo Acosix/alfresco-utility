@@ -23,11 +23,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 import org.alfresco.util.Pair;
 import org.slf4j.Logger;
@@ -39,7 +38,7 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.config.PlaceholderConfigurerSupport;
+import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -58,6 +57,20 @@ import org.springframework.util.PropertyPlaceholderHelper;
  */
 public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinitionRegistryPostProcessor, InitializingBean, BeanNameAware
 {
+
+    protected static interface BeanDefinitionLookup
+    {
+
+        BeanDefinition lookup(String beanName);
+    }
+
+    protected static interface PaddedListRegistrator
+    {
+
+        void register(ManagedList<?> paddedList);
+    }
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(BeanDefinitionFromPropertiesPostProcessor.class);
 
     private static final String SUFFIX_PROPERTY_NULL = "null";
 
@@ -91,8 +104,6 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
 
     private static final String SUFFIX_SIMPLE_REMOVE = "_remove";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(BeanDefinitionFromPropertiesPostProcessor.class);
-
     protected String beanName;
 
     protected Boolean enabled;
@@ -107,11 +118,11 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
 
     protected Properties propertiesSource;
 
-    protected String placeholderPrefix = PlaceholderConfigurerSupport.DEFAULT_PLACEHOLDER_PREFIX;
+    protected String placeholderPrefix = PropertyPlaceholderConfigurer.DEFAULT_PLACEHOLDER_PREFIX;
 
-    protected String placeholderSuffix = PlaceholderConfigurerSupport.DEFAULT_PLACEHOLDER_SUFFIX;
+    protected String placeholderSuffix = PropertyPlaceholderConfigurer.DEFAULT_PLACEHOLDER_SUFFIX;
 
-    protected String valueSeparator = PlaceholderConfigurerSupport.DEFAULT_VALUE_SEPARATOR;
+    protected String valueSeparator = PropertyPlaceholderConfigurer.DEFAULT_VALUE_SEPARATOR;
 
     protected PropertyPlaceholderHelper placeholderHelper;
 
@@ -251,33 +262,54 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
 
             final Map<String, BeanDefinition> beanDefinitions = new HashMap<>();
 
-            final Function<String, BeanDefinition> getOrCreateBeanDefinition = beanName -> {
-                BeanDefinition definition;
-                if (beanDefinitions.containsKey(beanName))
+            final BeanDefinitionLookup getOrCreateBeanDefinition = new BeanDefinitionLookup()
+            {
+
+                /**
+                 *
+                 * {@inheritDoc}
+                 */
+                @Override
+                public BeanDefinition lookup(final String beanName)
                 {
-                    definition = beanDefinitions.get(beanName);
+                    BeanDefinition definition;
+                    if (beanDefinitions.containsKey(beanName))
+                    {
+                        definition = beanDefinitions.get(beanName);
+                    }
+                    else if (registry.containsBeanDefinition(beanName))
+                    {
+                        LOGGER.debug("[{}] Customizing pre-defined bean {}", BeanDefinitionFromPropertiesPostProcessor.this.beanName,
+                                beanName);
+                        definition = registry.getBeanDefinition(beanName);
+                        beanDefinitions.put(beanName, definition);
+                    }
+                    else
+                    {
+                        LOGGER.debug("[{}] Defining new bean {}", BeanDefinitionFromPropertiesPostProcessor.this.beanName, beanName);
+                        definition = new GenericBeanDefinition();
+                        beanDefinitions.put(beanName, definition);
+                        registry.registerBeanDefinition(beanName, definition);
+                    }
+                    return definition;
                 }
-                else if (registry.containsBeanDefinition(beanName))
-                {
-                    LOGGER.debug("[{}] Customizing pre-defined bean {}", this.beanName, beanName);
-                    definition = registry.getBeanDefinition(beanName);
-                    beanDefinitions.put(beanName, definition);
-                }
-                else
-                {
-                    LOGGER.debug("[{}] Defining new bean {}", this.beanName, beanName);
-                    definition = new GenericBeanDefinition();
-                    beanDefinitions.put(beanName, definition);
-                    registry.registerBeanDefinition(beanName, definition);
-                }
-                return definition;
             };
 
             final Collection<ManagedList<?>> paddedLists = new ArrayList<>();
-            final Consumer<ManagedList<?>> paddedListRegistrator = list -> {
-                if (!paddedLists.contains(list))
+            final PaddedListRegistrator paddedListRegistrator = new PaddedListRegistrator()
+            {
+
+                /**
+                 *
+                 * {@inheritDoc}
+                 */
+                @Override
+                public void register(final ManagedList<?> list)
                 {
-                    paddedLists.add(list);
+                    if (!paddedLists.contains(list))
+                    {
+                        paddedLists.add(list);
+                    }
                 }
             };
 
@@ -301,10 +333,11 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         if (!Boolean.FALSE.equals(enabled) && this.enabledPropertyKeys != null && !this.enabledPropertyKeys.isEmpty())
         {
             final AtomicBoolean enabled2 = new AtomicBoolean(true);
-            this.enabledPropertyKeys.forEach(key -> {
+            for (final String key : this.enabledPropertyKeys)
+            {
                 final String property = this.propertiesSource.getProperty(key);
                 enabled2.compareAndSet(true, property != null ? Boolean.parseBoolean(property) : false);
-            });
+            }
             enabled = Boolean.valueOf(enabled2.get());
         }
 
@@ -313,7 +346,8 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
 
     protected void compressPaddedLists(final Collection<ManagedList<?>> paddedLists)
     {
-        paddedLists.forEach(list -> {
+        for (final ManagedList<?> list : paddedLists)
+        {
             final Iterator<?> iterator = list.iterator();
             while (iterator.hasNext())
             {
@@ -322,7 +356,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                     iterator.remove();
                 }
             }
-        });
+        }
     }
 
     protected Pair<String, String> getProcessableKeyValue(final Object key, final Object value, final String effectivePropertyPrefix)
@@ -359,7 +393,10 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
     {
         final String effectivePropertyPrefix = this.propertyPrefix + DOT;
 
-        this.propertiesSource.forEach((key, value) -> {
+        for (final Entry<Object, Object> entry : this.propertiesSource.entrySet())
+        {
+            final Object key = entry.getKey();
+            final Object value = entry.getValue();
             if (!processedKeys.contains(key))
             {
                 final Pair<String, String> processableKeyValue = this.getProcessableKeyValue(key, value, effectivePropertyPrefix);
@@ -372,7 +409,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                     final int propertyFragmentIdx = beanDefinitionKey.indexOf(FRAGMENT_PROPERTY);
                     if (propertyFragmentIdx == -1)
                     {
-                        LOGGER.trace("[{}] Processing entry {} = {}", this.beanName, key, resolvedValue);
+                        LOGGER.trace("[{}] Processing entry {} = {}", new Object[] { this.beanName, key, resolvedValue });
                         if (beanDefinitionKey.contains(FRAGMENT_RENAME))
                         {
                             final String beanName = beanDefinitionKey.substring(0, beanDefinitionKey.indexOf(FRAGMENT_RENAME));
@@ -383,21 +420,21 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                             {
                                 if (registry.containsBeanDefinition(beanName))
                                 {
-                                    LOGGER.debug("[{}] Renaming bean {} to {}", this.beanName, beanName, targetBeanName);
+                                    LOGGER.debug("[{}] Renaming bean {} to {}", new Object[] { this.beanName, beanName, targetBeanName });
                                     final BeanDefinition beanDefinition = registry.getBeanDefinition(beanName);
                                     registry.removeBeanDefinition(beanName);
                                     registry.registerBeanDefinition(targetBeanName, beanDefinition);
                                 }
                                 else
                                 {
-                                    LOGGER.debug("[{}] Unable to rename bean {} to {} - bean has not been defined", this.beanName, beanName,
-                                            targetBeanName);
+                                    LOGGER.debug("[{}] Unable to rename bean {} to {} - bean has not been defined",
+                                            new Object[] { this.beanName, beanName, targetBeanName });
                                 }
                             }
                             else
                             {
-                                LOGGER.debug("[{}] Not renaming bean {} to {} due to non-true property value", this.beanName, beanName,
-                                        targetBeanName);
+                                LOGGER.debug("[{}] Not renaming bean {} to {} due to non-true property value",
+                                        new Object[] { this.beanName, beanName, targetBeanName });
                             }
                             processedKeys.add(key);
                         }
@@ -424,8 +461,8 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                         }
                         else
                         {
-                            LOGGER.trace("[{}] Setting unsupported by processRenamesOrRemovals: {} = {}", this.beanName, key,
-                                    resolvedValue);
+                            LOGGER.trace("[{}] Setting unsupported by processRenamesOrRemovals: {} = {}",
+                                    new Object[] { this.beanName, key, resolvedValue });
                         }
                     }
                     else
@@ -444,13 +481,14 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                                 {
                                     if (value instanceof String && Boolean.parseBoolean(resolvedValue))
                                     {
-                                        LOGGER.debug("[{}] Removing property {} from {}", this.beanName, propertyName, beanName);
+                                        LOGGER.debug("[{}] Removing property {} from {}",
+                                                new Object[] { this.beanName, propertyName, beanName });
                                         propertyValues.removePropertyValue(propertyName);
                                     }
                                     else
                                     {
-                                        LOGGER.debug("[{}] Not removing property {} from [} due to non-true property value", this.beanName,
-                                                propertyName, beanName);
+                                        LOGGER.debug("[{}] Not removing property {} from [} due to non-true property value",
+                                                new Object[] { this.beanName, propertyName, beanName });
                                     }
                                     processedKeys.add(key);
                                 }
@@ -458,29 +496,31 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                                 {
                                     LOGGER.trace(
                                             "[{}] Property {} not found in bean {} - key {} may refer to removal of values in collection-like property",
-                                            this.beanName, propertyName, beanName, key);
+                                            new Object[] { this.beanName, propertyName, beanName, key });
                                 }
                             }
                             else
                             {
-                                LOGGER.debug("[{}] Unable to remove property {} from {} - bean has not been defined", this.beanName,
-                                        propertyName, beanName);
+                                LOGGER.debug("[{}] Unable to remove property {} from {} - bean has not been defined",
+                                        new Object[] { this.beanName, propertyName, beanName });
                                 processedKeys.add(key);
                             }
                         }
                     }
                 }
             }
-        });
-
+        }
     }
 
-    protected void processBeanConfigurations(final Function<String, BeanDefinition> getOrCreateBeanDefinition,
-            final Set<Object> processedKeys, final Consumer<ManagedList<?>> paddedListRegistrator)
+    protected void processBeanConfigurations(final BeanDefinitionLookup getOrCreateBeanDefinition, final Set<Object> processedKeys,
+            final PaddedListRegistrator paddedListRegistrator)
     {
         final String effectivePropertyPrefix = this.propertyPrefix + DOT;
 
-        this.propertiesSource.forEach((key, value) -> {
+        for (final Entry<Object, Object> entry : this.propertiesSource.entrySet())
+        {
+            final Object key = entry.getKey();
+            final Object value = entry.getValue();
             if (!processedKeys.contains(key))
             {
                 final Pair<String, String> processableKeyValue = this.getProcessableKeyValue(key, value, effectivePropertyPrefix);
@@ -490,7 +530,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                     final String beanDefinitionKey = processableKeyValue.getFirst();
                     final String resolvedValue = processableKeyValue.getSecond();
 
-                    LOGGER.trace("[{}] Processing entry {} = {}", this.beanName, key, resolvedValue);
+                    LOGGER.trace("[{}] Processing entry {} = {}", new Object[] { this.beanName, key, resolvedValue });
 
                     final int propertyFragmentIdx = beanDefinitionKey.indexOf(FRAGMENT_PROPERTY);
 
@@ -499,36 +539,38 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                         if (beanDefinitionKey.endsWith(SUFFIX_CLASS_NAME))
                         {
                             final String beanName = beanDefinitionKey.substring(0, beanDefinitionKey.length() - SUFFIX_CLASS_NAME.length());
-                            LOGGER.debug("[{}] Setting class name of bean {} to {}", this.beanName, beanName, resolvedValue);
-                            getOrCreateBeanDefinition.apply(beanName).setBeanClassName(resolvedValue);
+                            LOGGER.debug("[{}] Setting class name of bean {} to {}",
+                                    new Object[] { this.beanName, beanName, resolvedValue });
+                            getOrCreateBeanDefinition.lookup(beanName).setBeanClassName(resolvedValue);
                             processedKeys.add(key);
                         }
                         else if (beanDefinitionKey.endsWith(SUFFIX_PARENT))
                         {
                             final String beanName = beanDefinitionKey.substring(0, beanDefinitionKey.length() - SUFFIX_PARENT.length());
-                            LOGGER.debug("[{}] Setting parent of bean {} to {}", this.beanName, beanName, resolvedValue);
-                            getOrCreateBeanDefinition.apply(beanName).setParentName(resolvedValue);
+                            LOGGER.debug("[{}] Setting parent of bean {} to {}", new Object[] { this.beanName, beanName, resolvedValue });
+                            getOrCreateBeanDefinition.lookup(beanName).setParentName(resolvedValue);
                             processedKeys.add(key);
                         }
                         else if (beanDefinitionKey.endsWith(SUFFIX_SCOPE))
                         {
                             final String beanName = beanDefinitionKey.substring(0, beanDefinitionKey.length() - SUFFIX_SCOPE.length());
-                            LOGGER.debug("[{}] Setting scope of bean {} to {}", this.beanName, beanName, resolvedValue);
-                            getOrCreateBeanDefinition.apply(beanName).setScope(resolvedValue);
+                            LOGGER.debug("[{}] Setting scope of bean {} to {}", new Object[] { this.beanName, beanName, resolvedValue });
+                            getOrCreateBeanDefinition.lookup(beanName).setScope(resolvedValue);
                             processedKeys.add(key);
                         }
                         else if (beanDefinitionKey.endsWith(SUFFIX_DEPENDS_ON))
                         {
                             final String beanName = beanDefinitionKey.substring(0, beanDefinitionKey.length() - SUFFIX_DEPENDS_ON.length());
-                            LOGGER.debug("[{}] Setting dependsOn of bean {} to {}", this.beanName, beanName, resolvedValue);
-                            getOrCreateBeanDefinition.apply(beanName).setDependsOn(resolvedValue.split(","));
+                            LOGGER.debug("[{}] Setting dependsOn of bean {} to {}",
+                                    new Object[] { this.beanName, beanName, resolvedValue });
+                            getOrCreateBeanDefinition.lookup(beanName).setDependsOn(resolvedValue.split(","));
                             processedKeys.add(key);
                         }
                         else if (beanDefinitionKey.endsWith(SUFFIX_ABSTRACT))
                         {
                             final String beanName = beanDefinitionKey.substring(0, beanDefinitionKey.length() - SUFFIX_ABSTRACT.length());
-                            LOGGER.debug("[{}] Setting abstract of bean {} to {}", this.beanName, beanName, resolvedValue);
-                            final BeanDefinition beanDefinition = getOrCreateBeanDefinition.apply(beanName);
+                            LOGGER.debug("[{}] Setting abstract of bean {} to {}", new Object[] { this.beanName, beanName, resolvedValue });
+                            final BeanDefinition beanDefinition = getOrCreateBeanDefinition.lookup(beanName);
                             if (beanDefinition instanceof AbstractBeanDefinition)
                             {
                                 ((AbstractBeanDefinition) beanDefinition).setAbstract(Boolean.parseBoolean(resolvedValue));
@@ -537,14 +579,14 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                         }
                         else
                         {
-                            LOGGER.warn("[{}] Unsupported setting: {} = {}", this.beanName, key, resolvedValue);
+                            LOGGER.warn("[{}] Unsupported setting: {} = {}", new Object[] { this.beanName, key, resolvedValue });
                         }
                     }
                     else
                     {
                         final String beanName = beanDefinitionKey.substring(0, propertyFragmentIdx);
                         final String propertyDefinitionKey = beanDefinitionKey.substring(propertyFragmentIdx + FRAGMENT_PROPERTY.length());
-                        final BeanDefinition beanDefinition = getOrCreateBeanDefinition.apply(beanName);
+                        final BeanDefinition beanDefinition = getOrCreateBeanDefinition.lookup(beanName);
                         this.processPropertyValueDefinition(beanName, propertyDefinitionKey, resolvedValue, beanDefinition,
                                 paddedListRegistrator);
 
@@ -552,12 +594,11 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                     }
                 }
             }
-        });
-
+        }
     }
 
     protected void processPropertyValueDefinition(final String beanName, final String propertyDefinitionKey, final String value,
-            final BeanDefinition beanDefinition, final Consumer<ManagedList<?>> paddedListRegistrator)
+            final BeanDefinition beanDefinition, final PaddedListRegistrator paddedListRegistrator)
     {
         final String propertyName;
 
@@ -612,8 +653,8 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
 
                 if (propertyValue != null && propertyValue.getValue() != null)
                 {
-                    LOGGER.debug("[{}] Property {} on {} already defined with value {} - overriding with different value", this.beanName,
-                            beanName, propertyName, propertyValue.getValue());
+                    LOGGER.debug("[{}] Property {} on {} already defined with value {} - overriding with different value",
+                            new Object[] { this.beanName, beanName, propertyName, propertyValue.getValue() });
                 }
                 propertyValue = new PropertyValue(propertyName, valueToSet);
                 propertyValues.addPropertyValue(propertyValue);
@@ -622,7 +663,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
     }
 
     protected void processListPropertyValueDefinition(final String beanName, final String propertyName, final String definitionKey,
-            final String value, final MutablePropertyValues propertyValues, final Consumer<ManagedList<?>> paddedListRegistrator)
+            final String value, final MutablePropertyValues propertyValues, final PaddedListRegistrator paddedListRegistrator)
     {
         boolean isCsv = false;
 
@@ -709,7 +750,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         {
             if (valueList.size() < index)
             {
-                paddedListRegistrator.accept(valueList);
+                paddedListRegistrator.register(valueList);
 
                 while (valueList.size() < index)
                 {
@@ -889,20 +930,22 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         PropertyValue propertyValue = propertyValues.getPropertyValue(propertyName);
         if (propertyValue == null)
         {
-            LOGGER.trace("[{}] Property {} on {} not defined yet - initializing new managed list", this.beanName, beanName, propertyName);
+            LOGGER.trace("[{}] Property {} on {} not defined yet - initializing new managed list",
+                    new Object[] { this.beanName, beanName, propertyName });
             valueList = new ManagedList<>();
             propertyValue = new PropertyValue(propertyName, valueList);
             propertyValues.addPropertyValue(propertyValue);
         }
         else if (propertyValue.getValue() instanceof ManagedList<?>)
         {
-            LOGGER.trace("[{}] Property {} on {} already has a list value - amending", this.beanName, beanName, propertyName);
+            LOGGER.trace("[{}] Property {} on {} already has a list value - amending",
+                    new Object[] { this.beanName, beanName, propertyName });
             valueList = (ManagedList<Object>) propertyValue.getValue();
         }
         else
         {
             LOGGER.debug("[{}] Property {} on {} already defined with value {} - overriding with list value based on properties",
-                    this.beanName, beanName, propertyName, propertyValue.getValue());
+                    new Object[] { this.beanName, beanName, propertyName, propertyValue.getValue() });
             valueList = new ManagedList<>();
             propertyValue = new PropertyValue(propertyName, valueList);
             propertyValues.addPropertyValue(propertyValue);
@@ -918,20 +961,22 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         PropertyValue propertyValue = propertyValues.getPropertyValue(propertyName);
         if (propertyValue == null)
         {
-            LOGGER.trace("[{}] Property {} on {} not defined yet - initializing new managed set", this.beanName, beanName, propertyName);
+            LOGGER.trace("[{}] Property {} on {} not defined yet - initializing new managed set",
+                    new Object[] { this.beanName, beanName, propertyName });
             valueSet = new ManagedSet<>();
             propertyValue = new PropertyValue(propertyName, valueSet);
             propertyValues.addPropertyValue(propertyValue);
         }
         else if (propertyValue.getValue() instanceof ManagedList<?>)
         {
-            LOGGER.trace("[{}] Property {} on {} already has a set value - amending", this.beanName, beanName, propertyName);
+            LOGGER.trace("[{}] Property {} on {} already has a set value - amending",
+                    new Object[] { this.beanName, beanName, propertyName });
             valueSet = (ManagedSet<Object>) propertyValue.getValue();
         }
         else
         {
             LOGGER.debug("[{}] Property {} on {} already defined with value {} - overriding with set value based on properties",
-                    this.beanName, beanName, propertyName, propertyValue.getValue());
+                    new Object[] { this.beanName, beanName, propertyName, propertyValue.getValue() });
             valueSet = new ManagedSet<>();
             propertyValue = new PropertyValue(propertyName, valueSet);
             propertyValues.addPropertyValue(propertyValue);
@@ -947,20 +992,22 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         PropertyValue propertyValue = propertyValues.getPropertyValue(propertyName);
         if (propertyValue == null)
         {
-            LOGGER.trace("[{}] Property {} on {} not defined yet - initializing new managed map", this.beanName, beanName, propertyName);
+            LOGGER.trace("[{}] Property {} on {} not defined yet - initializing new managed map",
+                    new Object[] { this.beanName, beanName, propertyName });
             valueMap = new ManagedMap<>();
             propertyValue = new PropertyValue(propertyName, valueMap);
             propertyValues.addPropertyValue(propertyValue);
         }
         else if (propertyValue.getValue() instanceof ManagedMap<?, ?>)
         {
-            LOGGER.trace("[{}] Property {} on {} already has a map value - amending", this.beanName, beanName, propertyName);
+            LOGGER.trace("[{}] Property {} on {} already has a map value - amending",
+                    new Object[] { this.beanName, beanName, propertyName });
             valueMap = (ManagedMap<Object, Object>) propertyValue.getValue();
         }
         else
         {
             LOGGER.debug("[{}] Property {} on {} already defined with value {} - overriding with map value based on properties",
-                    this.beanName, beanName, propertyName, propertyValue.getValue());
+                    new Object[] { this.beanName, beanName, propertyName, propertyValue.getValue() });
             valueMap = new ManagedMap<>();
             propertyValue = new PropertyValue(propertyName, valueMap);
             propertyValues.addPropertyValue(propertyValue);
@@ -973,17 +1020,19 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         final Object result;
         if (SUFFIX_PROPERTY_REF.equals(definitionKey))
         {
-            LOGGER.trace("[{}] Treating value of property {} on {} as reference to bean {}", this.beanName, beanName, propertyName, value);
+            LOGGER.trace("[{}] Treating value of property {} on {} as reference to bean {}",
+                    new Object[] { this.beanName, beanName, propertyName, value });
             result = new RuntimeBeanReference(value);
         }
         else if (SUFFIX_PROPERTY_NULL.equals(definitionKey) && Boolean.parseBoolean(value))
         {
-            LOGGER.trace("[{}] Treating value of property {} on {} as null", this.beanName, beanName, propertyName);
+            LOGGER.trace("[{}] Treating value of property {} on {} as null", new Object[] { this.beanName, beanName, propertyName });
             result = null;
         }
         else if (definitionKey.isEmpty())
         {
-            LOGGER.trace("[{}] Treating value of property {} on {} as literal value {}", this.beanName, beanName, propertyName, value);
+            LOGGER.trace("[{}] Treating value of property {} on {} as literal value {}",
+                    new Object[] { this.beanName, beanName, propertyName, value });
             result = value;
         }
         else

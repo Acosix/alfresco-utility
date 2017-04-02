@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +45,12 @@ import org.springframework.beans.factory.support.ManagedSet;
  */
 public class PropertyAlteringBeanFactoryPostProcessor implements BeanFactoryPostProcessor, BeanNameAware
 {
+
+    protected static interface BeanDefinitionLookup
+    {
+
+        BeanDefinition lookup(String beanName);
+    }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PropertyAlteringBeanFactoryPostProcessor.class);
 
@@ -281,8 +286,18 @@ public class PropertyAlteringBeanFactoryPostProcessor implements BeanFactoryPost
     {
         if (this.enabled && this.targetBeanName != null && this.propertyName != null)
         {
-            this.applyChange(beanName -> {
-                return beanFactory.getBeanDefinition(beanName);
+            this.applyChange(new BeanDefinitionLookup()
+            {
+
+                /**
+                 *
+                 * {@inheritDoc}
+                 */
+                @Override
+                public BeanDefinition lookup(final String beanName)
+                {
+                    return beanFactory.getBeanDefinition(beanName);
+                }
             });
         }
         else if (!this.enabled)
@@ -295,12 +310,13 @@ public class PropertyAlteringBeanFactoryPostProcessor implements BeanFactoryPost
         }
     }
 
-    protected void applyChange(final Function<String, BeanDefinition> getBeanDefinition)
+    protected void applyChange(final BeanDefinitionLookup getBeanDefinition)
     {
-        final BeanDefinition beanDefinition = getBeanDefinition.apply(this.targetBeanName);
+        final BeanDefinition beanDefinition = getBeanDefinition.lookup(this.targetBeanName);
         if (beanDefinition != null)
         {
-            LOGGER.debug("[{}] Patching property {} of Spring bean {}", this.beanName, this.propertyName, this.targetBeanName);
+            LOGGER.debug("[{}] Patching property {} of Spring bean {}",
+                    new Object[] { this.beanName, this.propertyName, this.targetBeanName });
 
             final MutablePropertyValues propertyValues = beanDefinition.getPropertyValues();
             final PropertyValue configuredValue = propertyValues.getPropertyValue(this.propertyName);
@@ -321,13 +337,14 @@ public class PropertyAlteringBeanFactoryPostProcessor implements BeanFactoryPost
             }
             else if (this.value != null)
             {
-                LOGGER.debug("[{}] Setting new value {} for {} of {}", this.beanName, this.value, this.propertyName, this.targetBeanName);
+                LOGGER.debug("[{}] Setting new value {} for {} of {}",
+                        new Object[] { this.beanName, this.value, this.propertyName, this.targetBeanName });
                 value = this.value;
             }
             else if (this.beanReferenceName != null)
             {
-                LOGGER.debug("[{}] Setting new bean reference to {} for {} of {}", this.beanName, this.beanReferenceName, this.propertyName,
-                        this.targetBeanName);
+                LOGGER.debug("[{}] Setting new bean reference to {} for {} of {}",
+                        new Object[] { this.beanName, this.beanReferenceName, this.propertyName, this.targetBeanName });
                 value = new RuntimeBeanReference(this.beanReferenceName);
             }
             else
@@ -355,8 +372,8 @@ public class PropertyAlteringBeanFactoryPostProcessor implements BeanFactoryPost
     protected Object handleListValues(final PropertyValue configuredValue)
     {
         final Object value;
-        LOGGER.debug("[{}] List of values / bean reference names has been configured - treating property {} of {} as <list>", this.beanName,
-                this.propertyName, this.targetBeanName);
+        LOGGER.debug("[{}] List of values / bean reference names has been configured - treating property {} of {} as <list>",
+                new Object[] { this.beanName, this.propertyName, this.targetBeanName });
 
         final ManagedList<Object> list = new ManagedList<>();
 
@@ -379,14 +396,14 @@ public class PropertyAlteringBeanFactoryPostProcessor implements BeanFactoryPost
         List<Object> valuesToAdd;
         if (this.valueList != null)
         {
-            LOGGER.debug("[{}] List of configured values for {} of {}: ", this.beanName, this.propertyName, this.targetBeanName,
-                    this.valueList);
+            LOGGER.debug("[{}] List of configured values for {} of {}: {}",
+                    new Object[] { this.beanName, this.propertyName, this.targetBeanName, this.valueList });
             valuesToAdd = this.valueList;
         }
         else
         {
-            LOGGER.debug("[{}] List of configured bean reference names for {} of {}: ", this.beanName, this.propertyName,
-                    this.targetBeanName, this.beanReferenceNameList);
+            LOGGER.debug("[{}] List of configured bean reference names for {} of {}: {}",
+                    new Object[] { this.beanName, this.propertyName, this.targetBeanName, this.beanReferenceNameList });
             valuesToAdd = new ArrayList<>();
             for (final String beanReferenceName : this.beanReferenceNameList)
             {
@@ -396,24 +413,27 @@ public class PropertyAlteringBeanFactoryPostProcessor implements BeanFactoryPost
 
         if (this.addAsFirst)
         {
-            LOGGER.debug("[{}] Adding new entries at start of list for {} of {}", this.beanName, this.propertyName, this.targetBeanName);
+            LOGGER.debug("[{}] Adding new entries at start of list for {} of {}",
+                    new Object[] { this.beanName, this.propertyName, this.targetBeanName });
             list.addAll(0, valuesToAdd);
         }
         else if (this.addAtIndex >= 0 && this.addAtIndex < list.size())
         {
-            LOGGER.debug("[{}] Adding new entries at position {} of list for {} of {}", this.beanName, String.valueOf(this.addAtIndex),
-                    this.propertyName, this.targetBeanName);
+            LOGGER.debug("[{}] Adding new entries at position {} of list for {} of {}",
+                    new Object[] { this.beanName, String.valueOf(this.addAtIndex), this.propertyName, this.targetBeanName });
             list.addAll(this.addAtIndex, valuesToAdd);
         }
         else
         {
-            LOGGER.debug("[{}] Adding new entries at end of list for {} of {}", this.beanName, this.propertyName, this.targetBeanName);
+            LOGGER.debug("[{}] Adding new entries at end of list for {} of {}",
+                    new Object[] { this.beanName, this.propertyName, this.targetBeanName });
             list.addAll(valuesToAdd);
         }
 
         if (!list.isMergeEnabled() && this.mergeParent)
         {
-            LOGGER.debug("[{}] Enabling \"merge\" for <list> on {} of {}", this.beanName, this.propertyName, this.targetBeanName);
+            LOGGER.debug("[{}] Enabling \"merge\" for <list> on {} of {}",
+                    new Object[] { this.beanName, this.propertyName, this.targetBeanName });
         }
         list.setMergeEnabled(list.isMergeEnabled() || this.mergeParent);
         value = list;
@@ -423,8 +443,8 @@ public class PropertyAlteringBeanFactoryPostProcessor implements BeanFactoryPost
     protected Object handleSetValues(final PropertyValue configuredValue)
     {
         final Object value;
-        LOGGER.debug("[{}] Set of values / bean reference names has been configured - treating property {} of {} as <set>", this.beanName,
-                this.propertyName, this.targetBeanName);
+        LOGGER.debug("[{}] Set of values / bean reference names has been configured - treating property {} of {} as <set>",
+                new Object[] { this.beanName, this.propertyName, this.targetBeanName });
 
         final ManagedSet<Object> set = new ManagedSet<>();
 
@@ -447,14 +467,14 @@ public class PropertyAlteringBeanFactoryPostProcessor implements BeanFactoryPost
         Set<Object> valuesToAdd;
         if (this.valueSet != null)
         {
-            LOGGER.debug("[{}] Set of configured values for {} of {}: ", this.beanName, this.propertyName, this.targetBeanName,
-                    this.valueSet);
+            LOGGER.debug("[{}] Set of configured values for {} of {}: ",
+                    new Object[] { this.beanName, this.propertyName, this.targetBeanName, this.valueSet });
             valuesToAdd = this.valueSet;
         }
         else
         {
-            LOGGER.debug("[{}] Set of configured bean reference names for {} of {}: ", this.beanName, this.propertyName,
-                    this.targetBeanName, this.beanReferenceNameSet);
+            LOGGER.debug("[{}] Set of configured bean reference names for {} of {}: ",
+                    new Object[] { this.beanName, this.propertyName, this.targetBeanName, this.beanReferenceNameSet });
             valuesToAdd = new HashSet<>();
             for (final String beanReferenceName : this.beanReferenceNameSet)
             {
@@ -462,12 +482,13 @@ public class PropertyAlteringBeanFactoryPostProcessor implements BeanFactoryPost
             }
         }
 
-        LOGGER.debug("[{}] Adding new entries to set for {} of {}", this.beanName, this.propertyName, this.targetBeanName);
+        LOGGER.debug("[{}] Adding new entries to set for {} of {}", new Object[] { this.beanName, this.propertyName, this.targetBeanName });
         set.addAll(valuesToAdd);
 
         if (!set.isMergeEnabled() && this.mergeParent)
         {
-            LOGGER.debug("[{}] Enabling \"merge\" for <set> on {} of {}", this.beanName, this.propertyName, this.targetBeanName);
+            LOGGER.debug("[{}] Enabling \"merge\" for <set> on {} of {}",
+                    new Object[] { this.beanName, this.propertyName, this.targetBeanName });
         }
         set.setMergeEnabled(set.isMergeEnabled() || this.mergeParent);
         value = set;
@@ -477,8 +498,8 @@ public class PropertyAlteringBeanFactoryPostProcessor implements BeanFactoryPost
     protected Object handleMapValues(final PropertyValue configuredValue)
     {
         final Object value;
-        LOGGER.debug("[{}] Map of values / bean reference names has been configured - treating property {} of {} as <map>", this.beanName,
-                this.propertyName, this.targetBeanName);
+        LOGGER.debug("[{}] Map of values / bean reference names has been configured - treating property {} of {} as <map>",
+                new Object[] { this.beanName, this.propertyName, this.targetBeanName });
 
         final ManagedMap<Object, Object> map = new ManagedMap<>();
 
@@ -503,14 +524,14 @@ public class PropertyAlteringBeanFactoryPostProcessor implements BeanFactoryPost
         Map<Object, Object> valuesToMap;
         if (this.valueMap != null)
         {
-            LOGGER.debug("[{}] Map of configured values for {} of {}: ", this.beanName, this.propertyName, this.targetBeanName,
-                    this.valueMap);
+            LOGGER.debug("[{}] Map of configured values for {} of {}: ",
+                    new Object[] { this.beanName, this.propertyName, this.targetBeanName, this.valueMap });
             valuesToMap = this.valueMap;
         }
         else
         {
-            LOGGER.debug("[{}] Map of configured bean reference names for {} of {}: ", this.beanName, this.propertyName,
-                    this.targetBeanName, this.beanReferenceNameMap);
+            LOGGER.debug("[{}] Map of configured bean reference names for {} of {}: ",
+                    new Object[] { this.beanName, this.propertyName, this.targetBeanName, this.beanReferenceNameMap });
             valuesToMap = new HashMap<>();
             for (final Entry<Object, String> beanReferenceEntry : this.beanReferenceNameMap.entrySet())
             {
@@ -518,12 +539,14 @@ public class PropertyAlteringBeanFactoryPostProcessor implements BeanFactoryPost
             }
         }
 
-        LOGGER.debug("[{}] Putting new entries into map for {} of {}", this.beanName, this.propertyName, this.targetBeanName);
+        LOGGER.debug("[{}] Putting new entries into map for {} of {}",
+                new Object[] { this.beanName, this.propertyName, this.targetBeanName });
         map.putAll(valuesToMap);
 
         if (!map.isMergeEnabled() && this.mergeParent)
         {
-            LOGGER.debug("[{}] Enabling \"merge\" for <map> on {} of {}", this.beanName, this.propertyName, this.targetBeanName);
+            LOGGER.debug("[{}] Enabling \"merge\" for <map> on {} of {}",
+                    new Object[] { this.beanName, this.propertyName, this.targetBeanName });
         }
         map.setMergeEnabled(map.isMergeEnabled() || this.mergeParent);
         value = map;

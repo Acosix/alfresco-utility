@@ -29,64 +29,54 @@ public class ImplementationClassReplacingPostProcessorTest
     @Test
     public void byName()
     {
-        try (final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-                "classpath:ImplementationClassReplacingPostProcessorTest/byName-context.xml"))
-        {
-            final Object testBean = context.getBean("testBean");
+        final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+                "classpath:ImplementationClassReplacingPostProcessorTest/byName-context.xml");
+        final Object testBean = context.getBean("testBean");
 
-            Assert.assertTrue("testBean should have been specialized", testBean instanceof TestDummyBean);
-        }
+        Assert.assertTrue("testBean should have been specialized", testBean instanceof TestDummyBean);
     }
 
     @Test
     public void byNameAndClass()
     {
-        try (final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-                "classpath:ImplementationClassReplacingPostProcessorTest/byNameAndClass-context.xml"))
-        {
-            final Object testBean = context.getBean("testBean");
+        final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+                "classpath:ImplementationClassReplacingPostProcessorTest/byNameAndClass-context.xml");
+        final Object testBean = context.getBean("testBean");
 
-            Assert.assertTrue("testBean should have been specialized", testBean instanceof TestDummyBean);
-        }
+        Assert.assertTrue("testBean should have been specialized", testBean instanceof TestDummyBean);
     }
 
     @Test
     public void missingTargetBean()
     {
-        try (final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-                "classpath:ImplementationClassReplacingPostProcessorTest/missingTargetBean-context.xml"))
-        {
-            final Object testBean = context.getBean("testBean");
+        final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+                "classpath:ImplementationClassReplacingPostProcessorTest/missingTargetBean-context.xml");
+        final Object testBean = context.getBean("testBean");
 
-            Assert.assertFalse("testBean should should have been specialized", testBean instanceof TestDummyBean);
-            Assert.assertTrue("testBean should have been an instanceof of RuntimeExec", testBean instanceof RuntimeExec);
-        }
+        Assert.assertFalse("testBean should should have been specialized", testBean instanceof TestDummyBean);
+        Assert.assertTrue("testBean should have been an instanceof of RuntimeExec", testBean instanceof RuntimeExec);
     }
 
     @Test
     public void missingReplacementClass()
     {
-        try (final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-                "classpath:ImplementationClassReplacingPostProcessorTest/missingReplacementClass-context.xml"))
-        {
-            final Object testBean = context.getBean("testBean");
+        final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+                "classpath:ImplementationClassReplacingPostProcessorTest/missingReplacementClass-context.xml");
+        final Object testBean = context.getBean("testBean");
 
-            Assert.assertFalse("testBean should should have been specialized", testBean instanceof TestDummyBean);
-            Assert.assertTrue("testBean should have been an instanceof of RuntimeExec", testBean instanceof RuntimeExec);
-        }
+        Assert.assertFalse("testBean should should have been specialized", testBean instanceof TestDummyBean);
+        Assert.assertTrue("testBean should have been an instanceof of RuntimeExec", testBean instanceof RuntimeExec);
     }
 
     @Test
     public void byNameAndClass_disabled()
     {
-        try (final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-                "classpath:ImplementationClassReplacingPostProcessorTest/byNameAndClass-disabled-context.xml"))
-        {
-            final Object testBean = context.getBean("testBean");
+        final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+                "classpath:ImplementationClassReplacingPostProcessorTest/byNameAndClass-disabled-context.xml");
+        final Object testBean = context.getBean("testBean");
 
-            Assert.assertFalse("testBean should not have been specialized", testBean instanceof TestDummyBean);
-            Assert.assertTrue("testBean should have been an instanceof of RuntimeExec", testBean instanceof RuntimeExec);
-        }
+        Assert.assertFalse("testBean should not have been specialized", testBean instanceof TestDummyBean);
+        Assert.assertTrue("testBean should have been an instanceof of RuntimeExec", testBean instanceof RuntimeExec);
     }
 
     // TODO Tests against early-binding beans (AbstractLifecycleBean)
