@@ -22,6 +22,7 @@ import org.alfresco.repo.management.subsystems.ChildApplicationContextManager;
 import org.alfresco.util.PropertyCheck;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
@@ -34,12 +35,15 @@ import org.springframework.context.ApplicationContextAware;
  *
  * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
  */
-public class SubsystemEffectivePropertiesFactoryBean implements FactoryBean<Properties>, ApplicationContextAware, InitializingBean
+public class SubsystemEffectivePropertiesFactoryBean
+        implements FactoryBean<Properties>, ApplicationContextAware, InitializingBean, BeanNameAware
 {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SubsystemEffectivePropertiesFactoryBean.class);
 
     protected ApplicationContext applicationContext;
+
+    protected String beanName;
 
     protected ChildApplicationContextManager subsystemChildApplicationContextManager;
 
@@ -55,6 +59,15 @@ public class SubsystemEffectivePropertiesFactoryBean implements FactoryBean<Prop
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setBeanName(final String name)
+    {
+        this.beanName = name;
+    }
+
+    /**
      *
      * {@inheritDoc}
      */
@@ -67,13 +80,15 @@ public class SubsystemEffectivePropertiesFactoryBean implements FactoryBean<Prop
             if (!(this.subsystemChildApplicationContextManager instanceof MultiInstanceSubsystemHandler))
             {
                 LOGGER.warn(
-                        "subsystemChildApplicationContextManager does not conform to the interface MultiInstanceSubsystemHandler - either subsystem has not been configured properly or original Alfresco bean may not have been enhanced");
+                        "subsystemChildApplicationContextManager for {} does not conform to the interface MultiInstanceSubsystemHandler - either subsystem has not been configured properly or original Alfresco bean may not have been enhanced",
+                        this.beanName);
             }
         }
         else if (!(this.subsystemChildApplicationContextFactory instanceof SingleInstanceSubsystemHandler))
         {
             LOGGER.warn(
-                    "subsystemChildApplicationContextFactory does not conform to the interface SingleInstanceSubsystemHandler - either subsystem has not been configured properly or original Alfresco bean may not have been enhanced");
+                    "subsystemChildApplicationContextFactory for {} does not conform to the interface SingleInstanceSubsystemHandler - either subsystem has not been configured properly or original Alfresco bean may not have been enhanced",
+                    this.beanName);
         }
     }
 

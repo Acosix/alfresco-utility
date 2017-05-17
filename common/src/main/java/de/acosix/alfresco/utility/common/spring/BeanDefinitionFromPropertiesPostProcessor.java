@@ -215,12 +215,12 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
             throw new IllegalStateException("propertyPrefix has not been set");
         }
 
-        if (this.beanTypes == null || this.beanTypes.isEmpty())
+        if (this.beanTypes == null)
         {
             throw new IllegalStateException("beanTypes has not been set");
         }
 
-        if (this.propertiesSource == null || this.propertiesSource.isEmpty())
+        if (this.propertiesSource == null)
         {
             throw new IllegalStateException("propertiesSource has not been set");
         }
