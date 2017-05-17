@@ -16,13 +16,14 @@ This module is built to be compatible with Alfresco 5.0d and above. It may be us
 
 ### Repository-tier
 - Enhanced subsystem factory/manager classes that allow reverse-lookup of the subsystem instance ID from its application context as well as access to the resolved locations of *.properties files
+- Custom subsystem factory/manager variant that use a custom class loader for subsystems so that they can load custom library JARs or different versions from JARs already included in Alfresco 
 - Subsystem properties factory bean allowing subsystem properties to be exposed to other components as regular java.util.Properties objects
 - Enhanced web script container capable of handling [web script extensibility](https://www.alfresco.com/blogs/developer/2012/05/23/webscript-extensibility-on-the-alfresco-repository/) - raised via [ALF-21794](https://issues.alfresco.com/jira/browse/ALF-21794)
 - Simple override to site.get/site.put/sites.post JSON FTL to allow web script extension templates to augment the site data, e.g. as basis for simpler "Edit Site" dialog customisations either in YUI or Aikau
 
 ### Share-tier
-- Support for share-global.properties files to hold simple configuration key-value pairs which can be provided by modules (similarily to Repository-tier) and overriden by administrators via a share-global.properties file in the Tomcat configuration root folder (./shared/classes/) - properties provided that way are automatically exposed in Spring XML files for placeholder resolution
-- Support for log4j.properties files to be provided by modules (similarily to Repository-tier) and overriden by administrators via a *-log4j.properties in the Tomcat configuration root folder (./shared/classes/alfresco/web-extension/) - raised by an Enterprise customer in 2013 via [MNT-14972](https://issues.alfresco.com/jira/browse/MNT-14972)
+- Support for share-global.properties files to hold simple configuration key-value pairs which can be provided by modules (similarly to Repository-tier) and overriden by administrators via a share-global.properties file in the Tomcat configuration root folder (./shared/classes/) - properties provided that way are automatically exposed in Spring XML files for placeholder resolution
+- Support for log4j.properties files to be provided by modules (similarly to Repository-tier) and overriden by administrators via a *-log4j.properties in the Tomcat configuration root folder (./shared/classes/alfresco/web-extension/) - raised by an Enterprise customer in 2013 via [MNT-14972](https://issues.alfresco.com/jira/browse/MNT-14972)
 - Minor enhancements to Surf CSS theme handlers (clean state separation between different theme CSS tokens)
 - Minor enhancements to Surf Dojo widget dependency collection (JSON instead of RegEx-parsing instead of JSON model; improved RegEx-pattern for dependencies detection in JS source files)
 - Minor enhancements to Surf CSS dependency collection (JSON instead of RegEx-parsing of JSON model; improved RegEx-pattern for dependencies detection in JS source files) - effectively adding the ability to load additional CSS files via JSON model
@@ -33,7 +34,35 @@ This addon is being built using the [Acosix Alfresco Maven framework](https://gi
 
 ## Build
 
-This project can be build simply by executing the standard Maven build lifecycles for package, install or deploy depending on the intent for further processing. A Java Development Kit (JDK) version 8 or higher is required for the build.
+This project can be build simply by executing the standard Maven build lifecycles for package, install or deploy depending on the intent for further processing. A Java Development Kit (JDK) version 8 or higher is required for the build of the master branch, while the Alfresco 4.2 branch requires Java 7.
+
+By inheritance from the Acosix Alfresco Maven framework, this project uses the [Maven Toolchains plugin](http://maven.apache.org/plugins/maven-toolchains-plugin/) to allow potential cross-compilation against different Java versions. This is used for instance in a [separate branch to provide an Alfresco 4.2 compatible version](https://github.com/Acosix/alfresco-utility/tree/alfresco-42) of this addon. In order to build the project it is necessary to provide a basic toolchain configuration via the user specific Maven configuration home (usually ~/.m2/). That file (toolchains.xml) only needs to list the path to a compatible JDK for the Java version required by this project. The following is a sample file defining a Java 7 and 8 development kit.
+
+```xml
+<?xml version='1.0' encoding='UTF-8'?>
+<toolchains xmlns="http://maven.apache.org/TOOLCHAINS/1.1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/TOOLCHAINS/1.1.0 http://maven.apache.org/xsd/toolchains-1.1.0.xsd">
+  <toolchain>
+    <type>jdk</type>
+    <provides>
+      <version>1.8</version>
+      <vendor>oracle</vendor>
+    </provides>
+    <configuration>
+      <jdkHome>C:\Program Files\Java\jdk1.8.0_112</jdkHome>
+    </configuration>
+  </toolchain>
+  <toolchain>
+    <type>jdk</type>
+    <provides>
+      <version>1.7</version>
+      <vendor>oracle</vendor>
+    </provides>
+    <configuration>
+      <jdkHome>C:\Program Files\Java\jdk1.7.0_80</jdkHome>
+    </configuration>
+  </toolchain>
+</toolchains>
+```
 
 ## Dependency in Alfresco SDK
 
@@ -62,14 +91,14 @@ In order to use a pre-built SNAPSHOT artifact published to the Open Source Sonat
 <dependency>
     <groupId>de.acosix.alfresco.utility</groupId>
     <artifactId>de.acosix.alfresco.utility.common</artifactId>
-    <version>1.0.0.0</version>
+    <version>1.0.2.0-SNAPSHOT</version>
     <type>jar</type>
 </dependency>
 
 <dependency>
     <groupId>de.acosix.alfresco.utility</groupId>
     <artifactId>de.acosix.alfresco.utility.repo</artifactId>
-    <version>1.0.0.0</version>
+    <version>1.0.2.0-SNAPSHOT</version>
     <type>jar</type>
     <classifier>installable</classifier>
 </dependency>
@@ -80,7 +109,7 @@ In order to use a pre-built SNAPSHOT artifact published to the Open Source Sonat
 <dependency>
     <groupId>de.acosix.alfresco.utility</groupId>
     <artifactId>de.acosix.alfresco.utility.repo</artifactId>
-    <version>1.0.0.0</version>
+    <version>1.0.2.0-SNAPSHOT</version>
     <type>amp</type>
 </dependency>
 
@@ -113,7 +142,7 @@ For Alfresco SDK 3 beta users:
     <moduleDependency>
         <groupId>de.acosix.alfresco.utility</groupId>
         <artifactId>de.acosix.alfresco.utility.repo</artifactId>
-        <version>1.0.0.0</version>
+        <version>1.0.2.0-SNAPSHOT</version>
         <type>amp</type>
     </moduleDependency>
 </platformModules>
@@ -126,14 +155,14 @@ For Alfresco SDK 3 beta users:
 <dependency>
     <groupId>de.acosix.alfresco.utility</groupId>
     <artifactId>de.acosix.alfresco.utility.common</artifactId>
-    <version>1.0.0.0</version>
+    <version>1.0.2.0-SNAPSHOT</version>
     <type>jar</type>
 </dependency>
 
 <dependency>
     <groupId>de.acosix.alfresco.utility</groupId>
     <artifactId>de.acosix.alfresco.utility.share</artifactId>
-    <version>1.0.0.0</version>
+    <version>1.0.2.0-SNAPSHOT</version>
     <type>jar</type>
     <classifier>installable</classifier>
 </dependency>
@@ -144,7 +173,7 @@ For Alfresco SDK 3 beta users:
 <dependency>
     <groupId>de.acosix.alfresco.utility</groupId>
     <artifactId>de.acosix.alfresco.utility.share</artifactId>
-    <version>1.0.0.0</version>
+    <version>1.0.2.0-SNAPSHOT</version>
     <type>amp</type>
 </dependency>
 
@@ -177,7 +206,7 @@ For Alfresco SDK 3 beta users:
     <moduleDependency>
         <groupId>de.acosix.alfresco.utility</groupId>
         <artifactId>de.acosix.alfresco.utility.share</artifactId>
-        <version>1.0.0.0</version>
+        <version>1.0.2.0-SNAPSHOT</version>
         <type>amp</type>
     </moduleDependency>
 </shareModules>
@@ -189,7 +218,7 @@ Using Maven to build the Alfresco WAR is the **recommended** approach to install
 
 ## alfresco-mmt.jar / apply_amps
 
-The default Alfresco installer creates folders *amps* and *amps_share* where you can place AMP files for modules which Alfresco will install when you use the apply_amps script. Place the AMP for the *de.acosix.alfresco.utility.repo* module in the *amps* directory, *de.acosix.alfresco.utility.share* in the *amps_share* directory, and execute the script to install them. You must restart Alfresco for the installation to take effect.
+The default Alfresco installer creates folders *amps* and *amps_share* where you can place AMP files for modules which Alfresco will install when you use the apply\_amps script. Place the AMP for the *de.acosix.alfresco.utility.repo* module in the *amps* directory, *de.acosix.alfresco.utility.share* in the *amps_share* directory, and execute the script to install them. You must restart Alfresco for the installation to take effect.
 
 Alternatively you can use the alfresco-mmt.jar to install the modules as [described in the documentation](http://docs.alfresco.com/5.1/concepts/dev-extensions-modules-management-tool.html).
 
