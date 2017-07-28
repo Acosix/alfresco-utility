@@ -19,7 +19,7 @@
         <property name="originalClassName" value="org.alfresco.repo.web.scripts.RepositoryContainer" />
         <property name="replacementClassName" value="org.alfresco.repo.web.scripts.ExtensibilityContainer" />
     </bean>
-    
+
     <bean class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
         <property name="enabled" value="\${${moduleId}.web.scripts.extensibleContainer.enabled}" />
         <property name="targetBeanName" value="webscript.default" />
@@ -33,6 +33,110 @@
         <property name="targetBeanName" value="webscripts.container" />
         <property name="propertyName" value="extensibilityModuleHandler" />
         <property name="beanReferenceName" value="extensibility.handler" />
+    </bean>
+
+    <bean id="${moduleId}.globalAuthenticationListener.facadePatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
+        <property name="enabledPropertyKey" value="${moduleId}.web.auth.multipleAuthenticationListeners.enabled" />
+        <property name="propertiesSource" ref="global-properties" />
+        <property name="targetBeanName" value="globalAuthenticationListener" />
+        <!-- this should be the default -->
+        <property name="originalClassName" value="org.alfresco.repo.web.auth.NoopAuthenticationListener" />
+        <property name="replacementClassName" value="${project.artifactId}.web.auth.AuthenticationListenersFacade" />
+    </bean>
+
+    <bean id="${moduleId}.globalAuthenticationListener.listenersPatch" class="${common.artifactId}.spring.PropertyAlteringBeanDefinitionRegistryPostProcessor">
+        <property name="dependsOn">
+            <list>
+                <ref bean="${moduleId}.globalAuthenticationListener.facadePatch" />
+            </list>
+        </property>
+        <property name="enabledPropertyKey" value="${moduleId}.web.auth.multipleAuthenticationListeners.enabled" />
+        <property name="propertiesSource" ref="global-properties" />
+        <property name="targetBeanName" value="globalAuthenticationListener" />
+        <property name="expectedClassName" value="${project.artifactId}.web.auth.AuthenticationListenersFacade" />
+        <property name="propertyName" value="authenticationListeners" />
+        <property name="beanReferenceNameList">
+            <list>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="${moduleId}.webDavAuthenticationListener.facadePatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
+        <property name="enabledPropertyKey" value="${moduleId}.web.auth.multipleAuthenticationListeners.enabled" />
+        <property name="propertiesSource" ref="global-properties" />
+        <property name="targetBeanName" value="webDavAuthenticationListener" />
+        <!-- this should be the default -->
+        <property name="originalClassName" value="org.alfresco.repo.web.auth.NoopAuthenticationListener" />
+        <property name="replacementClassName" value="${project.artifactId}.web.auth.AuthenticationListenersFacade" />
+    </bean>
+
+    <bean id="${moduleId}.webDavAuthenticationListener.listenersPatch" class="${common.artifactId}.spring.PropertyAlteringBeanDefinitionRegistryPostProcessor">
+        <property name="dependsOn">
+            <list>
+                <ref bean="${moduleId}.webDavAuthenticationListener.facadePatch" />
+            </list>
+        </property>
+        <property name="enabledPropertyKey" value="${moduleId}.web.auth.multipleAuthenticationListeners.enabled" />
+        <property name="propertiesSource" ref="global-properties" />
+        <property name="targetBeanName" value="webDavAuthenticationListener" />
+        <property name="expectedClassName" value="${project.artifactId}.web.auth.AuthenticationListenersFacade" />
+        <property name="propertyName" value="authenticationListeners" />
+        <property name="beanReferenceNameList">
+            <list>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="${moduleId}.sharepointAuthenticationListener.facadePatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
+        <property name="enabledPropertyKey" value="${moduleId}.web.auth.multipleAuthenticationListeners.enabled" />
+        <property name="propertiesSource" ref="global-properties" />
+        <property name="targetBeanName" value="sharepointAuthenticationListener" />
+        <!-- this should be the default -->
+        <property name="originalClassName" value="org.alfresco.repo.web.auth.NoopAuthenticationListener" />
+        <property name="replacementClassName" value="${project.artifactId}.web.auth.AuthenticationListenersFacade" />
+    </bean>
+
+    <bean id="${moduleId}.sharepointAuthenticationListener.listenersPatch" class="${common.artifactId}.spring.PropertyAlteringBeanDefinitionRegistryPostProcessor">
+        <property name="dependsOn">
+            <list>
+                <ref bean="${moduleId}.sharepointAuthenticationListener.facadePatch" />
+            </list>
+        </property>
+        <property name="enabledPropertyKey" value="${moduleId}.web.auth.multipleAuthenticationListeners.enabled" />
+        <property name="propertiesSource" ref="global-properties" />
+        <property name="targetBeanName" value="sharepointAuthenticationListener" />
+        <property name="expectedClassName" value="${project.artifactId}.web.auth.AuthenticationListenersFacade" />
+        <property name="propertyName" value="authenticationListeners" />
+        <property name="beanReferenceNameList">
+            <list>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="${moduleId}.webScriptAuthenticationListener.facadePatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
+        <property name="propertiesSource" ref="global-properties" />
+        <property name="enabledPropertyKey" value="${moduleId}.web.auth.multipleAuthenticationListeners.enabled" />
+        <property name="targetBeanName" value="webScriptAuthenticationListener" />
+        <!-- this should be the default -->
+        <property name="originalClassName" value="org.alfresco.repo.web.auth.NoopAuthenticationListener" />
+        <property name="replacementClassName" value="${project.artifactId}.web.auth.AuthenticationListenersFacade" />
+    </bean>
+
+    <bean id="${moduleId}.webScriptAuthenticationListener.listenersPatch" class="${common.artifactId}.spring.PropertyAlteringBeanDefinitionRegistryPostProcessor">
+        <property name="dependsOn">
+            <list>
+                <ref bean="${moduleId}.webScriptAuthenticationListener.facadePatch" />
+            </list>
+        </property>
+        <property name="enabledPropertyKey" value="${moduleId}.web.auth.multipleAuthenticationListeners.enabled" />
+        <property name="propertiesSource" ref="global-properties" />
+        <property name="targetBeanName" value="webScriptAuthenticationListener" />
+        <property name="expectedClassName" value="${project.artifactId}.web.auth.AuthenticationListenersFacade" />
+        <property name="propertyName" value="authenticationListeners" />
+        <property name="beanReferenceNameList">
+            <list>
+            </list>
+        </property>
     </bean>
 
 </beans>
