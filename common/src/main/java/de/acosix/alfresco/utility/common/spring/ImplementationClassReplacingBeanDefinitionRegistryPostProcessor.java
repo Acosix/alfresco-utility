@@ -35,7 +35,8 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProce
  *
  * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
  */
-public class ImplementationClassReplacingBeanDefinitionRegistryPostProcessor extends ImplementationClassReplacingBeanFactoryPostProcessor
+public class ImplementationClassReplacingBeanDefinitionRegistryPostProcessor
+        extends ImplementationClassReplacingBeanFactoryPostProcessor<BeanDefinitionRegistryPostProcessor>
         implements BeanDefinitionRegistryPostProcessor
 {
 
@@ -101,21 +102,36 @@ public class ImplementationClassReplacingBeanDefinitionRegistryPostProcessor ext
     @Override
     public void postProcessBeanDefinitionRegistry(final BeanDefinitionRegistry registry) throws BeansException
     {
-        final boolean enabled = this.isEnabled();
+        if (!this.executed)
+        {
+            final boolean enabled = this.isEnabled();
 
-        if (enabled && this.targetBeanName != null && this.replacementClassName != null)
-        {
-            this.applyChange(beanName -> {
-                return registry.getBeanDefinition(beanName);
-            });
-        }
-        else if (!enabled)
-        {
-            LOGGER.info("[{}] patch will not be applied as it has been marked as inactive", this.beanName);
-        }
-        else
-        {
-            LOGGER.warn("[{}] patch cannnot be applied as its configuration is incomplete", this.beanName);
+            if (enabled)
+            {
+                if (this.dependsOn != null)
+                {
+                    this.dependsOn.forEach(x -> {
+                        x.postProcessBeanDefinitionRegistry(registry);
+                    });
+                }
+
+                if (this.targetBeanName != null && this.replacementClassName != null)
+                {
+                    this.applyChange(beanName -> {
+                        return registry.getBeanDefinition(beanName);
+                    });
+                }
+                else
+                {
+                    LOGGER.warn("[{}] patch cannnot be applied as its configuration is incomplete", this.beanName);
+                }
+
+                this.executed = true;
+            }
+            else
+            {
+                LOGGER.info("[{}] patch will not be applied as it has been marked as inactive", this.beanName);
+            }
         }
     }
 

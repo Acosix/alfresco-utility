@@ -95,6 +95,10 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
 
     protected String beanName;
 
+    protected List<BeanDefinitionRegistryPostProcessor> dependsOn;
+
+    protected boolean executed;
+
     protected Boolean enabled;
 
     protected String enabledPropertyKey;
@@ -122,6 +126,15 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
     public void setBeanName(final String name)
     {
         this.beanName = name;
+    }
+
+    /**
+     * @param dependsOn
+     *            the dependsOn to set
+     */
+    public void setDependsOn(final List<BeanDefinitionRegistryPostProcessor> dependsOn)
+    {
+        this.dependsOn = dependsOn;
     }
 
     /**
@@ -207,6 +220,10 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         this.valueSeparator = valueSeparator;
     }
 
+    /**
+     *
+     * {@inheritDoc}
+     */
     @Override
     public void afterPropertiesSet()
     {
@@ -243,49 +260,61 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
     @Override
     public void postProcessBeanDefinitionRegistry(final BeanDefinitionRegistry registry) throws BeansException
     {
-        final boolean enabled = this.isEnabled();
-
-        if (enabled)
+        if (!this.executed)
         {
-            LOGGER.info("[{}] Processing beans defined via properties files using prefix {}", this.beanName, this.propertyPrefix);
+            final boolean enabled = this.isEnabled();
 
-            final Map<String, BeanDefinition> beanDefinitions = new HashMap<>();
-
-            final Function<String, BeanDefinition> getOrCreateBeanDefinition = beanName -> {
-                BeanDefinition definition;
-                if (beanDefinitions.containsKey(beanName))
+            if (enabled)
+            {
+                if (this.dependsOn != null)
                 {
-                    definition = beanDefinitions.get(beanName);
+                    this.dependsOn.forEach(x -> {
+                        x.postProcessBeanDefinitionRegistry(registry);
+                    });
                 }
-                else if (registry.containsBeanDefinition(beanName))
-                {
-                    LOGGER.debug("[{}] Customizing pre-defined bean {}", this.beanName, beanName);
-                    definition = registry.getBeanDefinition(beanName);
-                    beanDefinitions.put(beanName, definition);
-                }
-                else
-                {
-                    LOGGER.debug("[{}] Defining new bean {}", this.beanName, beanName);
-                    definition = new GenericBeanDefinition();
-                    beanDefinitions.put(beanName, definition);
-                    registry.registerBeanDefinition(beanName, definition);
-                }
-                return definition;
-            };
 
-            final Collection<ManagedList<?>> paddedLists = new ArrayList<>();
-            final Consumer<ManagedList<?>> paddedListRegistrator = list -> {
-                if (!paddedLists.contains(list))
-                {
-                    paddedLists.add(list);
-                }
-            };
+                LOGGER.info("[{}] Processing beans defined via properties files using prefix {}", this.beanName, this.propertyPrefix);
 
-            final Set<Object> processedKeys = new HashSet<>();
-            this.processRenamesOrRemovals(registry, processedKeys);
-            this.processBeanConfigurations(getOrCreateBeanDefinition, processedKeys, paddedListRegistrator);
+                final Map<String, BeanDefinition> beanDefinitions = new HashMap<>();
 
-            this.compressPaddedLists(paddedLists);
+                final Function<String, BeanDefinition> getOrCreateBeanDefinition = beanName -> {
+                    BeanDefinition definition;
+                    if (beanDefinitions.containsKey(beanName))
+                    {
+                        definition = beanDefinitions.get(beanName);
+                    }
+                    else if (registry.containsBeanDefinition(beanName))
+                    {
+                        LOGGER.debug("[{}] Customizing pre-defined bean {}", this.beanName, beanName);
+                        definition = registry.getBeanDefinition(beanName);
+                        beanDefinitions.put(beanName, definition);
+                    }
+                    else
+                    {
+                        LOGGER.debug("[{}] Defining new bean {}", this.beanName, beanName);
+                        definition = new GenericBeanDefinition();
+                        beanDefinitions.put(beanName, definition);
+                        registry.registerBeanDefinition(beanName, definition);
+                    }
+                    return definition;
+                };
+
+                final Collection<ManagedList<?>> paddedLists = new ArrayList<>();
+                final Consumer<ManagedList<?>> paddedListRegistrator = list -> {
+                    if (!paddedLists.contains(list))
+                    {
+                        paddedLists.add(list);
+                    }
+                };
+
+                final Set<Object> processedKeys = new HashSet<>();
+                this.processRenamesOrRemovals(registry, processedKeys);
+                this.processBeanConfigurations(getOrCreateBeanDefinition, processedKeys, paddedListRegistrator);
+
+                this.compressPaddedLists(paddedLists);
+
+                this.executed = true;
+            }
         }
     }
 

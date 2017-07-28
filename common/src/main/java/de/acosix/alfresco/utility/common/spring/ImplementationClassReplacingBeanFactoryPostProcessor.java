@@ -15,6 +15,7 @@
  */
 package de.acosix.alfresco.utility.common.spring;
 
+import java.util.List;
 import java.util.function.Function;
 
 import org.slf4j.Logger;
@@ -31,12 +32,17 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
  *
  * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
  */
-public class ImplementationClassReplacingBeanFactoryPostProcessor implements BeanFactoryPostProcessor, BeanNameAware
+public class ImplementationClassReplacingBeanFactoryPostProcessor<D extends BeanFactoryPostProcessor>
+        implements BeanFactoryPostProcessor, BeanNameAware
 {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ImplementationClassReplacingBeanFactoryPostProcessor.class);
 
     protected String beanName;
+
+    protected List<D> dependsOn;
+
+    protected boolean executed;
 
     protected String originalClassName;
 
@@ -53,6 +59,15 @@ public class ImplementationClassReplacingBeanFactoryPostProcessor implements Bea
     public void setBeanName(final String name)
     {
         this.beanName = name;
+    }
+
+    /**
+     * @param dependsOn
+     *            the dependsOn to set
+     */
+    public void setDependsOn(final List<D> dependsOn)
+    {
+        this.dependsOn = dependsOn;
     }
 
     /**
@@ -97,19 +112,35 @@ public class ImplementationClassReplacingBeanFactoryPostProcessor implements Bea
     @Override
     public void postProcessBeanFactory(final ConfigurableListableBeanFactory beanFactory) throws BeansException
     {
-        if (this.enabled && this.targetBeanName != null && this.replacementClassName != null)
+        if (!this.executed)
         {
-            this.applyChange(beanName -> {
-                return beanFactory.getBeanDefinition(beanName);
-            });
-        }
-        else if (!this.enabled)
-        {
-            LOGGER.info("[{}] patch will not be applied as it has been marked as inactive", this.beanName);
-        }
-        else
-        {
-            LOGGER.warn("[{}] patch cannnot be applied as its configuration is incomplete", this.beanName);
+            if (this.enabled)
+            {
+                if (this.dependsOn != null)
+                {
+                    this.dependsOn.forEach(x -> {
+                        x.postProcessBeanFactory(beanFactory);
+                    });
+                }
+
+                if (this.targetBeanName != null && this.replacementClassName != null)
+                {
+
+                    this.applyChange(beanName -> {
+                        return beanFactory.getBeanDefinition(beanName);
+                    });
+                }
+                else
+                {
+                    LOGGER.warn("[{}] patch cannnot be applied as its configuration is incomplete", this.beanName);
+                }
+
+                this.executed = true;
+            }
+            else
+            {
+                LOGGER.info("[{}] patch will not be applied as it has been marked as inactive", this.beanName);
+            }
         }
     }
 

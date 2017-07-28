@@ -24,6 +24,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Function;
 
+import org.alfresco.util.EqualsHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -44,14 +45,20 @@ import org.springframework.beans.factory.support.ManagedSet;
  *
  * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
  */
-public class PropertyAlteringBeanFactoryPostProcessor implements BeanFactoryPostProcessor, BeanNameAware
+public class PropertyAlteringBeanFactoryPostProcessor<D extends BeanFactoryPostProcessor> implements BeanFactoryPostProcessor, BeanNameAware
 {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PropertyAlteringBeanFactoryPostProcessor.class);
 
     protected String beanName;
 
+    protected List<D> dependsOn;
+
+    protected boolean executed;
+
     protected String targetBeanName;
+
+    protected String expectedClassName;
 
     protected Boolean enabled;
 
@@ -91,12 +98,30 @@ public class PropertyAlteringBeanFactoryPostProcessor implements BeanFactoryPost
     }
 
     /**
+     * @param dependsOn
+     *            the dependsOn to set
+     */
+    public void setDependsOn(final List<D> dependsOn)
+    {
+        this.dependsOn = dependsOn;
+    }
+
+    /**
      * @param targetBeanName
      *            the targetBeanName to set
      */
     public void setTargetBeanName(final String targetBeanName)
     {
         this.targetBeanName = targetBeanName;
+    }
+
+    /**
+     * @param expectedClassName
+     *            the expectedClassName to set
+     */
+    public void setExpectedClassName(final String expectedClassName)
+    {
+        this.expectedClassName = expectedClassName;
     }
 
     /**
@@ -279,19 +304,34 @@ public class PropertyAlteringBeanFactoryPostProcessor implements BeanFactoryPost
     @Override
     public void postProcessBeanFactory(final ConfigurableListableBeanFactory beanFactory) throws BeansException
     {
-        if (this.enabled && this.targetBeanName != null && this.propertyName != null)
+        if (!this.executed)
         {
-            this.applyChange(beanName -> {
-                return beanFactory.getBeanDefinition(beanName);
-            });
-        }
-        else if (!this.enabled)
-        {
-            LOGGER.info("[{}] patch will not be applied as it has been marked as inactive", this.beanName);
-        }
-        else
-        {
-            LOGGER.warn("[{}] patch cannnot be applied as its configuration is incomplete", this.beanName);
+            if (this.enabled)
+            {
+                if (this.dependsOn != null)
+                {
+                    this.dependsOn.forEach(x -> {
+                        x.postProcessBeanFactory(beanFactory);
+                    });
+                }
+
+                if (this.targetBeanName != null && this.propertyName != null)
+                {
+                    this.applyChange(beanName -> {
+                        return beanFactory.getBeanDefinition(beanName);
+                    });
+                }
+                else
+                {
+                    LOGGER.warn("[{}] patch cannnot be applied as its configuration is incomplete", this.beanName);
+                }
+
+                this.executed = true;
+            }
+            else
+            {
+                LOGGER.info("[{}] patch will not be applied as it has been marked as inactive", this.beanName);
+            }
         }
     }
 
@@ -300,50 +340,59 @@ public class PropertyAlteringBeanFactoryPostProcessor implements BeanFactoryPost
         final BeanDefinition beanDefinition = getBeanDefinition.apply(this.targetBeanName);
         if (beanDefinition != null)
         {
-            LOGGER.debug("[{}] Patching property {} of Spring bean {}", this.beanName, this.propertyName, this.targetBeanName);
+            if (this.expectedClassName == null || EqualsHelper.nullSafeEquals(this.expectedClassName, beanDefinition.getBeanClassName()))
+            {
+                LOGGER.debug("[{}] Patching property {} of Spring bean {}", this.beanName, this.propertyName, this.targetBeanName);
 
-            final MutablePropertyValues propertyValues = beanDefinition.getPropertyValues();
-            final PropertyValue configuredValue = propertyValues.getPropertyValue(this.propertyName);
+                final MutablePropertyValues propertyValues = beanDefinition.getPropertyValues();
+                final PropertyValue configuredValue = propertyValues.getPropertyValue(this.propertyName);
 
-            final Object value;
+                final Object value;
 
-            if (this.valueList != null || this.beanReferenceNameList != null)
-            {
-                value = this.handleListValues(configuredValue);
-            }
-            else if (this.valueSet != null || this.beanReferenceNameSet != null)
-            {
-                value = this.handleSetValues(configuredValue);
-            }
-            else if (this.valueMap != null || this.beanReferenceNameMap != null)
-            {
-                value = this.handleMapValues(configuredValue);
-            }
-            else if (this.value != null)
-            {
-                LOGGER.debug("[{}] Setting new value {} for {} of {}", this.beanName, this.value, this.propertyName, this.targetBeanName);
-                value = this.value;
-            }
-            else if (this.beanReferenceName != null)
-            {
-                LOGGER.debug("[{}] Setting new bean reference to {} for {} of {}", this.beanName, this.beanReferenceName, this.propertyName,
-                        this.targetBeanName);
-                value = new RuntimeBeanReference(this.beanReferenceName);
+                if (this.valueList != null || this.beanReferenceNameList != null)
+                {
+                    value = this.handleListValues(configuredValue);
+                }
+                else if (this.valueSet != null || this.beanReferenceNameSet != null)
+                {
+                    value = this.handleSetValues(configuredValue);
+                }
+                else if (this.valueMap != null || this.beanReferenceNameMap != null)
+                {
+                    value = this.handleMapValues(configuredValue);
+                }
+                else if (this.value != null)
+                {
+                    LOGGER.debug("[{}] Setting new value {} for {} of {}", this.beanName, this.value, this.propertyName,
+                            this.targetBeanName);
+                    value = this.value;
+                }
+                else if (this.beanReferenceName != null)
+                {
+                    LOGGER.debug("[{}] Setting new bean reference to {} for {} of {}", this.beanName, this.beanReferenceName,
+                            this.propertyName, this.targetBeanName);
+                    value = new RuntimeBeanReference(this.beanReferenceName);
+                }
+                else
+                {
+                    value = null;
+                }
+
+                if (value != null)
+                {
+                    final PropertyValue newValue = new PropertyValue(this.propertyName, value);
+                    propertyValues.addPropertyValue(newValue);
+                }
+                else if (configuredValue != null)
+                {
+                    LOGGER.debug("[{}] Removing {} property definition from Spring bean {}", this.propertyName, this.targetBeanName);
+                    propertyValues.removePropertyValue(configuredValue);
+                }
             }
             else
             {
-                value = null;
-            }
-
-            if (value != null)
-            {
-                final PropertyValue newValue = new PropertyValue(this.propertyName, value);
-                propertyValues.addPropertyValue(newValue);
-            }
-            else if (configuredValue != null)
-            {
-                LOGGER.debug("[{}] Removing {} property definition from Spring bean {}", this.propertyName, this.targetBeanName);
-                propertyValues.removePropertyValue(configuredValue);
+                LOGGER.info("[{}] patch cannot be applied - bean with name {} does not match expected class {}", this.beanName,
+                        this.targetBeanName, this.expectedClassName);
             }
         }
         else
