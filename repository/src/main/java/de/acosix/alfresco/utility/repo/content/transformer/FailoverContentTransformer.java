@@ -53,8 +53,6 @@ import org.springframework.extensions.surf.util.I18NUtil;
 public class FailoverContentTransformer extends AbstractContentTransformer2 implements InitializingBean
 {
 
-    private static final String PREFIX_COMPLEX_TRANSFORMER = TransformerConfig.PREFIX + "complex.";
-
     // need to avoid re-use of the default TransformerConfig.FAILOVER suffix since TransformerConfigDynamicTransformers handles these
     private static final String SUFFIX_ALT_FAILOVER = ".altFailover";
 
