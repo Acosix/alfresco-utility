@@ -15,30 +15,29 @@
  */
 package de.acosix.alfresco.utility.repo.batch;
 
-import java.io.Serializable;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.batch.BatchProcessWorkProvider;
+import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.StoreRef;
-import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
 import org.alfresco.service.cmr.search.LimitBy;
 import org.alfresco.service.cmr.search.ResultSet;
 import org.alfresco.service.cmr.search.SearchParameters;
 import org.alfresco.service.cmr.search.SearchService;
 import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.namespace.NamespaceService;
-import org.alfresco.service.namespace.QName;
 import org.alfresco.util.ParameterCheck;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class provides a generic work provider for batch operations that person {@link NodeRef NodeRefs} as units of work, querying with
@@ -50,19 +49,15 @@ import org.alfresco.util.ParameterCheck;
 public class PersonBatchWorkProvider implements BatchProcessWorkProvider<NodeRef>
 {
 
-    private final NamespaceService namespaceService;
+    private static final Logger LOGGER = LoggerFactory.getLogger(PersonBatchWorkProvider.class);
 
-    private final NodeService nodeService;
+    private final NamespaceService namespaceService;
 
     private final PersonService personService;
 
     private final SearchService searchService;
 
-    private char lastMaxCharacter = '\0';
-
-    private boolean reuseMaxCharacter = false;
-
-    private String lastName;
+    private char maxCharacter = '\0';
 
     private boolean done;
 
@@ -70,18 +65,27 @@ public class PersonBatchWorkProvider implements BatchProcessWorkProvider<NodeRef
 
     private final Set<NodeRef> retrievedNodes = new HashSet<>();
 
+    private final String runAsUser;
+
+    public PersonBatchWorkProvider(final NamespaceService namespaceService, final PersonService personService,
+            final SearchService searchService, final String runAsUser)
+    {
+        ParameterCheck.mandatory("namespaceService", namespaceService);
+        ParameterCheck.mandatory("personService", personService);
+        ParameterCheck.mandatory("searchService", searchService);
+        ParameterCheck.mandatoryString("runAsUser", runAsUser);
+
+        this.namespaceService = namespaceService;
+        this.personService = personService;
+        this.searchService = searchService;
+        this.runAsUser = runAsUser;
+    }
+
+    // for backwards compatibility
     public PersonBatchWorkProvider(final NamespaceService namespaceService, final NodeService nodeService,
             final PersonService personService, final SearchService searchService)
     {
-        ParameterCheck.mandatory("namespaceService", namespaceService);
-        ParameterCheck.mandatory("nodeService", nodeService);
-        ParameterCheck.mandatory("personService", personService);
-        ParameterCheck.mandatory("searchService", searchService);
-
-        this.namespaceService = namespaceService;
-        this.nodeService = nodeService;
-        this.personService = personService;
-        this.searchService = searchService;
+        this(namespaceService, personService, searchService, AuthenticationUtil.getRunAsUser());
     }
 
     /**
@@ -91,7 +95,11 @@ public class PersonBatchWorkProvider implements BatchProcessWorkProvider<NodeRef
     @Override
     public int getTotalEstimatedWorkSize()
     {
-        return this.personService.countPeople();
+        // called also at end of TxnCallback
+        final Integer estimate = AuthenticationUtil.runAs(() -> {
+            return Integer.valueOf(this.personService.countPeople());
+        }, this.runAsUser);
+        return estimate.intValue();
     }
 
     /**
@@ -102,96 +110,92 @@ public class PersonBatchWorkProvider implements BatchProcessWorkProvider<NodeRef
     public Collection<NodeRef> getNextWork()
     {
         final List<NodeRef> nextWork = new ArrayList<>();
-
-        while (!this.done && nextWork.isEmpty())
-        {
-            if (!this.reuseMaxCharacter)
+        AuthenticationUtil.runAs(() -> {
+            while (!this.done && nextWork.isEmpty())
             {
+                final char lastMaxCharacter = this.maxCharacter;
                 // check the last limit character (for name-based pagination to keep DB query highly selective)
-                switch (this.lastMaxCharacter)
+                switch (this.maxCharacter)
                 {
                     case '\0':
-                        this.lastMaxCharacter = '0';
+                        this.maxCharacter = '0';
                         break;
                     case '9':
-                        this.lastMaxCharacter = 'A';
+                        this.maxCharacter = 'A';
                         break;
                     case 'Z':
-                        this.lastMaxCharacter = 'a';
+                        this.maxCharacter = 'a';
                         break;
                     case 'z':
                         this.useCharacterUpperBound = false;
                         break;
                     default:
-                        this.lastMaxCharacter += 1;
+                        this.maxCharacter += 1;
                 }
-            }
 
-            final SearchParameters sp = new SearchParameters();
-            sp.setLanguage(SearchService.LANGUAGE_CMIS_ALFRESCO);
-            sp.addStore(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
-            sp.addSort("@" + ContentModel.PROP_USERNAME.toPrefixString(this.namespaceService), true);
+                final SearchParameters sp = new SearchParameters();
+                sp.setLanguage(SearchService.LANGUAGE_CMIS_ALFRESCO);
+                sp.addStore(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
 
-            final String query;
-            if (this.useCharacterUpperBound)
-            {
-                // query with upper bound as long as we are in a sensible ASCII range
-                final MessageFormat mf = new MessageFormat(this.lastName != null
-                        ? "SELECT * FROM {0} P WHERE P.{1} <= ''{2}'' AND P.{1} > ''{3}''" : "SELECT * FROM {0} P WHERE P.{1} <= ''{2}''",
-                        Locale.ENGLISH);
-                query = mf.format(new Object[] { ContentModel.TYPE_PERSON.toPrefixString(this.namespaceService),
-                        ContentModel.PROP_USERNAME.toPrefixString(this.namespaceService), String.valueOf(this.lastMaxCharacter),
-                        this.lastName });
-            }
-            else
-            {
-                // for user names in unicode and beyond ASCII range we can't really do name-based pagination anymore
-                final MessageFormat mf = new MessageFormat(
-                        this.lastName != null ? "SELECT * FROM {0} P WHERE P.{1} > ''{2}''" : "SELECT * FROM {0}", Locale.ENGLISH);
-                query = mf.format(new Object[] { ContentModel.TYPE_PERSON.toPrefixString(this.namespaceService),
-                        ContentModel.PROP_USERNAME.toPrefixString(this.namespaceService), this.lastName });
-            }
-
-            sp.setQuery(query);
-            sp.setBulkFetchEnabled(false);
-            sp.setLimitBy(LimitBy.FINAL_SIZE);
-            sp.setMaxItems(100);
-            sp.setLimit(100);
-
-            final ResultSet results = this.searchService.query(sp);
-            try
-            {
-                nextWork.addAll(results.getNodeRefs());
-                // if we got exactly the amount we asked for then we should repeat the same query with a different "from" offset
-                this.reuseMaxCharacter = nextWork.size() == 100;
-            }
-            finally
-            {
-                results.close();
-            }
-
-            // depending on DB collation (case sensitive or insensitive) we may get duplicates when we query for lower/upper case initial
-            // characters
-            nextWork.removeAll(this.retrievedNodes);
-            this.retrievedNodes.addAll(nextWork);
-
-            // if we did a query without an upper bound we are done now
-            this.done = !this.useCharacterUpperBound && (!this.reuseMaxCharacter || nextWork.isEmpty());
-
-            if (!this.done)
-            {
-                if (nextWork.isEmpty())
+                final String query;
+                if (this.useCharacterUpperBound)
                 {
-                    this.lastName = String.valueOf(this.lastMaxCharacter);
+                    // query with upper bound as long as we are in a sensible ASCII range
+                    final MessageFormat mf = new MessageFormat(
+                            lastMaxCharacter != '\0' ? "SELECT * FROM {0} P WHERE P.{1} <= ''{2}'' AND P.{1} > ''{3}''"
+                                    : "SELECT * FROM {0} P WHERE P.{1} <= ''{2}''",
+                            Locale.ENGLISH);
+                    query = mf.format(new Object[] { ContentModel.TYPE_PERSON.toPrefixString(this.namespaceService),
+                            ContentModel.PROP_USERNAME.toPrefixString(this.namespaceService), String.valueOf(this.maxCharacter),
+                            String.valueOf(lastMaxCharacter) });
                 }
                 else
                 {
-                    final NodeRef lastPerson = nextWork.get(nextWork.size() - 1);
-                    final Map<QName, Serializable> personProperties = this.nodeService.getProperties(lastPerson);
-                    this.lastName = DefaultTypeConverter.INSTANCE.convert(String.class, personProperties.get(ContentModel.PROP_USERNAME));
+                    // for user names in unicode and beyond ASCII range we can't really do name-based pagination anymore
+                    final MessageFormat mf = new MessageFormat(
+                            lastMaxCharacter != '\0' ? "SELECT * FROM {0} P WHERE P.{1} > ''{2}''" : "SELECT * FROM {0}", Locale.ENGLISH);
+                    query = mf.format(new Object[] { ContentModel.TYPE_PERSON.toPrefixString(this.namespaceService),
+                            ContentModel.PROP_USERNAME.toPrefixString(this.namespaceService), String.valueOf(lastMaxCharacter) });
+                }
+                LOGGER.debug("Generated query: {}", query);
+
+                sp.setQuery(query);
+                sp.setBulkFetchEnabled(false);
+
+                // since we can't sort by cm:userName (default model lacks tokenise false/both, so CMIS rejects ORDER BY) we have to fetch
+                // all results per iteration in one go
+                sp.setLimitBy(LimitBy.UNLIMITED);
+                sp.setMaxPermissionChecks(Integer.MAX_VALUE);
+                sp.setMaxPermissionCheckTimeMillis(Long.MAX_VALUE);
+
+                final ResultSet results = this.searchService.query(sp);
+                try
+                {
+                    final List<NodeRef> resultNodes = results.getNodeRefs();
+                    nextWork.addAll(resultNodes);
+                }
+                finally
+                {
+                    results.close();
+                }
+
+                // depending on DB collation (case sensitive or insensitive) we may get duplicates when we query for lower/upper case
+                // initial characters
+                nextWork.removeAll(this.retrievedNodes);
+                LOGGER.debug("Determined unique, unprocessed people nodes {}", nextWork);
+                this.retrievedNodes.addAll(nextWork);
+
+                // if we did a query without an upper bound we are done now
+                this.done = !this.useCharacterUpperBound && nextWork.isEmpty();
+
+                if (this.done)
+                {
+                    LOGGER.debug("Done loading person work items");
                 }
             }
-        }
+
+            return null;
+        }, this.runAsUser);
 
         return nextWork;
     }
