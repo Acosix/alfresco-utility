@@ -16,6 +16,7 @@
 package de.acosix.alfresco.utility.repo.subsystems;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -25,6 +26,8 @@ import org.alfresco.repo.management.subsystems.PropertyBackedBeanState;
 import org.alfresco.repo.management.subsystems.PropertyBackedBeanWithMonitor;
 import org.alfresco.util.ParameterCheck;
 import org.alfresco.util.PropertyCheck;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.util.DefaultPropertiesPersister;
@@ -36,6 +39,8 @@ import org.springframework.util.PropertiesPersister;
 public class SubsystemWithClassLoaderFactory extends AbstractPropertyBackedBean
         implements SingleInstanceSubsystemHandler, PropertyBackedBeanWithMonitor
 {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SubsystemChildApplicationContextFactory.class);
 
     protected String typeName;
 
@@ -221,6 +226,7 @@ public class SubsystemWithClassLoaderFactory extends AbstractPropertyBackedBean
 
             final String defaultPropertiesPattern = propertiesLocationBuilder.toString();
             final Resource[] resources = this.getParent().getResources(defaultPropertiesPattern);
+            LOGGER.debug("Resolved default properties files for {}: {}", this, Arrays.asList(resources));
             return resources;
         }
         catch (final IOException ioex)
@@ -253,6 +259,7 @@ public class SubsystemWithClassLoaderFactory extends AbstractPropertyBackedBean
 
             final String extensionPropertiesPattern = propertiesLocationBuilder.toString();
             final Resource[] resources = this.getParent().getResources(extensionPropertiesPattern);
+            LOGGER.debug("Resolved extension properties files for {}: {}", this, Arrays.asList(resources));
             return resources;
         }
         catch (final IOException ioex)
@@ -279,6 +286,8 @@ public class SubsystemWithClassLoaderFactory extends AbstractPropertyBackedBean
                 effectiveProperties.put(propertyName, propertyValue);
             }
 
+            LOGGER.debug("Constructed effective properties for {}: {}", this, effectiveProperties);
+
             return effectiveProperties;
         }
         finally
@@ -303,6 +312,20 @@ public class SubsystemWithClassLoaderFactory extends AbstractPropertyBackedBean
         {
             this.lock.writeLock().unlock();
         }
+    }
+
+    /**
+     *
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString()
+    {
+        // base class does not offer a proper toString
+        final StringBuilder builder = new StringBuilder();
+        builder.append(this.getCategory()).append(" subsystem (ID: ").append(this.getId()).append(')');
+        final String result = builder.toString();
+        return result;
     }
 
     /**

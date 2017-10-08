@@ -16,6 +16,7 @@
 package de.acosix.alfresco.utility.repo.subsystems;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -23,6 +24,8 @@ import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.repo.management.subsystems.ChildApplicationContextFactory;
 import org.alfresco.repo.management.subsystems.PropertyBackedBeanRegistry;
 import org.alfresco.repo.management.subsystems.PropertyBackedBeanState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 
@@ -35,6 +38,8 @@ import org.springframework.core.io.Resource;
  */
 public class SubsystemChildApplicationContextFactory extends ChildApplicationContextFactory implements SingleInstanceSubsystemHandler
 {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SubsystemChildApplicationContextFactory.class);
 
     public SubsystemChildApplicationContextFactory()
     {
@@ -64,6 +69,7 @@ public class SubsystemChildApplicationContextFactory extends ChildApplicationCon
                     + SubsystemWithClassLoaderState.CLASSPATH_DELIMITER + type + +SubsystemWithClassLoaderState.CLASSPATH_DELIMITER
                     + SubsystemWithClassLoaderState.PROPERTIES_FILE_PATTERN;
             final Resource[] resources = this.getParent().getResources(defaultPropertiesPattern);
+            LOGGER.debug("Resolved default properties files for {}: {}", this, Arrays.asList(resources));
             return resources;
         }
         catch (final IOException ioex)
@@ -90,6 +96,7 @@ public class SubsystemChildApplicationContextFactory extends ChildApplicationCon
                     + SubsystemWithClassLoaderState.CLASSPATH_DELIMITER + type + SubsystemWithClassLoaderState.CLASSPATH_DELIMITER + id
                     + SubsystemWithClassLoaderState.CLASSPATH_DELIMITER + SubsystemWithClassLoaderState.PROPERTIES_FILE_PATTERN;
             final Resource[] resources = this.getParent().getResources(extensionPropertiesPattern);
+            LOGGER.debug("Resolved extension properties files for {}: {}", this, Arrays.asList(resources));
             return resources;
         }
         catch (final IOException ioex)
@@ -116,6 +123,8 @@ public class SubsystemChildApplicationContextFactory extends ChildApplicationCon
                 effectiveProperties.put(propertyName, propertyValue);
             }
 
+            LOGGER.debug("Constructed effective properties for {}: {}", this, effectiveProperties);
+
             return effectiveProperties;
         }
         finally
@@ -123,6 +132,20 @@ public class SubsystemChildApplicationContextFactory extends ChildApplicationCon
         {
             this.lock.readLock().unlock();
         }
+    }
+
+    /**
+     *
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString()
+    {
+        // base class does not offer a proper toString
+        final StringBuilder builder = new StringBuilder();
+        builder.append(this.getCategory()).append(" subsystem (ID: ").append(this.getId()).append(')');
+        final String result = builder.toString();
+        return result;
     }
 
     /**
