@@ -66,15 +66,6 @@ public class TenantExtensibilityContainer extends TenantRepositoryContainer impl
 
     /**
      *
-     * This keeps track of whether or not the {@link ExtensibilityModel} for the current thread has been used. The
-     * thread local value will only be set to <code>true</code> if the <code>getCurrentExtensibilityModel</code> method
-     * is called.
-     *
-     */
-    protected final ThreadLocal<Boolean> modelUsed = new ThreadLocal<>();
-
-    /**
-     *
      * Maintains a list of all the {@link ExtensibilityModel} instances being used across all the
      * available threads.
      *
@@ -220,7 +211,7 @@ public class TenantExtensibilityContainer extends TenantRepositoryContainer impl
             // model. An example of this would be the StreamContent WebScript. It is important not to attempt to close
             // an unused model since the WebScript executed may have already flushed the response if it has overridden
             // the default .execute() method.
-            if (this.modelUsed.get())
+            if (extModel.isModelStarted())
             {
                 try
                 {
@@ -246,7 +237,6 @@ public class TenantExtensibilityContainer extends TenantRepositoryContainer impl
 
         final ExtensibilityModel model = new ExtensibilityModelImpl(null, this);
         this.extensibilityModel.set(model);
-        this.modelUsed.set(Boolean.FALSE);
 
         return model;
     }
@@ -269,7 +259,6 @@ public class TenantExtensibilityContainer extends TenantRepositoryContainer impl
         this.sectionsByArea.remove();
 
         this.extensibilityModel.remove();
-        this.modelUsed.set(Boolean.FALSE);
     }
 
     /**
@@ -279,8 +268,12 @@ public class TenantExtensibilityContainer extends TenantRepositoryContainer impl
     public ExtensibilityModel getCurrentExtensibilityModel()
     {
         LOGGER.debug("Getting current for thread: {}", Thread.currentThread().getName());
-        this.modelUsed.set(Boolean.TRUE);
-        return this.extensibilityModel.get();
+        ExtensibilityModel extensibilityModel = this.extensibilityModel.get();
+        if (extensibilityModel == null)
+        {
+            extensibilityModel = this.openExtensibilityModel();
+        }
+        return extensibilityModel;
     }
 
     /**

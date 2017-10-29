@@ -26,69 +26,69 @@
         <property name="targetBeanName" value="css.theme.handler" />
     </bean>
 
-    <bean parent="${moduleId}-css.theme.handler-postProcessor">
+    <bean id="${moduleId}.stateSafeExternalLessCssThemeHandlerPatchVariant1" parent="${moduleId}-css.theme.handler-postProcessor">
         <property name="originalClassName" value="org.springframework.extensions.surf.CssThemeHandler" />
         <property name="replacementClassName" value="${project.artifactId}.surf.StateSafeCssThemeHandler" />
     </bean>
 
-    <bean parent="${moduleId}-css.theme.handler-postProcessor">
+    <bean id="${moduleId}.stateSafeExternalLessCssThemeHandlerPatchVariant2" parent="${moduleId}-css.theme.handler-postProcessor">
         <property name="originalClassName" value="org.springframework.extensions.surf.HybridCssThemeHandler" />
         <property name="replacementClassName" value="${project.artifactId}.surf.StateSafeHybridCssThemeHandler" />
     </bean>
 
-    <bean parent="${moduleId}-css.theme.handler-postProcessor">
+    <bean id="${moduleId}.stateSafeExternalLessCssThemeHandlerPatchVariant3" parent="${moduleId}-css.theme.handler-postProcessor">
         <property name="originalClassName" value="org.springframework.extensions.surf.LessForJavaCssThemeHandler" />
         <property name="replacementClassName" value="${project.artifactId}.surf.StateSafeLessForJavaCssThemeHandler" />
     </bean>
 
-    <bean parent="${moduleId}-css.theme.handler-postProcessor">
+    <bean id="${moduleId}.stateSafeExternalLessCssThemeHandlerPatchVariant4" parent="${moduleId}-css.theme.handler-postProcessor">
         <property name="originalClassName" value="org.springframework.extensions.surf.ExternalLessCssThemeHandler" />
         <property name="replacementClassName" value="${project.artifactId}.surf.StateSafeExternalLessCssThemeHandler" />
     </bean>
     
-    <bean parent="${moduleId}-css.theme.handler-postProcessor">
+    <bean id="${moduleId}.jLesscCssThemeHandlerPatchVariant1" parent="${moduleId}-css.theme.handler-postProcessor">
         <property name="enabledPropertyKey" value="${moduleId}.surf.jlesscCssThemeHandler.enabled" />
         <property name="originalClassName" value="org.springframework.extensions.surf.CssThemeHandler" />
         <property name="replacementClassName" value="${project.artifactId}.surf.JLesscCssThemeHandler" />
     </bean>
     
-    <bean parent="${moduleId}-css.theme.handler-postProcessor">
+    <bean id="${moduleId}.jLesscCssThemeHandlerPatchVariant2" parent="${moduleId}-css.theme.handler-postProcessor">
         <property name="enabledPropertyKey" value="${moduleId}.surf.jlesscCssThemeHandler.enabled" />
         <property name="originalClassName" value="${project.artifactId}.surf.StateSafeCssThemeHandler" />
         <property name="replacementClassName" value="${project.artifactId}.surf.JLesscCssThemeHandler" />
     </bean>
     
-    <bean parent="${moduleId}-css.theme.handler-postProcessor">
+    <bean id="${moduleId}.jLesscCssThemeHandlerPatchVariant3" parent="${moduleId}-css.theme.handler-postProcessor">
         <property name="enabledPropertyKey" value="${moduleId}.surf.jlesscCssThemeHandler.enabled" />
         <property name="originalClassName" value="org.springframework.extensions.surf.HybridCssThemeHandler" />
         <property name="replacementClassName" value="${project.artifactId}.surf.JLesscCssThemeHandler" />
     </bean>
     
-    <bean parent="${moduleId}-css.theme.handler-postProcessor">
+    <bean id="${moduleId}.jLesscCssThemeHandlerPatchVariant4" parent="${moduleId}-css.theme.handler-postProcessor">
         <property name="enabledPropertyKey" value="${moduleId}.surf.jlesscCssThemeHandler.enabled" />
         <property name="originalClassName" value="${project.artifactId}.surf.StateSafeHybridCssThemeHandler" />
         <property name="replacementClassName" value="${project.artifactId}.surf.JLesscCssThemeHandler" />
     </bean>
     
-    <bean parent="${moduleId}-css.theme.handler-postProcessor">
+    <bean id="${moduleId}.jLesscCssThemeHandlerPatchVariant5" parent="${moduleId}-css.theme.handler-postProcessor">
         <property name="enabledPropertyKey" value="${moduleId}.surf.jlesscCssThemeHandler.enabled" />
         <property name="originalClassName" value="org.springframework.extensions.surf.LessForJavaCssThemeHandler" />
         <property name="replacementClassName" value="${project.artifactId}.surf.JLesscCssThemeHandler" />
     </bean>
     
-    <bean parent="${moduleId}-css.theme.handler-postProcessor">
+    <bean id="${moduleId}.jLesscCssThemeHandlerPatchVariant6" parent="${moduleId}-css.theme.handler-postProcessor">
         <property name="enabledPropertyKey" value="${moduleId}.surf.jlesscCssThemeHandler.enabled" />
         <property name="originalClassName" value="${project.artifactId}.surf.StateSafeLessForJavaCssThemeHandler" />
         <property name="replacementClassName" value="${project.artifactId}.surf.JLesscCssThemeHandler" />
     </bean>
     
-    <bean parent="${moduleId}-css.theme.handler-postProcessor">
+    <bean id="${moduleId}.jLesscCssThemeHandlerPatchVariant7" parent="${moduleId}-css.theme.handler-postProcessor">
         <property name="enabledPropertyKey" value="${moduleId}.surf.jlesscCssThemeHandler.enabled" />
         <property name="originalClassName" value="org.springframework.extensions.surf.ExternalLessCssThemeHandler" />
         <property name="replacementClassName" value="${project.artifactId}.surf.JLesscCssThemeHandler" />
     </bean>
     
-    <bean parent="${moduleId}-css.theme.handler-postProcessor">
+    <bean id="${moduleId}.jLesscCssThemeHandlerPatchVariant8" parent="${moduleId}-css.theme.handler-postProcessor">
         <property name="enabledPropertyKey" value="${moduleId}.surf.jlesscCssThemeHandler.enabled" />
         <property name="originalClassName" value="${project.artifactId}.surf.StateSafeExternalLessCssThemeHandler" />
         <property name="replacementClassName" value="${project.artifactId}.surf.JLesscCssThemeHandler" />
@@ -99,7 +99,7 @@
     <!-- this allows use of single quotes in addition to double-quotes -->
     <!-- this supports variables and members -->
     <!-- this supports aggregated variable / member names -->
-    <bean class="${common.artifactId}.spring.PropertyAlteringBeanFactoryPostProcessor">
+    <bean id="${moduleId}.betterWidgetDependenciesRegexPatch"class="${common.artifactId}.spring.PropertyAlteringBeanFactoryPostProcessor">
         <property name="targetBeanName" value="define.dojo.widgets.dependency.rule" />
         <property name="propertyName" value="declarationRegex" />
         <property name="value"
@@ -111,7 +111,7 @@
     <!-- this allows use of single quotes in addition to double-quotes -->
     <!-- this allows different source styling with whitespace leniency -->
     <!-- this supports detection in JSON model in addition to in JS files -->
-    <bean class="${common.artifactId}.spring.PropertyAlteringBeanFactoryPostProcessor">
+    <bean id="${moduleId}.betterWidgetCSSFileRegexPatch"class="${common.artifactId}.spring.PropertyAlteringBeanFactoryPostProcessor">
         <property name="targetBeanName" value="define.dojo.css.dependency.rule.abstract" />
         <property name="propertyName" value="dependencyRegex" />
         <property name="value"
@@ -119,7 +119,7 @@
         <property name="enabled" value="\${${moduleId}.surf.betterRegexDojoCSSDependencyRule.enabled}" />
     </bean>
     
-    <bean class="${common.artifactId}.spring.PropertyAlteringBeanFactoryPostProcessor">
+    <bean id="${moduleId}.betterWidgetCSSRequirementsRegexPatch"class="${common.artifactId}.spring.PropertyAlteringBeanFactoryPostProcessor">
         <property name="targetBeanName" value="define.dojo.css.dependency.rule.abstract" />
         <property name="propertyName" value="declarationRegex" />
         <property name="value"
@@ -127,26 +127,34 @@
         <property name="enabled" value="\${${moduleId}.surf.betterRegexDojoCSSDependencyRule.enabled}" />
     </bean>
 
-    <bean class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
+    <bean id="${moduleId}.jsonAwareWidgetsDependencyRulePatch"class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
         <property name="targetBeanName" value="define.dojo.widgets.dependency.rule" />
         <property name="originalClassName" value="org.springframework.extensions.surf.DojoWidgetsDependencyRule" />
         <property name="replacementClassName" value="${project.artifactId}.surf.JSONAwareWidgetsDependencyRule" />
         <property name="enabled" value="\${${moduleId}.surf.jsonAwareDojoWidgetsRule.enabled}" />
     </bean>
     
-    <bean class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
+    <bean id="${moduleId}.jsonAwareCssDependencyRulePatch"class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
         <property name="targetBeanName" value="define.dojo.css.dependency.rule" />
         <property name="originalClassName" value="org.springframework.extensions.surf.DojoCssDependencyRule" />
         <property name="replacementClassName" value="${project.artifactId}.surf.JSONAwareCssDependencyRule" />
         <property name="enabled" value="\${${moduleId}.surf.jsonAwareDojoCssRule.enabled}" />
     </bean>
     
-    <bean class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
+    <bean id="${moduleId}-ExtensibleDeclarativeWebScriptPatch"class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
         <property name="enabled" value="\${${moduleId}.web.scripts.correctScriptCustomizationLookup.enabled}" />
         <property name="targetBeanName" value="webscript.default" />
         <!-- this should be the default -->
         <property name="originalClassName" value="org.springframework.extensions.webscripts.DeclarativeWebScript" />
         <property name="replacementClassName" value="${common.artifactId}.web.scripts.ExtensibleDeclarativeWebScript" />
+    </bean>
+    
+    <bean id="${moduleId}-ExtensibilityFixedWebscriptRuntimeContainerPatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
+        <property name="enabled" value="\${${moduleId}.web.scripts.extensibilityFixedLocalWebScriptRuntimeContainer.enabled}" />
+        <property name="targetBeanName" value="webscripts.container" />
+        <!-- this should be the default -->
+        <property name="originalClassName" value="org.springframework.extensions.webscripts.LocalWebScriptRuntimeContainer" />
+        <property name="replacementClassName" value="${project.artifactId}.surf.ExtensibilityFixedLocalWebScriptRuntimeContainer" />
     </bean>
 
     <bean class="org.alfresco.i18n.ResourceBundleBootstrapComponent">
