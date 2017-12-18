@@ -17,8 +17,6 @@ package de.acosix.alfresco.utility.common.web.scripts;
 
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.extensions.surf.extensibility.HandlesExtensibility;
 import org.springframework.extensions.webscripts.AbstractWebScript;
 import org.springframework.extensions.webscripts.Container;
@@ -34,9 +32,6 @@ import org.springframework.extensions.webscripts.ScriptProcessor;
  */
 public class ExtensibleDeclarativeWebScript extends DeclarativeWebScript
 {
-
-    // reuse the logger from the base class for overridden functionality
-    private static final Logger logger = LoggerFactory.getLogger(AbstractWebScript.class);
 
     // we need to remember the mimetype from script lookup for later extension lookup
     // (otherwise we'd have to override the entire execute method from DeclarativeWebScript to pass it along)
@@ -61,13 +56,6 @@ public class ExtensibleDeclarativeWebScript extends DeclarativeWebScript
     @Override
     protected void executeScript(final ScriptContent location, final Map<String, Object> model)
     {
-        final boolean debug = logger.isDebugEnabled();
-        long start = 0L;
-        if (debug)
-        {
-            start = System.nanoTime();
-        }
-
         final Container container = this.getContainer();
         final ScriptProcessor scriptProcessor = container.getScriptProcessorRegistry().getScriptProcessor(location);
         scriptProcessor.executeScript(location, model);
@@ -112,6 +100,6 @@ public class ExtensibleDeclarativeWebScript extends DeclarativeWebScript
         }
     }
 
-    // TODO Find a way to add support for surf.include.resources to customizatoin resource bundles
-    // Unfortunately getResources() is final and can't be overriden
+    // TODO Find a way to add support for surf.include.resources to customisation resource bundles
+    // Unfortunately getResources() is final and can't be overridden
 }
