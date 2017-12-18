@@ -20,6 +20,8 @@ This module is built to be compatible with Alfresco 5.0d and above. It may be us
 - Subsystem properties factory bean allowing subsystem properties to be exposed to other components as regular java.util.Properties objects
 - Enhanced web script container capable of handling [web script extensibility](https://www.alfresco.com/blogs/developer/2012/05/23/webscript-extensibility-on-the-alfresco-repository/) - raised via [ALF-21794](https://issues.alfresco.com/jira/browse/ALF-21794)
 - Simple override to site.get/site.put/sites.post JSON FTL to allow web script extension templates to augment the site data, e.g. as basis for simpler "Edit Site" dialog customisations either in YUI or Aikau
+- Common utility functions for Quartz job processing, i.e. running a job with a lock and an optional transaction
+- Basic batch process work provider handling cm:people nodes, using transactional metadata queries (TMQ) combined with metadata-based pagination for efficient loading, specifically for larger user bases
 
 ### Share-tier
 - Support for share-global.properties files to hold simple configuration key-value pairs which can be provided by modules (similarly to Repository-tier) and overriden by administrators via a share-global.properties file in the Tomcat configuration root folder (./shared/classes/) - properties provided that way are automatically exposed in Spring XML files for placeholder resolution
@@ -27,6 +29,7 @@ This module is built to be compatible with Alfresco 5.0d and above. It may be us
 - Minor enhancements to Surf CSS theme handlers (clean state separation between different theme CSS tokens)
 - Minor enhancements to Surf Dojo widget dependency collection (JSON instead of RegEx-parsing instead of JSON model; improved RegEx-pattern for dependencies detection in JS source files)
 - Minor enhancements to Surf CSS dependency collection (JSON instead of RegEx-parsing of JSON model; improved RegEx-pattern for dependencies detection in JS source files) - effectively adding the ability to load additional CSS files via JSON model
+- Enhanced local web script container addressing an [issue](https://issues.alfresco.com/jira/browse/ALF-21949) with the Surf extensibility handling interfering with AbstractWebScript implementations that directly stream a response to the client
 
 # Maven usage
 
@@ -91,14 +94,14 @@ In order to use a pre-built SNAPSHOT artifact published to the Open Source Sonat
 <dependency>
     <groupId>de.acosix.alfresco.utility</groupId>
     <artifactId>de.acosix.alfresco.utility.common</artifactId>
-    <version>1.0.2.0-SNAPSHOT</version>
+    <version>1.0.2.0</version>
     <type>jar</type>
 </dependency>
 
 <dependency>
     <groupId>de.acosix.alfresco.utility</groupId>
     <artifactId>de.acosix.alfresco.utility.repo</artifactId>
-    <version>1.0.2.0-SNAPSHOT</version>
+    <version>1.0.2.0</version>
     <type>jar</type>
     <classifier>installable</classifier>
 </dependency>
@@ -109,7 +112,7 @@ In order to use a pre-built SNAPSHOT artifact published to the Open Source Sonat
 <dependency>
     <groupId>de.acosix.alfresco.utility</groupId>
     <artifactId>de.acosix.alfresco.utility.repo</artifactId>
-    <version>1.0.2.0-SNAPSHOT</version>
+    <version>1.0.2.0</version>
     <type>amp</type>
 </dependency>
 
@@ -142,7 +145,7 @@ For Alfresco SDK 3 beta users:
     <moduleDependency>
         <groupId>de.acosix.alfresco.utility</groupId>
         <artifactId>de.acosix.alfresco.utility.repo</artifactId>
-        <version>1.0.2.0-SNAPSHOT</version>
+        <version>1.0.2.0</version>
         <type>amp</type>
     </moduleDependency>
 </platformModules>
@@ -155,14 +158,14 @@ For Alfresco SDK 3 beta users:
 <dependency>
     <groupId>de.acosix.alfresco.utility</groupId>
     <artifactId>de.acosix.alfresco.utility.common</artifactId>
-    <version>1.0.2.0-SNAPSHOT</version>
+    <version>1.0.2.0</version>
     <type>jar</type>
 </dependency>
 
 <dependency>
     <groupId>de.acosix.alfresco.utility</groupId>
     <artifactId>de.acosix.alfresco.utility.share</artifactId>
-    <version>1.0.2.0-SNAPSHOT</version>
+    <version>1.0.2.0</version>
     <type>jar</type>
     <classifier>installable</classifier>
 </dependency>
@@ -173,7 +176,7 @@ For Alfresco SDK 3 beta users:
 <dependency>
     <groupId>de.acosix.alfresco.utility</groupId>
     <artifactId>de.acosix.alfresco.utility.share</artifactId>
-    <version>1.0.2.0-SNAPSHOT</version>
+    <version>1.0.2.0</version>
     <type>amp</type>
 </dependency>
 
@@ -206,7 +209,7 @@ For Alfresco SDK 3 beta users:
     <moduleDependency>
         <groupId>de.acosix.alfresco.utility</groupId>
         <artifactId>de.acosix.alfresco.utility.share</artifactId>
-        <version>1.0.2.0-SNAPSHOT</version>
+        <version>1.0.2.0</version>
         <type>amp</type>
     </moduleDependency>
 </shareModules>
