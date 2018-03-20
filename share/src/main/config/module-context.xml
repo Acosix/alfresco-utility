@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- 
- Copyright 2016, 2017 Acosix GmbH
+ Copyright 2016 - 2018 Acosix GmbH
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -99,7 +99,7 @@
     <!-- this allows use of single quotes in addition to double-quotes -->
     <!-- this supports variables and members -->
     <!-- this supports aggregated variable / member names -->
-    <bean id="${moduleId}.betterWidgetDependenciesRegexPatch"class="${common.artifactId}.spring.PropertyAlteringBeanFactoryPostProcessor">
+    <bean id="${moduleId}.betterWidgetDependenciesRegexPatch" class="${common.artifactId}.spring.PropertyAlteringBeanFactoryPostProcessor">
         <property name="targetBeanName" value="define.dojo.widgets.dependency.rule" />
         <property name="propertyName" value="declarationRegex" />
         <property name="value"
@@ -111,7 +111,7 @@
     <!-- this allows use of single quotes in addition to double-quotes -->
     <!-- this allows different source styling with whitespace leniency -->
     <!-- this supports detection in JSON model in addition to in JS files -->
-    <bean id="${moduleId}.betterWidgetCSSFileRegexPatch"class="${common.artifactId}.spring.PropertyAlteringBeanFactoryPostProcessor">
+    <bean id="${moduleId}.betterWidgetCSSFileRegexPatch" class="${common.artifactId}.spring.PropertyAlteringBeanFactoryPostProcessor">
         <property name="targetBeanName" value="define.dojo.css.dependency.rule.abstract" />
         <property name="propertyName" value="dependencyRegex" />
         <property name="value"
@@ -119,7 +119,7 @@
         <property name="enabled" value="\${${moduleId}.surf.betterRegexDojoCSSDependencyRule.enabled}" />
     </bean>
     
-    <bean id="${moduleId}.betterWidgetCSSRequirementsRegexPatch"class="${common.artifactId}.spring.PropertyAlteringBeanFactoryPostProcessor">
+    <bean id="${moduleId}.betterWidgetCSSRequirementsRegexPatch" class="${common.artifactId}.spring.PropertyAlteringBeanFactoryPostProcessor">
         <property name="targetBeanName" value="define.dojo.css.dependency.rule.abstract" />
         <property name="propertyName" value="declarationRegex" />
         <property name="value"
@@ -127,21 +127,21 @@
         <property name="enabled" value="\${${moduleId}.surf.betterRegexDojoCSSDependencyRule.enabled}" />
     </bean>
 
-    <bean id="${moduleId}.jsonAwareWidgetsDependencyRulePatch"class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
+    <bean id="${moduleId}.jsonAwareWidgetsDependencyRulePatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
         <property name="targetBeanName" value="define.dojo.widgets.dependency.rule" />
         <property name="originalClassName" value="org.springframework.extensions.surf.DojoWidgetsDependencyRule" />
         <property name="replacementClassName" value="${project.artifactId}.surf.JSONAwareWidgetsDependencyRule" />
         <property name="enabled" value="\${${moduleId}.surf.jsonAwareDojoWidgetsRule.enabled}" />
     </bean>
     
-    <bean id="${moduleId}.jsonAwareCssDependencyRulePatch"class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
+    <bean id="${moduleId}.jsonAwareCssDependencyRulePatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
         <property name="targetBeanName" value="define.dojo.css.dependency.rule" />
         <property name="originalClassName" value="org.springframework.extensions.surf.DojoCssDependencyRule" />
         <property name="replacementClassName" value="${project.artifactId}.surf.JSONAwareCssDependencyRule" />
         <property name="enabled" value="\${${moduleId}.surf.jsonAwareDojoCssRule.enabled}" />
     </bean>
     
-    <bean id="${moduleId}-ExtensibleDeclarativeWebScriptPatch"class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
+    <bean id="${moduleId}-ExtensibleDeclarativeWebScriptPatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
         <property name="enabled" value="\${${moduleId}.web.scripts.correctScriptCustomizationLookup.enabled}" />
         <property name="targetBeanName" value="webscript.default" />
         <!-- this should be the default -->
