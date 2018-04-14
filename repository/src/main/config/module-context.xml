@@ -139,4 +139,11 @@
         </property>
     </bean>
 
+    <bean id="${moduleId}.improvedTypeConverter.patch" class="${project.artifactId}.datatype.ImprovedTypeConverterInitialiser">
+        <property name="namespaceService" ref="NamespaceService" />
+        <property name="stringToNodeRefEnabled" value="\${${moduleId}.datatype.improvedTypeConverter.string2NodeRef.enabled}" />
+        <property name="stringToQNameEnabled" value="\${${moduleId}.datatype.improvedTypeConverter.string2QName.enabled}" />
+        <property name="stringToLocaleEnabled" value="\${${moduleId}.datatype.improvedTypeConverter.string2Locale.enabled}" />
+    </bean>
+
 </beans>
