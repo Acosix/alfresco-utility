@@ -37,7 +37,7 @@ This addon is being built using the [Acosix Alfresco Maven framework](https://gi
 
 ## Build
 
-This project can be build simply by executing the standard Maven build lifecycles for package, install or deploy depending on the intent for further processing. A Java Development Kit (JDK) version 8 or higher is required for the build of the master branch, while the Alfresco 4.2 branch requires Java 7.
+This project can be built simply by executing the standard Maven build lifecycles for package, install or deploy depending on the intent for further processing. A Java Development Kit (JDK) version 8 or higher is required for the build of the master branch, while the Alfresco 4.2 branch requires Java 7.
 
 By inheritance from the Acosix Alfresco Maven framework, this project uses the [Maven Toolchains plugin](http://maven.apache.org/plugins/maven-toolchains-plugin/) to allow potential cross-compilation against different Java versions. This is used for instance in a [separate branch to provide an Alfresco 4.2 compatible version](https://github.com/Acosix/alfresco-utility/tree/alfresco-42) of this addon. In order to build the project it is necessary to provide a basic toolchain configuration via the user specific Maven configuration home (usually ~/.m2/). That file (toolchains.xml) only needs to list the path to a compatible JDK for the Java version required by this project. The following is a sample file defining a Java 7 and 8 development kit.
 
@@ -94,14 +94,14 @@ In order to use a pre-built SNAPSHOT artifact published to the Open Source Sonat
 <dependency>
     <groupId>de.acosix.alfresco.utility</groupId>
     <artifactId>de.acosix.alfresco.utility.common</artifactId>
-    <version>1.0.2.0</version>
+    <version>1.0.2.1</version>
     <type>jar</type>
 </dependency>
 
 <dependency>
     <groupId>de.acosix.alfresco.utility</groupId>
     <artifactId>de.acosix.alfresco.utility.repo</artifactId>
-    <version>1.0.2.0</version>
+    <version>1.0.2.1</version>
     <type>jar</type>
     <classifier>installable</classifier>
 </dependency>
@@ -112,7 +112,7 @@ In order to use a pre-built SNAPSHOT artifact published to the Open Source Sonat
 <dependency>
     <groupId>de.acosix.alfresco.utility</groupId>
     <artifactId>de.acosix.alfresco.utility.repo</artifactId>
-    <version>1.0.2.0</version>
+    <version>1.0.2.1</version>
     <type>amp</type>
 </dependency>
 
@@ -145,7 +145,7 @@ For Alfresco SDK 3 beta users:
     <moduleDependency>
         <groupId>de.acosix.alfresco.utility</groupId>
         <artifactId>de.acosix.alfresco.utility.repo</artifactId>
-        <version>1.0.2.0</version>
+        <version>1.0.2.1</version>
         <type>amp</type>
     </moduleDependency>
 </platformModules>
@@ -158,14 +158,14 @@ For Alfresco SDK 3 beta users:
 <dependency>
     <groupId>de.acosix.alfresco.utility</groupId>
     <artifactId>de.acosix.alfresco.utility.common</artifactId>
-    <version>1.0.2.0</version>
+    <version>1.0.2.1</version>
     <type>jar</type>
 </dependency>
 
 <dependency>
     <groupId>de.acosix.alfresco.utility</groupId>
     <artifactId>de.acosix.alfresco.utility.share</artifactId>
-    <version>1.0.2.0</version>
+    <version>1.0.2.1</version>
     <type>jar</type>
     <classifier>installable</classifier>
 </dependency>
@@ -176,7 +176,7 @@ For Alfresco SDK 3 beta users:
 <dependency>
     <groupId>de.acosix.alfresco.utility</groupId>
     <artifactId>de.acosix.alfresco.utility.share</artifactId>
-    <version>1.0.2.0</version>
+    <version>1.0.2.1</version>
     <type>amp</type>
 </dependency>
 
@@ -209,7 +209,7 @@ For Alfresco SDK 3 beta users:
     <moduleDependency>
         <groupId>de.acosix.alfresco.utility</groupId>
         <artifactId>de.acosix.alfresco.utility.share</artifactId>
-        <version>1.0.2.0</version>
+        <version>1.0.2.1</version>
         <type>amp</type>
     </moduleDependency>
 </shareModules>
@@ -223,7 +223,7 @@ Using Maven to build the Alfresco WAR is the **recommended** approach to install
 
 The default Alfresco installer creates folders *amps* and *amps_share* where you can place AMP files for modules which Alfresco will install when you use the apply\_amps script. Place the AMP for the *de.acosix.alfresco.utility.repo* module in the *amps* directory, *de.acosix.alfresco.utility.share* in the *amps_share* directory, and execute the script to install them. You must restart Alfresco for the installation to take effect.
 
-Alternatively you can use the alfresco-mmt.jar to install the modules as [described in the documentation](http://docs.alfresco.com/5.1/concepts/dev-extensions-modules-management-tool.html).
+Alternatively you can use the alfresco-mmt.jar to install the modules as [described in the documentation](http://docs.alfresco.com/5.2/concepts/dev-extensions-modules-management-tool.html).
 
 ## Manual "installation" using JAR files
 
@@ -240,3 +240,5 @@ For this addon the following JARs need to be dropped into &lt;tomcat&gt;/webapps
 
  - de.acosix.alfresco.utility.common-&lt;version&gt;.jar
  - de.acosix.alfresco.utility.share-&lt;version&gt;-installable.jar
+
+If Alfresco has been setup by using the official installer, another, **explicitly recommended** way to install the module manually would be by dropping the JAR(s) into the &lt;alfresco&gt;/modules/platform (Repository-tier) or &lt;alfresco&gt;/modules/share (Share-tier) folders.
