@@ -20,7 +20,6 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.WeakHashMap;
 
-import org.springframework.extensions.surf.ExternalLessCssThemeHandler;
 import org.springframework.extensions.surf.RequestContext;
 import org.springframework.extensions.surf.support.ThreadLocalRequestContext;
 import org.springframework.extensions.surf.types.Theme;

@@ -38,7 +38,7 @@
                 <include>*.properties</include>
             </includes>
             <filtered>true</filtered>
-            <lineEnding>crlf</lineEnding>
+            <lineEnding>lf</lineEnding>
         </fileSet>
     </fileSets>
     <dependencySets>
@@ -47,6 +47,7 @@
             <includes>
                 <include>de.acosix.alfresco.utility:${common.artifactId}:*</include>
             </includes>
+            <useTransitiveDependencies>false</useTransitiveDependencies>
         </dependencySet>
     </dependencySets>
 </assembly>

@@ -41,17 +41,10 @@
             <groupId>org.alfresco</groupId>
             <artifactId>share</artifactId>
             <classifier>classes</classifier>
-            <exclusions>
-                <!-- somewhere in 5.1.g a POM is lacking proper version for this -->
-                <exclusion>
-                    <groupId>org.alfresco.surf</groupId>
-                    <artifactId>spring-surf</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
-            <groupId>org.alfresco.surf</groupId>
+            <groupId>${surf.groupId}</groupId>
             <artifactId>spring-surf</artifactId>
         </dependency>
         

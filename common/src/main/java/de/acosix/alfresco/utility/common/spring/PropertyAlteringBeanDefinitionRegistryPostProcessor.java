@@ -15,12 +15,6 @@
  */
 package de.acosix.alfresco.utility.common.spring;
 
-import java.util.List;
-import java.util.Properties;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -39,41 +33,6 @@ public class PropertyAlteringBeanDefinitionRegistryPostProcessor
         extends PropertyAlteringBeanFactoryPostProcessor<BeanDefinitionRegistryPostProcessor> implements BeanDefinitionRegistryPostProcessor
 {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PropertyAlteringBeanDefinitionRegistryPostProcessor.class);
-
-    protected String enabledPropertyKey;
-
-    protected List<String> enabledPropertyKeys;
-
-    protected Properties propertiesSource;
-
-    /**
-     * @param enabledPropertyKey
-     *            the enabledPropertyKey to set
-     */
-    public void setEnabledPropertyKey(final String enabledPropertyKey)
-    {
-        this.enabledPropertyKey = enabledPropertyKey;
-    }
-
-    /**
-     * @param enabledPropertyKeys
-     *            the enabledPropertyKeys to set
-     */
-    public void setEnabledPropertyKeys(final List<String> enabledPropertyKeys)
-    {
-        this.enabledPropertyKeys = enabledPropertyKeys;
-    }
-
-    /**
-     * @param propertiesSource
-     *            the propertiesSource to set
-     */
-    public void setPropertiesSource(final Properties propertiesSource)
-    {
-        this.propertiesSource = propertiesSource;
-    }
-
     /**
      * {@inheritDoc}
      */
@@ -89,59 +48,6 @@ public class PropertyAlteringBeanDefinitionRegistryPostProcessor
     @Override
     public void postProcessBeanDefinitionRegistry(final BeanDefinitionRegistry registry) throws BeansException
     {
-        if (!this.executed)
-        {
-            final boolean enabled = this.isEnabled();
-
-            if (enabled)
-            {
-                if (this.dependsOn != null)
-                {
-                    this.dependsOn.forEach(x -> {
-                        x.postProcessBeanDefinitionRegistry(registry);
-                    });
-                }
-
-                if (this.targetBeanName != null && this.propertyName != null)
-                {
-                    this.applyChange(beanName -> {
-                        return registry.getBeanDefinition(beanName);
-                    });
-                }
-                else
-                {
-                    LOGGER.warn("[{}] patch cannnot be applied as its configuration is incomplete", this.beanName);
-                }
-
-                this.executed = true;
-            }
-            else
-            {
-                LOGGER.info("[{}] patch will not be applied as it has been marked as inactive", this.beanName);
-            }
-        }
+        this.execute(registry, this.dependsOn, this::applyChange);
     }
-
-    protected boolean isEnabled()
-    {
-        Boolean enabled = this.enabled;
-        if (!Boolean.FALSE.equals(enabled) && this.enabledPropertyKey != null && !this.enabledPropertyKey.isEmpty())
-        {
-            final String property = this.propertiesSource.getProperty(this.enabledPropertyKey);
-            enabled = (property != null ? Boolean.valueOf(property) : Boolean.FALSE);
-        }
-
-        if (!Boolean.FALSE.equals(enabled) && this.enabledPropertyKeys != null && !this.enabledPropertyKeys.isEmpty())
-        {
-            final AtomicBoolean enabled2 = new AtomicBoolean(true);
-            this.enabledPropertyKeys.forEach(key -> {
-                final String property = this.propertiesSource.getProperty(key);
-                enabled2.compareAndSet(true, property != null ? Boolean.parseBoolean(property) : false);
-            });
-            enabled = Boolean.valueOf(enabled2.get());
-        }
-
-        return Boolean.TRUE.equals(enabled);
-    }
-
 }

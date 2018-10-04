@@ -64,9 +64,10 @@ public class ThreadSafeSSLSocketFactory extends SSLSocketFactory
     }
 
     /**
-     * Initialize the factory with custom trustStore
+     * Initialise the factory with custom trustStore
      *
      * @param trustStore
+     *            the key store containing any certificates for validation of servers / CAs
      */
     public static synchronized void initTrustedSSLSocketFactory(final KeyStore trustStore)
     {

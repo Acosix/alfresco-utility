@@ -27,13 +27,10 @@ import java.util.function.Function;
 import org.alfresco.util.EqualsHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.PropertyValue;
-import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.ManagedMap;
@@ -45,22 +42,12 @@ import org.springframework.beans.factory.support.ManagedSet;
  *
  * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
  */
-public class PropertyAlteringBeanFactoryPostProcessor<D extends BeanFactoryPostProcessor> implements BeanFactoryPostProcessor, BeanNameAware
+public class PropertyAlteringBeanFactoryPostProcessor<D extends BeanFactoryPostProcessor> extends BaseBeanFactoryPostProcessor<D>
 {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PropertyAlteringBeanFactoryPostProcessor.class);
 
-    protected String beanName;
-
-    protected List<D> dependsOn;
-
-    protected boolean executed;
-
-    protected String targetBeanName;
-
     protected String expectedClassName;
-
-    protected Boolean enabled;
 
     protected String propertyName;
 
@@ -89,48 +76,12 @@ public class PropertyAlteringBeanFactoryPostProcessor<D extends BeanFactoryPostP
     protected boolean mergeParent;
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setBeanName(final String name)
-    {
-        this.beanName = name;
-    }
-
-    /**
-     * @param dependsOn
-     *            the dependsOn to set
-     */
-    public void setDependsOn(final List<D> dependsOn)
-    {
-        this.dependsOn = dependsOn;
-    }
-
-    /**
-     * @param targetBeanName
-     *            the targetBeanName to set
-     */
-    public void setTargetBeanName(final String targetBeanName)
-    {
-        this.targetBeanName = targetBeanName;
-    }
-
-    /**
      * @param expectedClassName
      *            the expectedClassName to set
      */
     public void setExpectedClassName(final String expectedClassName)
     {
         this.expectedClassName = expectedClassName;
-    }
-
-    /**
-     * @param enabled
-     *            the enabled to set
-     */
-    public void setEnabled(final boolean enabled)
-    {
-        this.enabled = enabled;
     }
 
     /**
@@ -299,52 +250,20 @@ public class PropertyAlteringBeanFactoryPostProcessor<D extends BeanFactoryPostP
     }
 
     /**
+     *
      * {@inheritDoc}
      */
     @Override
-    public void postProcessBeanFactory(final ConfigurableListableBeanFactory beanFactory) throws BeansException
+    protected void applyChange(final BeanDefinition affectedBeanDefinition, final Function<String, BeanDefinition> getBeanDefinition)
     {
-        if (!this.executed)
+        if (this.propertyName != null)
         {
-            if (this.enabled)
+            if (this.expectedClassName == null
+                    || EqualsHelper.nullSafeEquals(this.expectedClassName, affectedBeanDefinition.getBeanClassName()))
             {
-                if (this.dependsOn != null)
-                {
-                    this.dependsOn.forEach(x -> {
-                        x.postProcessBeanFactory(beanFactory);
-                    });
-                }
+                LOGGER.info("[{}] Patching property {} of Spring bean {}", this.beanName, this.propertyName, this.targetBeanName);
 
-                if (this.targetBeanName != null && this.propertyName != null)
-                {
-                    this.applyChange(beanName -> {
-                        return beanFactory.getBeanDefinition(beanName);
-                    });
-                }
-                else
-                {
-                    LOGGER.warn("[{}] patch cannnot be applied as its configuration is incomplete", this.beanName);
-                }
-
-                this.executed = true;
-            }
-            else
-            {
-                LOGGER.info("[{}] patch will not be applied as it has been marked as inactive", this.beanName);
-            }
-        }
-    }
-
-    protected void applyChange(final Function<String, BeanDefinition> getBeanDefinition)
-    {
-        final BeanDefinition beanDefinition = getBeanDefinition.apply(this.targetBeanName);
-        if (beanDefinition != null)
-        {
-            if (this.expectedClassName == null || EqualsHelper.nullSafeEquals(this.expectedClassName, beanDefinition.getBeanClassName()))
-            {
-                LOGGER.debug("[{}] Patching property {} of Spring bean {}", this.beanName, this.propertyName, this.targetBeanName);
-
-                final MutablePropertyValues propertyValues = beanDefinition.getPropertyValues();
+                final MutablePropertyValues propertyValues = affectedBeanDefinition.getPropertyValues();
                 final PropertyValue configuredValue = propertyValues.getPropertyValue(this.propertyName);
 
                 final Object value;
@@ -397,7 +316,7 @@ public class PropertyAlteringBeanFactoryPostProcessor<D extends BeanFactoryPostP
         }
         else
         {
-            LOGGER.info("[{}] patch cannot be applied - no bean with name {} has been defined", this.beanName, this.targetBeanName);
+            LOGGER.warn("[{}] patch cannnot be applied as it does not define a property name", this.beanName);
         }
     }
 

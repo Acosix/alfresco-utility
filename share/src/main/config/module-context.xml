@@ -157,6 +157,13 @@
         <property name="replacementClassName" value="${project.artifactId}.surf.ExtensibilityFixedLocalWebScriptRuntimeContainer" />
     </bean>
 
+    <bean id="${moduleId}.webScript.indexPatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
+        <property name="enabled" value="\${${moduleId}.web.scripts.improvedIndex.enabled}" />
+        <property name="targetBeanName" value="webscripts.index" />
+        <property name="originalClassName" value="org.springframework.extensions.webscripts.JaxRSUriIndex" />
+        <property name="replacementClassName" value="${common.artifactId}.web.scripts.JaxRSUriIndex" />
+    </bean>
+
     <bean class="org.alfresco.i18n.ResourceBundleBootstrapComponent">
         <property name="resourceBundles">
             <list>

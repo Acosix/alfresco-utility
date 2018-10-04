@@ -50,6 +50,13 @@
         <property name="beanReferenceName" value="extensibility.handler" />
     </bean>
 
+    <bean id="${moduleId}.webScript.indexPatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
+        <property name="enabled" value="\${${moduleId}.web.scripts.improvedIndex.enabled}" />
+        <property name="targetBeanName" value="webscripts.index" />
+        <property name="originalClassName" value="org.springframework.extensions.webscripts.JaxRSUriIndex" />
+        <property name="replacementClassName" value="${common.artifactId}.web.scripts.JaxRSUriIndex" />
+    </bean>
+
     <bean id="${moduleId}.globalAuthenticationListener.facadePatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
         <property name="enabledPropertyKey" value="${moduleId}.web.auth.multipleAuthenticationListeners.enabled" />
         <property name="propertiesSource" ref="global-properties" />
@@ -108,6 +115,8 @@
         <property name="targetBeanName" value="sharepointAuthenticationListener" />
         <!-- this should be the default -->
         <property name="originalClassName" value="org.alfresco.repo.web.auth.NoopAuthenticationListener" />
+        <!-- no longer exists in Alfresco 6.0 -->
+        <property name="failIfTargetBeanMissing" value="false" />
         <property name="replacementClassName" value="${project.artifactId}.web.auth.AuthenticationListenersFacade" />
     </bean>
 
@@ -121,6 +130,8 @@
         <property name="propertiesSource" ref="global-properties" />
         <property name="targetBeanName" value="sharepointAuthenticationListener" />
         <property name="expectedClassName" value="${project.artifactId}.web.auth.AuthenticationListenersFacade" />
+        <!-- no longer exists in Alfresco 6.0 -->
+        <property name="failIfTargetBeanMissing" value="false" />
         <property name="propertyName" value="authenticationListeners" />
         <property name="beanReferenceNameList">
             <list>

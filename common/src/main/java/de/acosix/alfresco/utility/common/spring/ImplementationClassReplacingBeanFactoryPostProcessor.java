@@ -15,16 +15,12 @@
  */
 package de.acosix.alfresco.utility.common.spring;
 
-import java.util.List;
 import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 
 /**
  * {@link BeanFactoryPostProcessor Bean factory post processor} to alter the implementation class of a bean definition without requiring an
@@ -33,42 +29,14 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
  * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
  */
 public class ImplementationClassReplacingBeanFactoryPostProcessor<D extends BeanFactoryPostProcessor>
-        implements BeanFactoryPostProcessor, BeanNameAware
+        extends BaseBeanFactoryPostProcessor<D>
 {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ImplementationClassReplacingBeanFactoryPostProcessor.class);
 
-    protected String beanName;
-
-    protected List<D> dependsOn;
-
-    protected boolean executed;
-
     protected String originalClassName;
 
     protected String replacementClassName;
-
-    protected String targetBeanName;
-
-    protected boolean enabled;
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setBeanName(final String name)
-    {
-        this.beanName = name;
-    }
-
-    /**
-     * @param dependsOn
-     *            the dependsOn to set
-     */
-    public void setDependsOn(final List<D> dependsOn)
-    {
-        this.dependsOn = dependsOn;
-    }
 
     /**
      * @param originalClassName
@@ -89,71 +57,19 @@ public class ImplementationClassReplacingBeanFactoryPostProcessor<D extends Bean
     }
 
     /**
-     * @param targetBeanName
-     *            the targetBeanName to set
-     */
-    public void setTargetBeanName(final String targetBeanName)
-    {
-        this.targetBeanName = targetBeanName;
-    }
-
-    /**
-     * @param enabled
-     *            the enabled to set
-     */
-    public void setEnabled(final boolean enabled)
-    {
-        this.enabled = enabled;
-    }
-
-    /**
+     *
      * {@inheritDoc}
      */
     @Override
-    public void postProcessBeanFactory(final ConfigurableListableBeanFactory beanFactory) throws BeansException
+    protected void applyChange(final BeanDefinition affectedBeanDefinition, final Function<String, BeanDefinition> getBeanDefinition)
     {
-        if (!this.executed)
+        if (this.replacementClassName != null)
         {
-            if (this.enabled)
+            if (this.originalClassName == null || this.originalClassName.equals(affectedBeanDefinition.getBeanClassName()))
             {
-                if (this.dependsOn != null)
-                {
-                    this.dependsOn.forEach(x -> {
-                        x.postProcessBeanFactory(beanFactory);
-                    });
-                }
-
-                if (this.targetBeanName != null && this.replacementClassName != null)
-                {
-
-                    this.applyChange(beanName -> {
-                        return beanFactory.getBeanDefinition(beanName);
-                    });
-                }
-                else
-                {
-                    LOGGER.warn("[{}] patch cannnot be applied as its configuration is incomplete", this.beanName);
-                }
-
-                this.executed = true;
-            }
-            else
-            {
-                LOGGER.info("[{}] patch will not be applied as it has been marked as inactive", this.beanName);
-            }
-        }
-    }
-
-    protected void applyChange(final Function<String, BeanDefinition> getBeanDefinition)
-    {
-        final BeanDefinition beanDefinition = getBeanDefinition.apply(this.targetBeanName);
-        if (beanDefinition != null)
-        {
-            if (this.originalClassName == null || this.originalClassName.equals(beanDefinition.getBeanClassName()))
-            {
-                LOGGER.debug("[{}] Patching implementation class Spring bean {} to {}", this.beanName, this.targetBeanName,
+                LOGGER.info("[{}] Patching implementation class Spring bean {} to {}", this.beanName, this.targetBeanName,
                         this.replacementClassName);
-                beanDefinition.setBeanClassName(this.replacementClassName);
+                affectedBeanDefinition.setBeanClassName(this.replacementClassName);
             }
             else
             {
@@ -163,7 +79,7 @@ public class ImplementationClassReplacingBeanFactoryPostProcessor<D extends Bean
         }
         else
         {
-            LOGGER.info("[{}] patch cannot be applied - no bean with name {} has been defined", this.beanName, this.targetBeanName);
+            LOGGER.warn("[{}] patch cannnot be applied as it does not define a replacement class", this.beanName);
         }
     }
 
