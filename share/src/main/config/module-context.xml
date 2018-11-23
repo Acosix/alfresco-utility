@@ -127,6 +127,14 @@
         <property name="enabled" value="\${${moduleId}.surf.betterRegexDojoCSSDependencyRule.enabled}" />
     </bean>
 
+    <bean id="${moduleId}.betterNonAmdDependencyRegexPatch" class="${common.artifactId}.spring.PropertyAlteringBeanFactoryPostProcessor">
+        <property name="targetBeanName" value="define.dojo.non.amd.dependency.rule.abstract" />
+        <property name="propertyName" value="dependencyRegex" />
+        <property name="value"
+            value="[&quot;'](.*?)[&quot;']" />
+        <property name="enabled" value="\${${moduleId}.surf.betterRegexDojoNonAmdDependencyRule.enabled}" />
+    </bean>
+
     <bean id="${moduleId}.jsonAwareWidgetsDependencyRulePatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
         <property name="targetBeanName" value="define.dojo.widgets.dependency.rule" />
         <property name="originalClassName" value="org.springframework.extensions.surf.DojoWidgetsDependencyRule" />
@@ -155,6 +163,13 @@
         <!-- this should be the default -->
         <property name="originalClassName" value="org.springframework.extensions.webscripts.LocalWebScriptRuntimeContainer" />
         <property name="replacementClassName" value="${project.artifactId}.surf.ExtensibilityFixedLocalWebScriptRuntimeContainer" />
+    </bean>
+
+    <bean id="${moduleId}.webScript.indexPatch-proto" class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
+        <property name="enabled" value="\${${moduleId}.web.scripts.improvedIndex.enabled}" />
+        <property name="targetBeanName" value="webscripts.index.prototype" />
+        <property name="originalClassName" value="org.springframework.extensions.webscripts.JaxRSUriIndex" />
+        <property name="replacementClassName" value="${common.artifactId}.web.scripts.JaxRSUriIndex" />
     </bean>
 
     <bean id="${moduleId}.webScript.indexPatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">

@@ -223,13 +223,7 @@ public class JaxRSUriIndex implements UriIndex
             this.staticTemplate = (firstTokenIdx == -1) ? template.getTemplate() : template.getTemplate().substring(0, firstTokenIdx);
 
             final String rawTemplate = template.getTemplate();
-            int pathElementCount = 0;
-            int startIdx = rawTemplate.startsWith("/") ? 0 : -1;
-            while ((startIdx = rawTemplate.indexOf('/', startIdx)) != -1)
-            {
-                pathElementCount++;
-            }
-            this.pathElementCount = pathElementCount;
+            this.pathElementCount = rawTemplate.substring(rawTemplate.startsWith("/") ? 1 : 0, rawTemplate.length()).split("/").length;
         }
 
         /**
@@ -331,11 +325,6 @@ public class JaxRSUriIndex implements UriIndex
             {
                 result = other.getPathElementCount() - this.pathElementCount;
             }
-            // secondary key: order by number of template vars
-            else if (this.template.getVariableNames().length != other.getTemplate().getVariableNames().length)
-            {
-                result = other.getTemplate().getVariableNames().length - this.template.getVariableNames().length;
-            }
             // primary key in default, now tertiary key: order by number of static characters in URI template
             else if (this.template.getStaticCharCount() != other.getTemplate().getStaticCharCount())
             {
@@ -349,7 +338,7 @@ public class JaxRSUriIndex implements UriIndex
                 if (result == 0)
                 {
                     // implementation specific: order by http method
-                    other.getMethod().compareTo(this.method);
+                    result = other.getMethod().compareTo(this.method);
                 }
             }
 
