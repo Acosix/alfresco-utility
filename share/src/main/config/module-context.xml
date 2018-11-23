@@ -45,49 +45,49 @@
         <property name="originalClassName" value="org.springframework.extensions.surf.ExternalLessCssThemeHandler" />
         <property name="replacementClassName" value="${project.artifactId}.surf.StateSafeExternalLessCssThemeHandler" />
     </bean>
-    
+
     <bean id="${moduleId}.jLesscCssThemeHandlerPatchVariant1" parent="${moduleId}-css.theme.handler-postProcessor">
         <property name="enabledPropertyKey" value="${moduleId}.surf.jlesscCssThemeHandler.enabled" />
         <property name="originalClassName" value="org.springframework.extensions.surf.CssThemeHandler" />
         <property name="replacementClassName" value="${project.artifactId}.surf.JLesscCssThemeHandler" />
     </bean>
-    
+
     <bean id="${moduleId}.jLesscCssThemeHandlerPatchVariant2" parent="${moduleId}-css.theme.handler-postProcessor">
         <property name="enabledPropertyKey" value="${moduleId}.surf.jlesscCssThemeHandler.enabled" />
         <property name="originalClassName" value="${project.artifactId}.surf.StateSafeCssThemeHandler" />
         <property name="replacementClassName" value="${project.artifactId}.surf.JLesscCssThemeHandler" />
     </bean>
-    
+
     <bean id="${moduleId}.jLesscCssThemeHandlerPatchVariant3" parent="${moduleId}-css.theme.handler-postProcessor">
         <property name="enabledPropertyKey" value="${moduleId}.surf.jlesscCssThemeHandler.enabled" />
         <property name="originalClassName" value="org.springframework.extensions.surf.HybridCssThemeHandler" />
         <property name="replacementClassName" value="${project.artifactId}.surf.JLesscCssThemeHandler" />
     </bean>
-    
+
     <bean id="${moduleId}.jLesscCssThemeHandlerPatchVariant4" parent="${moduleId}-css.theme.handler-postProcessor">
         <property name="enabledPropertyKey" value="${moduleId}.surf.jlesscCssThemeHandler.enabled" />
         <property name="originalClassName" value="${project.artifactId}.surf.StateSafeHybridCssThemeHandler" />
         <property name="replacementClassName" value="${project.artifactId}.surf.JLesscCssThemeHandler" />
     </bean>
-    
+
     <bean id="${moduleId}.jLesscCssThemeHandlerPatchVariant5" parent="${moduleId}-css.theme.handler-postProcessor">
         <property name="enabledPropertyKey" value="${moduleId}.surf.jlesscCssThemeHandler.enabled" />
         <property name="originalClassName" value="org.springframework.extensions.surf.LessForJavaCssThemeHandler" />
         <property name="replacementClassName" value="${project.artifactId}.surf.JLesscCssThemeHandler" />
     </bean>
-    
+
     <bean id="${moduleId}.jLesscCssThemeHandlerPatchVariant6" parent="${moduleId}-css.theme.handler-postProcessor">
         <property name="enabledPropertyKey" value="${moduleId}.surf.jlesscCssThemeHandler.enabled" />
         <property name="originalClassName" value="${project.artifactId}.surf.StateSafeLessForJavaCssThemeHandler" />
         <property name="replacementClassName" value="${project.artifactId}.surf.JLesscCssThemeHandler" />
     </bean>
-    
+
     <bean id="${moduleId}.jLesscCssThemeHandlerPatchVariant7" parent="${moduleId}-css.theme.handler-postProcessor">
         <property name="enabledPropertyKey" value="${moduleId}.surf.jlesscCssThemeHandler.enabled" />
         <property name="originalClassName" value="org.springframework.extensions.surf.ExternalLessCssThemeHandler" />
         <property name="replacementClassName" value="${project.artifactId}.surf.JLesscCssThemeHandler" />
     </bean>
-    
+
     <bean id="${moduleId}.jLesscCssThemeHandlerPatchVariant8" parent="${moduleId}-css.theme.handler-postProcessor">
         <property name="enabledPropertyKey" value="${moduleId}.surf.jlesscCssThemeHandler.enabled" />
         <property name="originalClassName" value="${project.artifactId}.surf.StateSafeExternalLessCssThemeHandler" />
@@ -141,14 +141,14 @@
         <property name="replacementClassName" value="${project.artifactId}.surf.JSONAwareWidgetsDependencyRule" />
         <property name="enabled" value="\${${moduleId}.surf.jsonAwareDojoWidgetsRule.enabled}" />
     </bean>
-    
+
     <bean id="${moduleId}.jsonAwareCssDependencyRulePatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
         <property name="targetBeanName" value="define.dojo.css.dependency.rule" />
         <property name="originalClassName" value="org.springframework.extensions.surf.DojoCssDependencyRule" />
         <property name="replacementClassName" value="${project.artifactId}.surf.JSONAwareCssDependencyRule" />
         <property name="enabled" value="\${${moduleId}.surf.jsonAwareDojoCssRule.enabled}" />
     </bean>
-    
+
     <bean id="${moduleId}-ExtensibleDeclarativeWebScriptPatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
         <property name="enabled" value="\${${moduleId}.web.scripts.correctScriptCustomizationLookup.enabled}" />
         <property name="targetBeanName" value="webscript.default" />
@@ -156,7 +156,7 @@
         <property name="originalClassName" value="org.springframework.extensions.webscripts.DeclarativeWebScript" />
         <property name="replacementClassName" value="${common.artifactId}.web.scripts.ExtensibleDeclarativeWebScript" />
     </bean>
-    
+
     <bean id="${moduleId}-ExtensibilityFixedWebscriptRuntimeContainerPatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
         <property name="enabled" value="\${${moduleId}.web.scripts.extensibilityFixedLocalWebScriptRuntimeContainer.enabled}" />
         <property name="targetBeanName" value="webscripts.container" />
