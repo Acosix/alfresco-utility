@@ -261,7 +261,7 @@ public class PropertyAlteringBeanFactoryPostProcessor<D extends BeanFactoryPostP
             if (this.expectedClassName == null
                     || EqualsHelper.nullSafeEquals(this.expectedClassName, affectedBeanDefinition.getBeanClassName()))
             {
-                LOGGER.info("[{}] Patching property {} of Spring bean {}", this.beanName, this.propertyName, this.targetBeanName);
+                LOGGER.info("[{}] Patching property {} of bean {}", this.beanName, this.propertyName, this.targetBeanName);
 
                 final MutablePropertyValues propertyValues = affectedBeanDefinition.getPropertyValues();
                 final PropertyValue configuredValue = propertyValues.getPropertyValue(this.propertyName);
@@ -304,7 +304,7 @@ public class PropertyAlteringBeanFactoryPostProcessor<D extends BeanFactoryPostP
                 }
                 else if (configuredValue != null)
                 {
-                    LOGGER.debug("[{}] Removing {} property definition from Spring bean {}", this.propertyName, this.targetBeanName);
+                    LOGGER.debug("[{}] Removing {} property definition from bean {}", this.propertyName, this.targetBeanName);
                     propertyValues.removePropertyValue(configuredValue);
                 }
             }

@@ -67,7 +67,7 @@ public class ImplementationClassReplacingBeanFactoryPostProcessor<D extends Bean
         {
             if (this.originalClassName == null || this.originalClassName.equals(affectedBeanDefinition.getBeanClassName()))
             {
-                LOGGER.info("[{}] Patching implementation class Spring bean {} to {}", this.beanName, this.targetBeanName,
+                LOGGER.info("[{}] Patching implementation class of bean {} to {}", this.beanName, this.targetBeanName,
                         this.replacementClassName);
                 affectedBeanDefinition.setBeanClassName(this.replacementClassName);
             }
