@@ -168,6 +168,8 @@
     <bean id="${moduleId}.webScript.indexPatch-proto" class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
         <property name="enabled" value="\${${moduleId}.web.scripts.improvedIndex.enabled}" />
         <property name="targetBeanName" value="webscripts.index.prototype" />
+        <!-- use of prototype is not consistent -->
+        <property name="failIfTargetBeanMissing" value="false" />
         <property name="originalClassName" value="org.springframework.extensions.webscripts.JaxRSUriIndex" />
         <property name="replacementClassName" value="${common.artifactId}.web.scripts.JaxRSUriIndex" />
     </bean>

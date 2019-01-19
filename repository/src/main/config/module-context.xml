@@ -19,6 +19,45 @@
            http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
+    <bean parent="dictionaryModelBootstrap">
+        <property name="models">
+            <list>
+                <value>alfresco/module/${moduleId}/model/emailModel.xml</value>
+            </list>
+        </property>
+        <property name="labels">
+            <list>
+                <value>alfresco.messages.${messages.packageId}.emailModel</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="transformer.${moduleId}.Rfc822ToHtml" class="${project.artifactId}.content.transformer.RFC822ToBodyHTMLTransformer" parent="baseContentTransformer" />
+
+    <bean id="transformer.${moduleId}.wkhtmlToPdf" class="org.alfresco.repo.content.transform.ProxyContentTransformer" parent="baseContentTransformer">
+        <property name="worker" ref="transformer.worker.${moduleId}.wkhtmlToPdf" />
+    </bean>
+
+    <bean id="transformer.worker.${moduleId}.wkhtmlToPdf" class="org.alfresco.repo.management.subsystems.SubsystemProxyFactory">
+        <property name="sourceApplicationContextFactory" ref="thirdparty" />
+        <property name="sourceBeanName" value="transformer.worker.${moduleId}.wkhtmlToPdf" />
+        <property name="interfaces">
+            <list>
+                <value>org.alfresco.repo.content.transform.ContentTransformerWorker</value>
+            </list>
+        </property>
+    </bean>
+
+    <!-- depends-on for log4JHierarchyInit only to force early-most initialization -->
+    <bean id="${moduleId}-enhanceInboundSMTPChildApplicationContextFactory" class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor" depends-on="log4JHierarchyInit">
+        <property name="enabledPropertyKey" value="${moduleId}.email.inboundSMTP.subsystemEnhancement.enabled" />
+        <property name="propertiesSource" ref="global-properties" />
+
+        <property name="targetBeanName" value="InboundSMTP" />
+        <property name="originalClassName" value="org.alfresco.repo.management.subsystems.ChildApplicationContextFactory" />
+        <property name="replacementClassName" value="${project.artifactId}.subsystems.SubsystemChildApplicationContextFactory" />
+    </bean>
+
     <bean id="${moduleId}.tenantExtensibilityContainerPatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
         <property name="enabled" value="\${${moduleId}.web.scripts.extensibleContainer.enabled}" />
         <property name="targetBeanName" value="webscripts.container" />
@@ -53,6 +92,8 @@
     <bean id="${moduleId}.webScript.indexPatch-proto" class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
         <property name="enabled" value="\${${moduleId}.web.scripts.improvedIndex.enabled}" />
         <property name="targetBeanName" value="webscripts.index.prototype" />
+        <!-- use of prototype is not consistent -->
+        <property name="failIfTargetBeanMissing" value="false" />
         <property name="originalClassName" value="org.springframework.extensions.webscripts.JaxRSUriIndex" />
         <property name="replacementClassName" value="${common.artifactId}.web.scripts.JaxRSUriIndex" />
     </bean>
@@ -177,6 +218,46 @@
         <property name="stringToNodeRefEnabled" value="\${${moduleId}.datatype.improvedTypeConverter.string2NodeRef.enabled}" />
         <property name="stringToQNameEnabled" value="\${${moduleId}.datatype.improvedTypeConverter.string2QName.enabled}" />
         <property name="stringToLocaleEnabled" value="\${${moduleId}.datatype.improvedTypeConverter.string2Locale.enabled}" />
+    </bean>
+    
+    <bean id="${moduleId}.xpathNodeLocator.typePatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
+        <property name="enabledPropertyKey" value="${moduleId}.properXPathNodeLocator.enabled" />
+        <property name="propertiesSource" ref="global-properties" />
+        <property name="targetBeanName" value="xpathNodeLocator" />
+        <property name="originalClassName" value="org.alfresco.repo.nodelocator.XPathNodeLocator" />
+        <property name="replacementClassName" value="${project.artifactId}.locator.XPathNodeLocator" />
+    </bean>
+
+    <bean id="${moduleId}.xpathNodeLocator.namespaceServicePropPatch" class="${common.artifactId}.spring.PropertyAlteringBeanDefinitionRegistryPostProcessor">
+        <property name="dependsOn">
+            <list>
+                <ref bean="${moduleId}.xpathNodeLocator.typePatch" />
+            </list>
+        </property>
+        <property name="enabledPropertyKey" value="${moduleId}.properXPathNodeLocator.enabled" />
+        <property name="propertiesSource" ref="global-properties" />
+        <property name="targetBeanName" value="xpathNodeLocator" />
+        <property name="expectedClassName" value="${project.artifactId}.locator.XPathNodeLocator" />
+        <property name="propertyName" value="namespaceService" />
+        <property name="beanReferenceName">
+            <idref bean="NamespaceService" />
+        </property>
+    </bean>
+
+    <bean id="${moduleId}.xpathNodeLocator.nodeServicePropPatch" class="${common.artifactId}.spring.PropertyAlteringBeanDefinitionRegistryPostProcessor">
+        <property name="dependsOn">
+            <list>
+                <ref bean="${moduleId}.xpathNodeLocator.typePatch" />
+            </list>
+        </property>
+        <property name="enabledPropertyKey" value="${moduleId}.properXPathNodeLocator.enabled" />
+        <property name="propertiesSource" ref="global-properties" />
+        <property name="targetBeanName" value="xpathNodeLocator" />
+        <property name="expectedClassName" value="${project.artifactId}.locator.XPathNodeLocator" />
+        <property name="propertyName" value="nodeService" />
+        <property name="beanReferenceName">
+            <idref bean="NodeService" />
+        </property>
     </bean>
 
 </beans>

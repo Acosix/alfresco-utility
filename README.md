@@ -22,6 +22,11 @@ This module is built to be compatible with Alfresco 5.0d and above. It may be us
 - Simple override to site.get/site.put/sites.post JSON FTL to allow web script extension templates to augment the site data, e.g. as basis for simpler "Edit Site" dialog customisations either in YUI or Aikau
 - Common utility functions for Quartz job processing, i.e. running a job with a lock and an optional transaction
 - Basic batch process work provider handling cm:people nodes, using transactional metadata queries (TMQ) combined with metadata-based pagination for efficient loading, specifically for larger user bases
+- Transactionally-safe, full XPath-supporting XPathNodeLocator (using selectNodes() API instead of index query)
+- (opt-in) Improved inbound SMTP handling allowing for the full, original RFC 822 email to be processed by handlers (not just some of its parts)
+- (opt-in) Improved inbound SMTP folder handler, storing the RFC 822 email as received, and optional extracting attachments (as siblings or children of the email) - includes simple meta model
+- (opt-in) RFC 822 to HTML content transformer
+- (opt-in) HTML to PDF content transformer via wkhtmltopdf command line tool (if installed)
 
 ### Share-tier
 - Support for share-global.properties files to hold simple configuration key-value pairs which can be provided by modules (similarly to Repository-tier) and overriden by administrators via a share-global.properties file in the Tomcat configuration root folder (./shared/classes/) - properties provided that way are automatically exposed in Spring XML files for placeholder resolution

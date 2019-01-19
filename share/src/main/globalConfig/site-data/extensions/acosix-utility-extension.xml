@@ -43,6 +43,41 @@
                         </dojo-pages>
                     </web-framework>
                 </config>
+
+                <config evaluator="string-compare" condition="DocLibCustom">
+                    <dependencies>
+                        <js src="acosix/components/documentlibrary/toolbar.js" />
+                    </dependencies>
+                </config>
+
+                <config evaluator="aspect" condition="aco6ue:mailWithExtractedAttachments">
+                    <forms>
+                        <form>
+                            <field-visibility>
+                                <show id="aco6ue:attachments" for-mode="view" />
+                            </field-visibility>
+                            <appearance>
+                                <field id="aco6ue:attachments">
+                                    <control>
+                                        <control-param name="showTargetLink">true</control-param>
+                                    </control>
+                                </field>
+                            </appearance>
+                        </form>
+                    </forms>
+                </config>
+
+                <config evaluator="aspect" condition="aco6ue:mailWithExtractedAttachments">
+                    <forms>
+                        <form>
+                            <field-visibility>
+                                <show id="aco6ue:extractAttachments" />
+                                <show id="aco6ue:extractAttachmentsAsDirectChildren" />
+                                <show id="aco6ue:overwriteDuplicates" />
+                            </field-visibility>
+                        </form>
+                    </forms>
+                </config>
             </configurations>
         </module>
     </modules>

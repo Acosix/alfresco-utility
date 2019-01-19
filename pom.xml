@@ -67,10 +67,6 @@
         <messages.path>acosix/utility</messages.path>
         <messages.packageId>acosix.utility</messages.packageId>
 
-        <!-- Java 7 is out of support -->
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-
         <common.artifactId>de.acosix.alfresco.utility.common</common.artifactId>
         <moduleId>acosix-utility</moduleId>
     </properties>

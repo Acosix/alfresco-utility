@@ -1,0 +1,58 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- 
+ Copyright 2016 - 2018 Acosix GmbH
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+ http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+ -->
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+           http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+    <bean id="${moduleId}-subsystem-properties"
+        class="de.acosix.alfresco.utility.repo.subsystems.SubsystemEffectivePropertiesFactoryBean">
+        <property name="subsystemChildApplicationContextFactory" ref="InboundSMTP" />
+    </bean>
+
+    <bean id="${moduleId}.emailServerPatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
+        <property name="propertiesSource" ref="${moduleId}-subsystem-properties" />
+        <property name="enabledPropertyKey" value="${moduleId}.email.server.enhancements.enabled" />
+        <property name="targetBeanName" value="emailServer" />
+        <property name="originalClassName" value="org.alfresco.email.server.impl.subetha.SubethaEmailServer" />
+        <property name="replacementClassName" value="${project.artifactId}.email.server.ImprovedSubethaEmailServer" />
+    </bean>
+
+    <bean id="${moduleId}.emailServicePatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
+        <property name="propertiesSource" ref="${moduleId}-subsystem-properties" />
+        <property name="enabledPropertyKey" value="${moduleId}.email.server.enhancements.enabled" />
+        <property name="targetBeanName" value="emailService" />
+        <property name="originalClassName" value="org.alfresco.email.server.EmailServiceImpl" />
+        <property name="replacementClassName" value="${project.artifactId}.email.server.ImprovedEmailServiceImpl" />
+    </bean>
+
+    <bean id="${moduleId}.folderHandler" class="${project.artifactId}.email.server.handler.FolderEmailMessageHandler">
+        <property name="dictionaryService" ref="DictionaryService" />
+        <property name="nodeService" ref="NodeService" />
+        <property name="contentService" ref="ContentService" />
+        <property name="mimetypeService" ref="MimetypeService" />
+        <property name="actionService" ref="ActionService" />
+        <property name="emailService" ref="EmailService" />
+        <property name="enabled" value="\${${moduleId}.email.handler.folder.enhancements.enabled}" />
+        <property name="nodeType" value="cm:folder" />
+        <property name="maxAttemptsAtUniqueName" value="\${${moduleId}.email.handler.maxAttemptsAtUniqueName}" />
+        <property name="overwriteDuplicates" value="\${${moduleId}.email.handler.folder.overwriteDuplicates}" />
+        <property name="extractAttachments" value="\${${moduleId}.email.handler.folder.extractAttachments}" />
+        <property name="extractAttachmentsAsDirectChildren" value="\${${moduleId}.email.handler.folder.extractAttachmentsAsDirectChildren}" />
+        <property name="copyEmailMetadataToAttachments" value="\${${moduleId}.email.handler.folder.copyEmailMetadataToAttachments}" />
+    </bean>
+</beans>
