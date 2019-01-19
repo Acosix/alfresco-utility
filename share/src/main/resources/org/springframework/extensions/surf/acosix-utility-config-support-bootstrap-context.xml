@@ -31,7 +31,7 @@
         </property>
         <property name="propertiesSource" ref="${moduleId}-properties" />
     </bean>
-    
+
     <bean class="${common.artifactId}.spring.BeanDefinitionFromPropertiesPostProcessor">
         <property name="enabledPropertyKey" value="${moduleId}.logConfig.support.enabled" />
         <property name="propertyPrefix" value="${moduleId}" />
@@ -80,12 +80,24 @@
             </list>
         </property>
         <property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE" />
+        <property name="systemProperties">
+            <list>
+                <!-- not sure how repository makes java.io.tmpdir available without any explicit config like this -->
+                <value>java.io.tmpdir</value>
+                <!-- other potentially relevant properties for placeholders -->
+                <value>file.separator</value>
+                <value>line.separator</value>
+                <value>path.separator</value>
+                <value>file.encoding</value>
+            </list>
+        </property>
         <property name="propertiesPersister">
             <bean class="org.alfresco.config.AlfrescoPropertiesPersister" />
         </property>
     </bean>
 
-    <bean abstract="true" id="common-placeholder-configurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+    <bean abstract="true" id="common-placeholder-configurer"
+        class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
         <property name="valueSeparator">
             <null />
         </property>
