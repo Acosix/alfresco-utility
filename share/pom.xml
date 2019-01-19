@@ -51,6 +51,9 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
+            <!-- normally this is for test, but here for inclusion in AMP -->
+            <!-- TODO Check if version compatible with 6.x included SLF4J API -->
+            <scope>compile</scope>
         </dependency>
         
         <dependency>
