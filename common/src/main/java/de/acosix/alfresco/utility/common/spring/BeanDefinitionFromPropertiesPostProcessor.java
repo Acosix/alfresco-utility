@@ -323,7 +323,8 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         Boolean enabled = this.enabled;
         if (!Boolean.FALSE.equals(enabled) && this.enabledPropertyKey != null && !this.enabledPropertyKey.isEmpty())
         {
-            final String property = this.propertiesSource.getProperty(this.enabledPropertyKey);
+            String property = this.propertiesSource.getProperty(this.enabledPropertyKey);
+            property = this.placeholderHelper.replacePlaceholders(property, this.propertiesSource);
             enabled = (property != null ? Boolean.valueOf(property) : Boolean.FALSE);
         }
 
@@ -331,7 +332,8 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         {
             final AtomicBoolean enabled2 = new AtomicBoolean(true);
             this.enabledPropertyKeys.forEach(key -> {
-                final String property = this.propertiesSource.getProperty(key);
+                String property = this.propertiesSource.getProperty(key);
+                property = this.placeholderHelper.replacePlaceholders(property, this.propertiesSource);
                 enabled2.compareAndSet(true, property != null ? Boolean.parseBoolean(property) : false);
             });
             enabled = Boolean.valueOf(enabled2.get());

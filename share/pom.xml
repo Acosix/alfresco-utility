@@ -153,8 +153,8 @@
             </plugin>
 
             <plugin>
-                <groupId>de.acosix.alfresco.maven</groupId>
-                <artifactId>de.acosix.alfresco.maven.plugins</artifactId>
+                <groupId>de.acosix.maven</groupId>
+                <artifactId>i18n-resources-plugin</artifactId>
             </plugin>
 
             <plugin>

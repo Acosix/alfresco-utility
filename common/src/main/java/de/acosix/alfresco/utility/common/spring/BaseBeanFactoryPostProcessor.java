@@ -24,16 +24,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.config.PlaceholderConfigurerSupport;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
+import org.springframework.util.PropertyPlaceholderHelper;
 
 /**
  * @author Axel Faust
  */
-public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProcessor> implements BeanFactoryPostProcessor, BeanNameAware
+public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProcessor>
+        implements BeanFactoryPostProcessor, InitializingBean, BeanNameAware
 {
 
     /**
@@ -74,6 +78,14 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
     protected List<String> enabledPropertyKeys;
 
     protected Properties propertiesSource;
+
+    protected String placeholderPrefix = PlaceholderConfigurerSupport.DEFAULT_PLACEHOLDER_PREFIX;
+
+    protected String placeholderSuffix = PlaceholderConfigurerSupport.DEFAULT_PLACEHOLDER_SUFFIX;
+
+    protected String valueSeparator = PlaceholderConfigurerSupport.DEFAULT_VALUE_SEPARATOR;
+
+    protected PropertyPlaceholderHelper placeholderHelper;
 
     protected boolean failIfTargetBeanMissing = true;
 
@@ -141,12 +153,49 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
     }
 
     /**
+     * @param placeholderPrefix
+     *            the placeholderPrefix to set
+     */
+    public void setPlaceholderPrefix(final String placeholderPrefix)
+    {
+        this.placeholderPrefix = placeholderPrefix;
+    }
+
+    /**
+     * @param placeholderSuffix
+     *            the placeholderSuffix to set
+     */
+    public void setPlaceholderSuffix(final String placeholderSuffix)
+    {
+        this.placeholderSuffix = placeholderSuffix;
+    }
+
+    /**
+     * @param valueSeparator
+     *            the valueSeparator to set
+     */
+    public void setValueSeparator(final String valueSeparator)
+    {
+        this.valueSeparator = valueSeparator;
+    }
+
+    /**
      * @param failIfTargetBeanMissing
      *            the failIfTargetBeanMissing to set
      */
     public void setFailIfTargetBeanMissing(final boolean failIfTargetBeanMissing)
     {
         this.failIfTargetBeanMissing = failIfTargetBeanMissing;
+    }
+
+    /**
+     *
+     * {@inheritDoc}
+     */
+    @Override
+    public void afterPropertiesSet()
+    {
+        this.placeholderHelper = new PropertyPlaceholderHelper(this.placeholderPrefix, this.placeholderSuffix, this.valueSeparator, true);
     }
 
     /**
@@ -259,7 +308,8 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
         {
             if (!Boolean.FALSE.equals(enabled) && this.enabledPropertyKey != null && !this.enabledPropertyKey.isEmpty())
             {
-                final String property = this.propertiesSource.getProperty(this.enabledPropertyKey);
+                String property = this.propertiesSource.getProperty(this.enabledPropertyKey);
+                property = this.placeholderHelper.replacePlaceholders(property, this.propertiesSource);
                 enabled = (property != null ? Boolean.valueOf(property) : Boolean.FALSE);
             }
 
@@ -267,7 +317,8 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
             {
                 final AtomicBoolean enabled2 = new AtomicBoolean(true);
                 this.enabledPropertyKeys.forEach(key -> {
-                    final String property = this.propertiesSource.getProperty(key);
+                    String property = this.propertiesSource.getProperty(key);
+                    property = this.placeholderHelper.replacePlaceholders(property, this.propertiesSource);
                     enabled2.compareAndSet(true, property != null ? Boolean.parseBoolean(property) : false);
                 });
                 enabled = Boolean.valueOf(enabled2.get());
