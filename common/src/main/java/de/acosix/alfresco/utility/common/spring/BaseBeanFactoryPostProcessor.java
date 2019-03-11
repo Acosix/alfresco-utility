@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,6 +72,8 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
 
     protected String targetBeanName;
 
+    protected String targetBeanNamePattern;
+
     protected Boolean enabled;
 
     protected String enabledPropertyKey;
@@ -114,6 +117,15 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
     public void setTargetBeanName(final String targetBeanName)
     {
         this.targetBeanName = targetBeanName;
+    }
+
+    /**
+     * @param targetBeanNamePattern
+     *            the targetBeanNamePattern to set
+     */
+    public void setTargetBeanNamePattern(final String targetBeanNamePattern)
+    {
+        this.targetBeanNamePattern = targetBeanNamePattern;
     }
 
     /**
@@ -241,9 +253,23 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
                                 this.targetBeanName);
                     }
                 }
+                else if (this.targetBeanNamePattern != null)
+                {
+                    final Pattern beanNamePattern = Pattern.compile(this.targetBeanNamePattern);
+                    final String[] beanDefinitionNames = beanFactory.getBeanDefinitionNames();
+                    for (final String beanDefinitionName : beanDefinitionNames)
+                    {
+                        if (beanNamePattern.matcher(beanDefinitionName).matches())
+                        {
+                            operation.applyChange(beanFactory.getBeanDefinition(beanDefinitionName),
+                                    beanName -> beanFactory.getBeanDefinition(beanName));
+                        }
+                    }
+                }
                 else
                 {
-                    LOGGER.info("[{}] patch cannnot be applied as it does not define an affected bean", this.beanName);
+                    LOGGER.info("[{}] patch cannnot be applied as it does not define the name or name pattern of affected bean(s)",
+                            this.beanName);
                 }
 
                 this.executed = true;
@@ -287,9 +313,23 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
                                 this.targetBeanName);
                     }
                 }
+                else if (this.targetBeanNamePattern != null)
+                {
+                    final Pattern beanNamePattern = Pattern.compile(this.targetBeanNamePattern);
+                    final String[] beanDefinitionNames = registry.getBeanDefinitionNames();
+                    for (final String beanDefinitionName : beanDefinitionNames)
+                    {
+                        if (beanNamePattern.matcher(beanDefinitionName).matches())
+                        {
+                            operation.applyChange(registry.getBeanDefinition(beanDefinitionName),
+                                    beanName -> registry.getBeanDefinition(beanName));
+                        }
+                    }
+                }
                 else
                 {
-                    LOGGER.info("[{}] patch cannnot be applied as it does not define an affected bean", this.beanName);
+                    LOGGER.info("[{}] patch cannnot be applied as it does not define the name or name pattern of affected bean(s)",
+                            this.beanName);
                 }
 
                 this.executed = true;
@@ -309,7 +349,7 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
             if (!Boolean.FALSE.equals(enabled) && this.enabledPropertyKey != null && !this.enabledPropertyKey.isEmpty())
             {
                 String property = this.propertiesSource.getProperty(this.enabledPropertyKey);
-                property = this.placeholderHelper.replacePlaceholders(property, this.propertiesSource);
+                property = property != null ? this.placeholderHelper.replacePlaceholders(property, this.propertiesSource) : null;
                 enabled = (property != null ? Boolean.valueOf(property) : Boolean.FALSE);
             }
 
@@ -318,7 +358,7 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
                 final AtomicBoolean enabled2 = new AtomicBoolean(true);
                 this.enabledPropertyKeys.forEach(key -> {
                     String property = this.propertiesSource.getProperty(key);
-                    property = this.placeholderHelper.replacePlaceholders(property, this.propertiesSource);
+                    property = property != null ? this.placeholderHelper.replacePlaceholders(property, this.propertiesSource) : null;
                     enabled2.compareAndSet(true, property != null ? Boolean.parseBoolean(property) : false);
                 });
                 enabled = Boolean.valueOf(enabled2.get());
