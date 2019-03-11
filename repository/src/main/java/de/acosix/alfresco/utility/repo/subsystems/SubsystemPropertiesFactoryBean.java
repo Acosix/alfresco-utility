@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - 2018 Acosix GmbH
+ * Copyright 2016 - 2019 Acosix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ import org.springframework.core.io.support.PropertiesLoaderSupport;
  *
  * This class does not incorporate any properties set at runtime via the {@link PropertyBackedBean} API.
  *
- * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
+ * @author Axel Faust
  */
 public class SubsystemPropertiesFactoryBean extends PropertiesLoaderSupport
         implements FactoryBean<Properties>, ApplicationContextAware, InitializingBean

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - 2018 Acosix GmbH
+ * Copyright 2016 - 2019 Acosix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
  * {@link BeanFactoryPostProcessor Bean factory post processor} to alter the implementation class of a bean definition without requiring an
  * override that may conflict with custom Spring configuration.
  *
- * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
+ * @author Axel Faust
  */
 public class ImplementationClassReplacingBeanFactoryPostProcessor<D extends BeanFactoryPostProcessor>
         extends BaseBeanFactoryPostProcessor<D>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - 2018 Acosix GmbH
+ * Copyright 2016 - 2019 Acosix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProce
  * registry post processors). Due to the early Spring lifecycle phase that instances of this class are used in, property placeholders can
  * not be used to configure properties.
  *
- * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
+ * @author Axel Faust
  */
 public class ImplementationClassReplacingBeanDefinitionRegistryPostProcessor
         extends ImplementationClassReplacingBeanFactoryPostProcessor<BeanDefinitionRegistryPostProcessor>

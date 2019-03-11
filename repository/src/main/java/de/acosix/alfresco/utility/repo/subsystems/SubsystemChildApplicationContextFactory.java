@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - 2018 Acosix GmbH
+ * Copyright 2016 - 2019 Acosix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import org.springframework.core.io.Resource;
  * client code to obtain the effective {@code *.properties} files used to define the configuration of a subsystem. It can be used as a
  * drop-in replacement to the original class in all out-of-the-box use cases.
  *
- * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
+ * @author Axel Faust
  */
 public class SubsystemChildApplicationContextFactory extends ChildApplicationContextFactory implements SingleInstanceSubsystemHandler
 {
@@ -182,7 +182,7 @@ public class SubsystemChildApplicationContextFactory extends ChildApplicationCon
      * This class only serves to allow the enclosing class to instantiate an application context state with a different value for
      * {@code allowInitAccess}.
      *
-     * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
+     * @author Axel Faust
      */
     protected class SubsystemApplicationContextState extends ApplicationContextState
     {

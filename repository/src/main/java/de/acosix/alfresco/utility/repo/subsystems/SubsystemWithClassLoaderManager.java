@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Acosix GmbH
+ * Copyright 2016 - 2019 Acosix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import org.springframework.util.PropertiesPersister;
 import de.acosix.alfresco.utility.repo.subsystems.SubsystemWithClassLoaderManagerState.SubsystemWithClassLoaderFactoryInitialiser;
 
 /**
- * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
+ * @author Axel Faust
  */
 public class SubsystemWithClassLoaderManager extends AbstractPropertyBackedBean implements MultiInstanceSubsystemHandler
 {

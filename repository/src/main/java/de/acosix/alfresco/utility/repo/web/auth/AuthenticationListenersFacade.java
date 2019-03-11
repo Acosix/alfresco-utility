@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Acosix GmbH
+ * Copyright 2016 - 2019 Acosix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import org.springframework.beans.factory.InitializingBean;
  * registration of individual listener instances, and are already pre-configured to use a listener by core Spring configuration. This class
  * allows replacement of the default configuration while retaining the configured listener and adding additional, custom ones.
  *
- * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
+ * @author Axel Faust
  */
 public class AuthenticationListenersFacade implements AuthenticationListener, InitializingBean
 {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - 2018 Acosix GmbH
+ * Copyright 2016 - 2019 Acosix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import org.jboss.resteasy.plugins.providers.jackson.ResteasyJacksonProvider;
 
 /**
- * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
+ * @author Axel Faust
  */
 @Provider
 @Consumes({ "application/*+json", "text/json" })

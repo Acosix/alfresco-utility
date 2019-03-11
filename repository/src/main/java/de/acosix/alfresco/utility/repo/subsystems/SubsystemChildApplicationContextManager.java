@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - 2018 Acosix GmbH
+ * Copyright 2016 - 2019 Acosix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ import org.springframework.core.io.Resource;
  * {@code *.properties} files used to define the configuration of that specific subsystem instance. It can be used as a drop-in replacement
  * to the original class in all out-of-the-box use cases.
  *
- * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
+ * @author Axel Faust
  */
 public class SubsystemChildApplicationContextManager extends DefaultChildApplicationContextManager implements MultiInstanceSubsystemHandler
 {
@@ -192,7 +192,7 @@ public class SubsystemChildApplicationContextManager extends DefaultChildApplica
      * excessive use of private visibility. Most of its implementation had to be copied verbatim from the base class but due to instance-of
      * requirements it was impossible to drop the class inheritance hierarchy.
      *
-     * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
+     * @author Axel Faust
      */
     protected class SubsystemApplicationContextManagerState extends ApplicationContextManagerState
     {

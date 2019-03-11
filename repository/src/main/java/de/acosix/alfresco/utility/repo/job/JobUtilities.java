@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Acosix GmbH
+ * Copyright 2016 - 2019 Acosix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 /**
  * This class provides utility operations for handling Repository-tier jobs in a consistent way.
  *
- * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
+ * @author Axel Faust
  */
 public final class JobUtilities
 {
@@ -312,7 +312,7 @@ public final class JobUtilities
     /**
      * This functional interface represents job operations that may manually trigger a refresh of the acquired lock when necessary.
      *
-     * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
+     * @author Axel Faust
      */
     @FunctionalInterface
     public static interface ManualRefreshOperationWithJobLock
@@ -331,7 +331,7 @@ public final class JobUtilities
      * This functional interface provides the means to manually trigger a lock refresh from an {@link ManualRefreshOperationWithJobLock
      * operation with a job lock}.
      *
-     * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
+     * @author Axel Faust
      */
     @FunctionalInterface
     public static interface LockRefresher
@@ -349,7 +349,7 @@ public final class JobUtilities
     /**
      * This functional interface represents job operations that use automatically refreshing locks.
      *
-     * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
+     * @author Axel Faust
      */
     @FunctionalInterface
     public static interface RefreshAwareOperationWithJobLock
@@ -370,7 +370,7 @@ public final class JobUtilities
      * This functional interface provides the means to check if a job lock has been released while the
      * {@link ManualRefreshOperationWithJobLock job operation} was running.
      *
-     * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
+     * @author Axel Faust
      */
     @FunctionalInterface
     public static interface LockReleasedCheck

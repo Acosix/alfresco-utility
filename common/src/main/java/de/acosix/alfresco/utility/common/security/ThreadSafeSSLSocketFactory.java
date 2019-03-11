@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - 2018 Acosix GmbH
+ * Copyright 2016 - 2019 Acosix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ import org.alfresco.error.AlfrescoRuntimeException;
  * This class can be used as an alternative to {@code AlfrescoSSLSocketFactory} which is not thread safe, especially when multiple instances
  * are initialised with different trust stores.
  *
- * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
+ * @author Axel Faust
  */
 public class ThreadSafeSSLSocketFactory extends SSLSocketFactory
 {

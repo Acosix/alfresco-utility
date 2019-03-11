@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - 2018 Acosix GmbH
+ * Copyright 2016 - 2019 Acosix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ import org.springframework.extensions.webscripts.WebScriptResponse;
  *
  * An improvement request has been filed with Alfresco as <a href="https://issues.alfresco.com/jira/browse/ALF-21794">ALF-21794</a>
  *
- * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
+ * @author Axel Faust
  */
 public class TenantExtensibilityContainer extends TenantRepositoryContainer implements HandlesExtensibility
 {

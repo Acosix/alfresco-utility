@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - 2018 Acosix GmbH
+ * Copyright 2016 - 2019 Acosix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import org.springframework.extensions.surf.DojoWidgetsDependencyRule;
  * the less efficient and more error prone default RegEx evaluation. Tests have shown that the Regex evaluation scales non-linearily with
  * increasing size / depth of the declarative model and can take multiple and even a two-digit amount of seconds to complete.
  *
- * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
+ * @author Axel Faust
  */
 public class JSONAwareWidgetsDependencyRule extends DojoWidgetsDependencyRule implements InitializingBean
 {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Acosix GmbH
+ * Copyright 2016 - 2019 Acosix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ import org.springframework.extensions.surf.util.I18NUtil;
  * support for dynamic lookup of potential transformer delegates and fail-over on empty content results (already a {@code TODO} in the
  * original Alfresco source)
  *
- * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
+ * @author Axel Faust
  */
 public class FailoverContentTransformer extends AbstractContentTransformer2 implements InitializingBean
 {

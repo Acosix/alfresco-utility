@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - 2018 Acosix GmbH
+ * Copyright 2016 - 2019 Acosix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import org.springframework.extensions.surf.DojoDependencies;
  * This special rule implementation will attempt to parse and process the declarative widget model of a page as JSON before falling back to
  * the less efficient and more error prone default RegEx evaluation.
  *
- * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
+ * @author Axel Faust
  */
 public class JSONAwareCssDependencyRule extends DojoCssDependencyRule implements InitializingBean
 {

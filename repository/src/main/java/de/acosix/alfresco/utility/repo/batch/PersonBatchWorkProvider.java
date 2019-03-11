@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Acosix GmbH
+ * Copyright 2016 - 2019 Acosix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory;
  * transactional metadata query-compatible CMIS queries and avoiding problematic preloading of node data, which can delay batch processing
  * and in the worst case overwhelm transactional caches. The queries make use of pagination using the user name as from/to restrictions.
  *
- * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
+ * @author Axel Faust
  */
 public class PersonBatchWorkProvider implements BatchProcessWorkProvider<NodeRef>
 {

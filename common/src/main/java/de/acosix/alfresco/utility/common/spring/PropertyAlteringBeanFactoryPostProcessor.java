@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - 2018 Acosix GmbH
+ * Copyright 2016 - 2019 Acosix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ import org.springframework.beans.factory.support.ManagedSet;
  * {@link BeanFactoryPostProcessor Bean factory post processor} to alter a property of a bean definition with adapted configuration before
  * instantiation without requiring an override that may conflict with custom Spring configuration.
  *
- * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
+ * @author Axel Faust
  */
 public class PropertyAlteringBeanFactoryPostProcessor<D extends BeanFactoryPostProcessor> extends BaseBeanFactoryPostProcessor<D>
 {

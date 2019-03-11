@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - 2018 Acosix GmbH
+ * Copyright 2016 - 2019 Acosix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.alfresco.rest.api.model.SiteImpl;
  * tooling and a JSON entity provider / converter. This entity is not compatible with the public API entity {@link SiteImpl}. Some of the
  * properties included in this class are only relevant for response data.
  *
- * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
+ * @author Axel Faust
  */
 public class Site
 {

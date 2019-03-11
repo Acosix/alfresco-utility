@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Acosix GmbH
+ * Copyright 2016 - 2019 Acosix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ import org.springframework.extensions.webscripts.servlet.WebScriptServletRuntime
  * {@link WebScriptResponse#getOutputStream() output stream} vss {@link WebScriptResponse#getWriter() writer} use, which can cause issues
  * with streaming web scripts (see <a href="https://issues.alfresco.com/jira/browse/ALF-21949">ALF-21949</a>).
  *
- * @author Axel Faust, <a href="http://acosix.de">Acosix GmbH</a>
+ * @author Axel Faust
  */
 public class ExtensibilityFixedLocalWebScriptRuntimeContainer extends LocalWebScriptRuntimeContainer
 {
