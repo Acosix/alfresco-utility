@@ -29,6 +29,16 @@
 
     <properties>
     </properties>
+    
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>${surf.groupId}</groupId>
+                <artifactId>spring-surf</artifactId>
+                <version>${surf.share.api.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
