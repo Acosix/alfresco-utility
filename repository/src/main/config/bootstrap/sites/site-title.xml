@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<component>
+   <scope>page</scope>
+   <region-id>title</region-id>
+   <source-id>site/${siteName}/dashboard</source-id>
+   <url>/components/title/collaboration-title</url>
+</component>

@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view:view xmlns:view="http://www.alfresco.org/view/repository/1.0" xmlns:cm="http://www.alfresco.org/model/content/1.0"
+   xmlns:sys="http://www.alfresco.org/model/system/1.0" xmlns:st="http://www.alfresco.org/model/site/1.0">
+
+   <st:site view:childName="cm:${siteName}">
+      <view:acl view:inherit="false">
+         <view:ace view:access="ALLOWED">
+            <view:authority>GROUP_site_${siteName}_SiteManager</view:authority>
+            <view:permission>SiteManager</view:permission>
+         </view:ace>
+         <view:ace view:access="ALLOWED">
+            <view:authority>GROUP_site_${siteName}_SiteCollaborator</view:authority>
+            <view:permission>SiteCollaborator</view:permission>
+         </view:ace>
+         <view:ace view:access="ALLOWED">
+            <view:authority>GROUP_site_${siteName}_SiteContributor</view:authority>
+            <view:permission>SiteContributor</view:permission>
+         </view:ace>
+         <view:ace view:access="ALLOWED">
+            <view:authority>GROUP_site_${siteName}_SiteConsumer</view:authority>
+            <view:permission>SiteConsumer</view:permission>
+         </view:ace>
+         <view:ace view:access="ALLOWED">
+            <view:authority>GROUP_EVERYONE</view:authority>
+            <view:permission>ReadPermissions</view:permission>
+         </view:ace>
+      </view:acl>
+      <view:aspects>
+         <sys:unmovable />
+         <sys:undeletable />
+      </view:aspects>
+      <view:properties>
+         <st:sitePreset>${sitePreset}</st:sitePreset>
+         <cm:name>${siteName}</cm:name>
+         <cm:title>${siteTitle}</cm:title>
+         <!-- just needs to be set even if only to an empty string, otherwise some badly coded ootb FTLs might fail -->
+         <cm:description></cm:description>
+         <st:siteVisibility>PRIVATE</st:siteVisibility>
+      </view:properties>
+      <view:associations>
+         <cm:contains>
+            <cm:folder view:childName="cm:documentLibrary">
+               <view:acl view:inherit="false">
+                  <view:ace view:access="ALLOWED">
+                     <view:authority>GROUP_site_${siteName}_SiteManager</view:authority>
+                     <view:permission>SiteManager</view:permission>
+                  </view:ace>
+                  <view:ace view:access="ALLOWED">
+                     <view:authority>GROUP_site_${siteName}_SiteCollaborator</view:authority>
+                     <view:permission>SiteCollaborator</view:permission>
+                  </view:ace>
+                  <view:ace view:access="ALLOWED">
+                     <view:authority>GROUP_site_${siteName}_SiteContributor</view:authority>
+                     <view:permission>SiteContributor</view:permission>
+                  </view:ace>
+                  <view:ace view:access="ALLOWED">
+                     <view:authority>GROUP_site_${siteName}_SiteConsumer</view:authority>
+                     <view:permission>SiteConsumer</view:permission>
+                  </view:ace>
+               </view:acl>
+               <view:properties>
+                  <cm:name>documentLibrary</cm:name>
+                  <cm:description>Document Library</cm:description>
+                  <st:componentId>documentLibrary</st:componentId>
+               </view:properties>
+            </cm:folder>
+            <cm:folder view:childName="cm:surf-config">
+               <!-- only managers are allowed to change config -->
+               <view:acl>
+                  <view:ace view:access="DENIED">
+                     <view:authority>GROUP_site_${siteName}_SiteCollaborator</view:authority>
+                     <view:permission>SiteCollaborator</view:permission>
+                  </view:ace>
+                  <view:ace view:access="DENIED">
+                     <view:authority>GROUP_site_${siteName}_SiteContributor</view:authority>
+                     <view:permission>SiteContributor</view:permission>
+                  </view:ace>
+               </view:acl>
+               <view:properties>
+                  <cm:name>surf-config</cm:name>
+                  <cm:isIndexed>false</cm:isIndexed>
+                  <sys:clientVisibilityMask>0</sys:clientVisibilityMask>
+                  <cm:isContentIndexed>false</cm:isContentIndexed>
+               </view:properties>
+               <view:associations>
+                  <cm:contains>
+                     <cm:folder view:childName="cm:pages">
+                        <view:properties>
+                           <cm:name>pages</cm:name>
+                        </view:properties>
+                        <view:associations>
+                           <cm:contains>
+                              <cm:folder view:childName="cm:site">
+                                 <view:properties>
+                                    <cm:name>site</cm:name>
+                                 </view:properties>
+                                 <view:associations>
+                                    <cm:contains>
+                                       <cm:folder view:childName="cm:${siteName}">
+                                          <view:properties>
+                                             <cm:name>${siteName}</cm:name>
+                                          </view:properties>
+                                          <view:associations>
+                                             <cm:contains>
+                                             <cm:content view:childName="cm:dashboard.xml">
+                                                <view:properties>
+                                                   <cm:name>dashboard.xml</cm:name>
+                                                   <cm:isIndexed>false</cm:isIndexed>
+                                                   <cm:isContentIndexed>true</cm:isContentIndexed>
+                                                   <cm:content>contentUrl=classpath:alfresco/module/${moduleId}/bootstrap/sites/site-dashboard.xml|mimetype=text/xml|size=1|encoding=UTF-8|locale=de_DE_</cm:content>
+                                                </view:properties>
+                                             </cm:content>
+                                             </cm:contains>
+                                          </view:associations>
+                                       </cm:folder>
+                                    </cm:contains>
+                                 </view:associations>
+                              </cm:folder>
+                           </cm:contains>
+                        </view:associations>
+                     </cm:folder>
+                     <cm:folder view:childName="cm:components">
+                        <view:properties>
+                           <cm:name>components</cm:name>
+                        </view:properties>
+                        <view:associations>
+                           <cm:contains>
+                              <cm:content view:childName="cm:page.title.site~${siteName}~dashboard.xml">
+                                 <view:properties>
+                                    <cm:name>page.title.site~${siteName}~dashboard.xml</cm:name>
+                                    <cm:isIndexed>false</cm:isIndexed>
+                                    <cm:isContentIndexed>true</cm:isContentIndexed>
+                                    <cm:content>contentUrl=classpath:alfresco/module/${moduleId}/bootstrap/sites/site-title.xml|mimetype=text/xml|size=1|encoding=UTF-8|locale=de_DE_</cm:content>
+                                 </view:properties>
+                              </cm:content>
+                              <cm:content view:childName="cm:page.navigation.site~${siteName}~dashboard.xml">
+                                 <view:properties>
+                                    <cm:name>page.navigation.site~${siteName}~dashboard.xml</cm:name>
+                                    <cm:isIndexed>false</cm:isIndexed>
+                                    <cm:isContentIndexed>true</cm:isContentIndexed>
+                                    <cm:content>contentUrl=classpath:alfresco/module/${moduleId}/bootstrap/sites/site-navigation.xml|mimetype=text/xml|size=1|encoding=UTF-8|locale=de_DE_</cm:content>
+                                 </view:properties>
+                              </cm:content>
+                              <cm:content view:childName="cm:page.component-1-1.site~${siteName}~dashboard.xml">
+                                 <view:properties>
+                                    <cm:name>page.component-1-1.site~${siteName}~dashboard.xml</cm:name>
+                                    <cm:isIndexed>false</cm:isIndexed>
+                                    <cm:isContentIndexed>true</cm:isContentIndexed>
+                                    <cm:content>contentUrl=classpath:alfresco/module/${moduleId}/bootstrap/sites/component-1-1.site-colleagues.xml|mimetype=text/xml|size=1|encoding=UTF-8|locale=de_DE_</cm:content>
+                                 </view:properties>
+                              </cm:content>
+                              <cm:content view:childName="cm:page.component-2-1.site~${siteName}~dashboard.xml">
+                                 <view:properties>
+                                    <cm:name>page.component-2-1.site~${siteName}~dashboard.xml</cm:name>
+                                    <cm:isIndexed>false</cm:isIndexed>
+                                    <cm:isContentIndexed>true</cm:isContentIndexed>
+                                    <cm:content>contentUrl=classpath:alfresco/module/${moduleId}/bootstrap/sites/component-2-1.docsummary.xml|mimetype=text/xml|size=1|encoding=UTF-8|locale=de_DE_</cm:content>
+                                 </view:properties>
+                              </cm:content>
+                              <cm:content view:childName="cm:page.component-2-2.site~${siteName}~dashboard.xml">
+                                 <view:properties>
+                                    <cm:name>page.component-2-2.site~${siteName}~dashboard.xml</cm:name>
+                                    <cm:isIndexed>false</cm:isIndexed>
+                                    <cm:isContentIndexed>true</cm:isContentIndexed>
+                                    <cm:content>contentUrl=classpath:alfresco/module/${moduleId}/bootstrap/sites/component-2-2.site-activities.xml|mimetype=text/xml|size=1|encoding=UTF-8|locale=de_DE_</cm:content>
+                                 </view:properties>
+                              </cm:content>
+                           </cm:contains>
+                        </view:associations>
+                     </cm:folder>
+                  </cm:contains>
+               </view:associations>
+            </cm:folder>
+         </cm:contains>
+      </view:associations>
+   </st:site>
+</view:view>
