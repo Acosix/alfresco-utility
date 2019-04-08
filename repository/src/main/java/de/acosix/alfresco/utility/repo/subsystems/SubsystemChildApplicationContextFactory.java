@@ -47,10 +47,32 @@ public class SubsystemChildApplicationContextFactory extends ChildApplicationCon
     }
 
     public SubsystemChildApplicationContextFactory(final ApplicationContext parent, final PropertyBackedBeanRegistry registry,
-            final Properties propertyDefaults, final String category, final String typeName, final List<String> instancePath)
-            throws IOException
+            final Properties propertyDefaults, final Properties encryptedPropertyDefaults, final String category, final String typeName,
+            final List<String> instancePath) throws IOException
     {
-        super(parent, registry, propertyDefaults, category, typeName, instancePath);
+        // due to API incompatibilities between 5.x and 6.x we can't call super constructor
+        super();
+
+        this.setApplicationContext(parent);
+        this.setRegistry(registry);
+        this.setPropertyDefaults(propertyDefaults);
+        this.setEncryptedPropertyDefaults(encryptedPropertyDefaults);
+        this.setCategory(category);
+        this.setTypeName(typeName);
+        this.setInstancePath(instancePath);
+
+        try
+        {
+            this.afterPropertiesSet();
+        }
+        catch (final RuntimeException e)
+        {
+            throw e;
+        }
+        catch (final Exception e)
+        {
+            throw new RuntimeException(e);
+        }
     }
 
     /**

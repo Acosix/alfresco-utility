@@ -18,8 +18,6 @@ package de.acosix.alfresco.utility.repo.entities;
 import java.util.List;
 import java.util.Map;
 
-import org.alfresco.rest.api.model.SiteImpl;
-
 /**
  * This site entity can be used for calling site-related internal web scripts of Alfresco and extension modules via JAX-RS based client
  * tooling and a JSON entity provider / converter. This entity is not compatible with the public API entity {@link SiteImpl}. Some of the

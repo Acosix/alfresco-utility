@@ -50,6 +50,10 @@ public class SubsystemChildApplicationContextManager extends DefaultChildApplica
     /** The default chain. */
     protected String defaultChain;
 
+    /** Property defaults provided by the JASYPT decryptor. */
+    // duplicated since Alfresco 5.x does not provide a protected getter in base class
+    protected Properties encryptedPropertyDefaults;
+
     /**
      * {@inheritDoc}
      */
@@ -166,7 +170,8 @@ public class SubsystemChildApplicationContextManager extends DefaultChildApplica
             final SubsystemChildApplicationContextFactory applicationContextFactory = state.getApplicationContextFactory(instanceId);
 
             final Properties effectiveProperties = applicationContextFactory != null
-                    ? applicationContextFactory.getSubsystemEffectiveProperties() : new Properties();
+                    ? applicationContextFactory.getSubsystemEffectiveProperties()
+                    : new Properties();
             return effectiveProperties;
         }
         finally
@@ -184,6 +189,29 @@ public class SubsystemChildApplicationContextManager extends DefaultChildApplica
     protected PropertyBackedBeanState createInitialState() throws IOException
     {
         return new SubsystemApplicationContextManagerState(this.defaultChain, this.defaultTypeName);
+    }
+
+    /**
+     *
+     * {@inheritDoc}
+     */
+    @Override
+    // duplicated since Alfresco 5.x does not provide a protected getter in base class
+    protected Properties getEncryptedPropertyDefaults()
+    {
+        return this.encryptedPropertyDefaults;
+    }
+
+    /**
+     *
+     * {@inheritDoc}
+     */
+    @Override
+    // duplicated since Alfresco 5.x does not provide a protected getter in base class
+    public void setEncryptedPropertyDefaults(final Properties propertyDefaults)
+    {
+        this.encryptedPropertyDefaults = propertyDefaults;
+        super.setEncryptedPropertyDefaults(propertyDefaults);
     }
 
     /**
@@ -334,6 +362,7 @@ public class SubsystemChildApplicationContextManager extends DefaultChildApplica
                                 new SubsystemChildApplicationContextFactory(SubsystemChildApplicationContextManager.this.getParent(),
                                         SubsystemChildApplicationContextManager.this.getRegistry(),
                                         SubsystemChildApplicationContextManager.this.getPropertyDefaults(),
+                                        SubsystemChildApplicationContextManager.this.getEncryptedPropertyDefaults(),
                                         SubsystemChildApplicationContextManager.this.getCategory(), typeName, childId));
                     }
                 }

@@ -112,6 +112,9 @@ public final class JobUtilities
      *            the type of the value
      * @return the value for the specified key
      *
+     * @param <V>
+     *            the expected type of the value
+     *
      * @throws IllegalStateException
      *             if no value has been set for the specified key or if the value is incompatible with the expected type
      */
@@ -130,6 +133,9 @@ public final class JobUtilities
      * @param valueClass
      *            the type of the value
      * @return the value for the specified key
+     *
+     * @param <V>
+     *            the expected type of the value
      *
      * @throws IllegalStateException
      *             if no value has been set for the specified key or if the value is incompatible with the expected type
@@ -151,6 +157,9 @@ public final class JobUtilities
      * @param nonNull
      *            {@code true} if the value must be set, or {@code false} if {@code null} is allowed
      * @return the value for the specified key
+     *
+     * @param <V>
+     *            the expected type of the value
      *
      * @throws IllegalStateException
      *             if no value has been set for the specified key and {@code nonNull} has been specified as {@code true} ,or if the value is
@@ -189,6 +198,9 @@ public final class JobUtilities
      * @param nonNull
      *            {@code true} if the value must be set, or {@code false} if {@code null} is allowed
      * @return the value for the specified key
+     *
+     * @param <V>
+     *            the expected type of the value
      *
      * @throws IllegalStateException
      *             if no value has been set for the specified key and {@code nonNull} has been specified as {@code true} ,or if the value is

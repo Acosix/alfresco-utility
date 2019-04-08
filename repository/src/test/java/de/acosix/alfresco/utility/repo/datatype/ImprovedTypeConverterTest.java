@@ -384,6 +384,12 @@ public class ImprovedTypeConverterTest
     {
         final int inputValues = constantInput.length;
 
+        // warmup
+        for (int i = 0; i < conversionRuns; i++)
+        {
+            DefaultTypeConverter.INSTANCE.convert(Locale.class, constantInput[i % inputValues]);
+        }
+
         long nanoStart = System.nanoTime();
         for (int i = 0; i < conversionRuns; i++)
         {
@@ -395,6 +401,12 @@ public class ImprovedTypeConverterTest
         final ImprovedTypeConverterInitialiser initialiser = new ImprovedTypeConverterInitialiser();
         initialiser.setStringToLocaleEnabled(true);
         initialiser.afterPropertiesSet();
+
+        // warmup
+        for (int i = 0; i < conversionRuns; i++)
+        {
+            DefaultTypeConverter.INSTANCE.convert(Locale.class, constantInput[i % inputValues]);
+        }
 
         nanoStart = System.nanoTime();
         for (int i = 0; i < conversionRuns; i++)

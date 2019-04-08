@@ -87,7 +87,7 @@ public class TenantExtensibilityContainer extends TenantRepositoryContainer impl
 
     /**
      *
-     * The list of {@link org.springframework.extensions.surf.types.ExtensionModule} instances that have been evaluated as applicable to
+     * The list of {@link BasicExtensionModule extension module} instances that have been evaluated as applicable to
      * this RequestContext. This is set to <code>null</code> when during instantiation and is only
      * properly set the first time the <code>getEvaluatedModules</code> method is invoked. This ensures
      * that module evaluation only occurs once per request.
@@ -99,9 +99,8 @@ public class TenantExtensibilityContainer extends TenantRepositoryContainer impl
      *
      * This is a local {@link ConfigImpl} instance that will only be used when extension modules are employed. It will
      * initially be populated with the default "static" global configuration taken from the {@link ConfigService} associated
-     * with this {@link org.springframework.extensions.surf.RequestContext} but then updated to include global configuration provided by
-     * extension modules that
-     * have been evaluated to be applied to the current request.
+     * with the current request context but then updated to include global configuration provided by
+     * extension modules that have been evaluated to be applied to the current request.
      *
      */
     protected ThreadLocal<ConfigImpl> globalConfig = new ThreadLocal<>();
@@ -110,9 +109,8 @@ public class TenantExtensibilityContainer extends TenantRepositoryContainer impl
      *
      * This map represents {@link ConfigSection} instances mapped by area. It will only be used when extension modules are
      * employed. It will initially be populated with the default "static" configuration taken from the {@link ConfigService} associated
-     * with this {@link org.springframework.extensions.surf.RequestContext} but then updated to include configuration provided by extension
-     * modules that have been evaluated
-     * to be applied to the current request.
+     * with the current request context but then updated to include configuration provided by extension modules that have been evaluated to
+     * be applied to the current request.
      *
      */
     protected ThreadLocal<Map<String, List<ConfigSection>>> sectionsByArea = new ThreadLocal<>();
@@ -122,16 +120,15 @@ public class TenantExtensibilityContainer extends TenantRepositoryContainer impl
      * A list of {@link ConfigSection} instances that are only applicable to the current request. It will only be used when extension
      * modules are
      * employed. It will initially be populated with the default "static" configuration taken from the {@link ConfigService} associated
-     * with this {@link org.springframework.extensions.surf.RequestContext} but then updated to include configuration provided by extension
-     * modules that have been evaluated
-     * to be applied to the current request.
+     * with the current request context but then updated to include configuration provided by extension modules that have been evaluated to
+     * be applied to the current request.
      *
      */
     protected ThreadLocal<List<ConfigSection>> sections = new ThreadLocal<>();
 
     /**
      *
-     * A {@link WebScriptExtensibilityModuleHandler} is required for retrieving information on what
+     * A {@link WebScriptExtensibilityModuleHandler extensibility handler} is required for retrieving information on what
      * {@link BasicExtensionModule} instances have been configured and the extension files that need
      * to be processed. This variable should be set thorugh the Spring application context configuration.
      *
@@ -140,7 +137,7 @@ public class TenantExtensibilityContainer extends TenantRepositoryContainer impl
 
     /**
      *
-     * Sets the {@link WebScriptExtensibilityModuleHandler} for this {@link org.springframework.extensions.webscripts.Container}.
+     * Sets the {@link WebScriptExtensibilityModuleHandler extensibility handler} for this {@link RepositoryContainer container}.
      *
      *
      * @param extensibilityModuleHandler
@@ -348,13 +345,12 @@ public class TenantExtensibilityContainer extends TenantRepositoryContainer impl
     }
 
     /**
-     * Retrieve the list of {@link org.springframework.extensions.surf.types.ExtensionModule} instances that have been evaluated as
-     * applicable
-     * for the current request. If this list has not yet been populated then use the
-     * {@link org.springframework.extensions.surf.extensibility.ExtensibilityModuleHandler}
-     * configured in the Spring application context to evaluate them.
+     * Retrieve the list of {@link BasicExtensionModule extension module} instances that have been evaluated as applicable for the current
+     * request. If this list has not yet been populated then use the {@link WebScriptExtensibilityModuleHandler extensibility handler}
+     * configured in the Spring application context to
+     * evaluate them.
      *
-     * @return A list of {@link org.springframework.extensions.surf.types.ExtensionModule} instances that are applicable to the current
+     * @return A list of {@link BasicExtensionModule} instances that are applicable to the current
      *         request.
      */
     public List<BasicExtensionModule> getEvaluatedModules()

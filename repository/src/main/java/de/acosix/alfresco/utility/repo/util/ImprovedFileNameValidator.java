@@ -43,6 +43,10 @@ public class ImprovedFileNameValidator
 
     /**
      * Replaces illegal filename characters with '_'
+     *
+     * @param fileName
+     *            the input file name
+     * @return the valid file name, potentially different from the input if characters needed to be replaced
      */
     public static String getValidFileName(final String fileName)
     {

@@ -178,9 +178,10 @@ public class SubsystemWithClassLoaderState implements PropertyBackedBeanState
 
                         ((ApplicationEventMulticaster) this.getBean(APPLICATION_EVENT_MULTICASTER_BEAN_NAME)).multicastEvent(event);
 
-                        if (!(this.getParent() == null || event instanceof ContextRefreshedEvent || event instanceof ContextClosedEvent))
+                        final ApplicationContext parent = this.getParent();
+                        if (parent != null && !(event instanceof ContextRefreshedEvent || event instanceof ContextClosedEvent))
                         {
-                            this.getParent().publishEvent(event);
+                            parent.publishEvent(event);
                         }
                     }
 
@@ -445,7 +446,10 @@ public class SubsystemWithClassLoaderState implements PropertyBackedBeanState
             factory.setPropertiesArray(new Properties[] { this.fixedConfigProperties, this.runtimeProperties });
             factory.afterPropertiesSet();
             final Properties subsystemProperties = factory.getObject();
-            beanFactory.registerSingleton(BEAN_NAME_SUBSYSTEM_PROPERTIES, subsystemProperties);
+            if (subsystemProperties != null)
+            {
+                beanFactory.registerSingleton(BEAN_NAME_SUBSYSTEM_PROPERTIES, subsystemProperties);
+            }
         }
         catch (final IOException e)
         {
