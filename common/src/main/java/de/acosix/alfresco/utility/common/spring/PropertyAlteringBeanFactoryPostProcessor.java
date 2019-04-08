@@ -328,6 +328,7 @@ public class PropertyAlteringBeanFactoryPostProcessor<D extends BeanFactoryPostP
 
         final ManagedList<Object> list = new ManagedList<>();
 
+        // TODO Support merge if list is defined on parent bean
         if (this.merge && configuredValue != null)
         {
             final Object configuredValueDefinition = configuredValue.getValue();
@@ -396,6 +397,7 @@ public class PropertyAlteringBeanFactoryPostProcessor<D extends BeanFactoryPostP
 
         final ManagedSet<Object> set = new ManagedSet<>();
 
+        // TODO Support merge if list is defined on parent bean
         if (this.merge && configuredValue != null)
         {
             final Object configuredValueDefinition = configuredValue.getValue();
@@ -450,6 +452,7 @@ public class PropertyAlteringBeanFactoryPostProcessor<D extends BeanFactoryPostP
 
         final ManagedMap<Object, Object> map = new ManagedMap<>();
 
+        // TODO Support merge if list is defined on parent bean
         if (this.merge && configuredValue != null)
         {
             final Object configuredValueDefinition = configuredValue.getValue();

@@ -80,15 +80,15 @@ public class SubsystemEffectivePropertiesFactoryBean
             if (!(this.subsystemChildApplicationContextManager instanceof MultiInstanceSubsystemHandler))
             {
                 LOGGER.warn(
-                        "subsystemChildApplicationContextManager for {} does not conform to the interface MultiInstanceSubsystemHandler - either subsystem has not been configured properly or original Alfresco bean may not have been enhanced",
-                        this.beanName);
+                        "subsystemChildApplicationContextManager {} for {} does not conform to the interface MultiInstanceSubsystemHandler - either subsystem has not been configured properly or original Alfresco bean may not have been enhanced",
+                        this.subsystemChildApplicationContextManager, this.beanName);
             }
         }
         else if (!(this.subsystemChildApplicationContextFactory instanceof SingleInstanceSubsystemHandler))
         {
             LOGGER.warn(
-                    "subsystemChildApplicationContextFactory for {} does not conform to the interface SingleInstanceSubsystemHandler - either subsystem has not been configured properly or original Alfresco bean may not have been enhanced",
-                    this.beanName);
+                    "subsystemChildApplicationContextFactory {} for {} does not conform to the interface SingleInstanceSubsystemHandler - either subsystem has not been configured properly or original Alfresco bean may not have been enhanced",
+                    this.subsystemChildApplicationContextFactory, this.beanName);
         }
     }
 
