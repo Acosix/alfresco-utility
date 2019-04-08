@@ -224,6 +224,8 @@ public class SiteImporterModuleComponent extends AbstractModuleComponent impleme
         }
         else
         {
+            LOGGER.info("Bootstrapping site {}", this.siteName);
+
             final Properties baseConfiguration = this.spacesBootstrap.getConfiguration();
 
             AuthenticationUtil.pushAuthentication();
@@ -232,12 +234,13 @@ public class SiteImporterModuleComponent extends AbstractModuleComponent impleme
             {
                 I18NUtil.setLocale(this.locale);
             }
+            AuthenticationUtil.setFullyAuthenticatedUser(AuthenticationUtil.getAdminUserName());
             try
             {
                 SiteVisibility visibility = SiteVisibility.PUBLIC;
-                if (this.siteVisibility.equalsIgnoreCase(SiteVisibility.PRIVATE.toString()))
+                if (this.siteVisibility != null)
                 {
-                    visibility = SiteVisibility.PRIVATE;
+                    visibility = SiteVisibility.valueOf(this.siteVisibility.toUpperCase(Locale.ENGLISH));
                 }
 
                 final boolean newSite = site == null;
@@ -248,36 +251,41 @@ public class SiteImporterModuleComponent extends AbstractModuleComponent impleme
                     this.doGroupImport(this.groupsView.getProperty("location"));
                 }
 
-                if (this.contentView != null && newSite)
+                if (this.contentView != null)
                 {
-                    // we expect bootstraps to contain the full structure of the site including itself
-                    // so we delete the site node, but only if created earlier (existing site will not be deleted - in that case the content
-                    // view should aim to update)
-                    this.behaviourFilter.disableBehaviour(site.getNodeRef(), ContentModel.ASPECT_UNDELETABLE);
-                    try
+                    if (newSite)
                     {
-                        this.nodeService.addAspect(site.getNodeRef(), ContentModel.ASPECT_TEMPORARY, null);
-                        this.nodeService.deleteNode(site.getNodeRef());
+                        // we expect bootstraps to contain the full structure of the site including itself
+                        // so we delete the site node, but only if created earlier (existing site will not be deleted - in that case the
+                        // content view should aim to update)
+                        this.behaviourFilter.disableBehaviour(site.getNodeRef(), ContentModel.ASPECT_UNDELETABLE);
+                        try
+                        {
+                            LOGGER.debug("Deleting empty shell of site {} before running content bootstrap", this.siteName);
+                            this.nodeService.addAspect(site.getNodeRef(), ContentModel.ASPECT_TEMPORARY, null);
+                            this.nodeService.deleteNode(site.getNodeRef());
+                        }
+                        finally
+                        {
+                            this.behaviourFilter.enableBehaviour(site.getNodeRef(), ContentModel.ASPECT_UNDELETABLE);
+                        }
                     }
-                    finally
-                    {
-                        this.behaviourFilter.enableBehaviour(site.getNodeRef(), ContentModel.ASPECT_UNDELETABLE);
-                    }
+
+                    this.spacesBootstrap.setBootstrapViews(Collections.singletonList(this.contentView));
+
+                    // pass configured name etc. via configuration for consistency
+                    // avoid modifying configuration by reference since multiple
+                    // bootstrap beans may share same instance
+                    final Properties configuration = new Properties(baseConfiguration);
+                    configuration.put("siteName", this.siteName);
+                    configuration.put("siteTitle", this.siteTitle);
+                    configuration.put("sitePreset", this.sitePreset);
+                    configuration.put("siteVisibility", visibility.name());
+                    this.spacesBootstrap.setConfiguration(configuration);
+
+                    LOGGER.debug("Running content bootstrap for site {}", this.siteName);
+                    this.spacesBootstrap.bootstrap();
                 }
-
-                this.spacesBootstrap.setBootstrapViews(Collections.singletonList(this.contentView));
-
-                // pass configured name etc. via configuration for consistency
-                // avoid modifying configuration by reference since multiple
-                // bootstrap beans may share same instance
-                final Properties configuration = new Properties(baseConfiguration);
-                configuration.put("siteName", this.siteName);
-                configuration.put("siteTitle", this.siteTitle);
-                configuration.put("sitePreset", this.sitePreset);
-                configuration.put("siteVisibility", this.siteVisibility.toUpperCase(Locale.ENGLISH));
-                this.spacesBootstrap.setConfiguration(configuration);
-
-                this.spacesBootstrap.bootstrap();
             }
             finally
             {
@@ -295,6 +303,7 @@ public class SiteImporterModuleComponent extends AbstractModuleComponent impleme
     // taken from Alfresco SiteLoadPatch
     protected void doGroupImport(final String location) throws Throwable
     {
+        LOGGER.debug("Importing site {} role memberships from {}", this.siteName, location);
         final File groupFile = ImporterBootstrap.getFile(location);
         final BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(groupFile), "UTF-8"));
 
@@ -319,11 +328,7 @@ public class SiteImporterModuleComponent extends AbstractModuleComponent impleme
                 if (!currentGroups.contains(group))
                 {
                     this.authorityService.addAuthority(group, user);
-
-                    if (LOGGER.isDebugEnabled())
-                    {
-                        LOGGER.debug("Added user " + user + " to group " + group);
-                    }
+                    LOGGER.debug("Added user {} to group {}", user, group);
                 }
             }
         }
