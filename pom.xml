@@ -68,7 +68,6 @@
         <messages.packageId>acosix.utility</messages.packageId>
 
         <common.artifactId>de.acosix.alfresco.utility.common</common.artifactId>
-        <moduleId>acosix-utility</moduleId>
     </properties>
 
     <repositories>
@@ -82,7 +81,13 @@
     </repositories>
 
     <dependencyManagement>
-
+        <dependencies>
+            <dependency>
+                <groupId>de.acosix.alfresco.utility</groupId>
+                <artifactId>${common.artifactId}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
     </dependencyManagement>
 
     <build>
@@ -90,8 +95,7 @@
     </build>
 
     <modules>
-        <module>common</module>
-        <module>repository</module>
-        <module>share</module>
+        <module>core</module>
+        <module>full</module>
     </modules>
 </project>
