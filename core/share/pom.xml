@@ -30,7 +30,7 @@
     <properties>
         <javaPackageName>de.acosix.alfresco.utility.share</javaPackageName>
     </properties>
-    
+
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -57,12 +57,12 @@
             <groupId>${surf.groupId}</groupId>
             <artifactId>spring-surf</artifactId>
         </dependency>
-        
+
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
         </dependency>
-        
+
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
@@ -147,7 +147,7 @@
             <plugin>
                 <artifactId>maven-source-plugin</artifactId>
             </plugin>
-            
+
             <plugin>
                 <artifactId>maven-jar-plugin</artifactId>
             </plugin>

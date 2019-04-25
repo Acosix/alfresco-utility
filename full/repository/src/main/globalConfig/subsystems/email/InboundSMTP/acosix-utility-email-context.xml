@@ -26,33 +26,33 @@
 
     <bean id="${moduleId}.emailServerPatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
         <property name="propertiesSource" ref="${moduleId}-subsystem-properties" />
-        <property name="enabledPropertyKey" value="${moduleId}.email.server.enhancements.enabled" />
+        <property name="enabledPropertyKey" value="${configModuleId}.email.server.enhancements.enabled" />
         <property name="targetBeanName" value="emailServer" />
         <property name="originalClassName" value="org.alfresco.email.server.impl.subetha.SubethaEmailServer" />
-        <property name="replacementClassName" value="${project.artifactId}.email.server.ImprovedSubethaEmailServer" />
+        <property name="replacementClassName" value="${javaPackageName}.email.server.ImprovedSubethaEmailServer" />
     </bean>
 
     <bean id="${moduleId}.emailServicePatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
         <property name="propertiesSource" ref="${moduleId}-subsystem-properties" />
-        <property name="enabledPropertyKey" value="${moduleId}.email.server.enhancements.enabled" />
+        <property name="enabledPropertyKey" value="${configModuleId}.email.server.enhancements.enabled" />
         <property name="targetBeanName" value="emailService" />
         <property name="originalClassName" value="org.alfresco.email.server.EmailServiceImpl" />
-        <property name="replacementClassName" value="${project.artifactId}.email.server.ImprovedEmailServiceImpl" />
+        <property name="replacementClassName" value="${javaPackageName}.email.server.ImprovedEmailServiceImpl" />
     </bean>
 
-    <bean id="${moduleId}.folderHandler" class="${project.artifactId}.email.server.handler.FolderEmailMessageHandler">
+    <bean id="${moduleId}.folderHandler" class="${javaPackageName}.email.server.handler.FolderEmailMessageHandler">
         <property name="dictionaryService" ref="DictionaryService" />
         <property name="nodeService" ref="NodeService" />
         <property name="contentService" ref="ContentService" />
         <property name="mimetypeService" ref="MimetypeService" />
         <property name="actionService" ref="ActionService" />
         <property name="emailService" ref="EmailService" />
-        <property name="enabled" value="\${${moduleId}.email.handler.folder.enhancements.enabled}" />
+        <property name="enabled" value="\${${configModuleId}.email.handler.folder.enhancements.enabled}" />
         <property name="nodeType" value="cm:folder" />
-        <property name="maxAttemptsAtUniqueName" value="\${${moduleId}.email.handler.maxAttemptsAtUniqueName}" />
-        <property name="overwriteDuplicates" value="\${${moduleId}.email.handler.folder.overwriteDuplicates}" />
-        <property name="extractAttachments" value="\${${moduleId}.email.handler.folder.extractAttachments}" />
-        <property name="extractAttachmentsAsDirectChildren" value="\${${moduleId}.email.handler.folder.extractAttachmentsAsDirectChildren}" />
-        <property name="copyEmailMetadataToAttachments" value="\${${moduleId}.email.handler.folder.copyEmailMetadataToAttachments}" />
+        <property name="maxAttemptsAtUniqueName" value="\${${configModuleId}.email.handler.maxAttemptsAtUniqueName}" />
+        <property name="overwriteDuplicates" value="\${${configModuleId}.email.handler.folder.overwriteDuplicates}" />
+        <property name="extractAttachments" value="\${${configModuleId}.email.handler.folder.extractAttachments}" />
+        <property name="extractAttachmentsAsDirectChildren" value="\${${configModuleId}.email.handler.folder.extractAttachmentsAsDirectChildren}" />
+        <property name="copyEmailMetadataToAttachments" value="\${${configModuleId}.email.handler.folder.copyEmailMetadataToAttachments}" />
     </bean>
 </beans>

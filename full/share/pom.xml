@@ -28,6 +28,7 @@
     <name>Acosix Alfresco Utility - Full Share Module</name>
 
     <properties>
+        <javaPackageName>de.acosix.alfresco.utility.share</javaPackageName>
     </properties>
 
     <dependencyManagement>

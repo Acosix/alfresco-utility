@@ -28,7 +28,7 @@
     <name>Acosix Alfresco Utility - Full Repository Module</name>
 
     <properties>
-
+        <javaPackageName>de.acosix.alfresco.utility.repo</javaPackageName>
     </properties>
 
     <dependencies>

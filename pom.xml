@@ -66,6 +66,7 @@
     <properties>
         <messages.path>acosix/utility</messages.path>
         <messages.packageId>acosix.utility</messages.packageId>
+        <configModuleId>acosix-utility</configModuleId>
 
         <common.artifactId>de.acosix.alfresco.utility.common</common.artifactId>
     </properties>
