@@ -1,0 +1,55 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<alfresco-config>
+
+    <config>
+        <forms>
+            <dependencies>
+                <js src="/acosix/components/form/content.js" />
+                <js src="/acosix/ace/ace.js" />
+                <js src="/acosix/ace/keybinding-emacs.js" />
+                <js src="/acosix/ace/keybinding-sublime.js" />
+                <js src="/acosix/ace/keybinding-vim.js" />
+                <js src="/acosix/ace/mode-asciidoc.js" />
+                <js src="/acosix/ace/mode-coffee.js" />
+                <js src="/acosix/ace/mode-css.js" />
+                <js src="/acosix/ace/mode-ftl.js" />
+                <js src="/acosix/ace/mode-html.js" />
+                <js src="/acosix/ace/mode-java.js" />
+                <js src="/acosix/ace/mode-javascript.js" />
+                <js src="/acosix/ace/mode-json.js" />
+                <js src="/acosix/ace/mode-latex.js" />
+                <js src="/acosix/ace/mode-less.js" />
+                <js src="/acosix/ace/mode-markdown.js" />
+                <js src="/acosix/ace/mode-plain_text.js" />
+                <js src="/acosix/ace/mode-properties.js" />
+                <js src="/acosix/ace/mode-python.js" />
+                <js src="/acosix/ace/mode-svg.js" />
+                <js src="/acosix/ace/mode-tex.js" />
+                <js src="/acosix/ace/mode-text.js" />
+                <js src="/acosix/ace/mode-typescript.js" />
+                <js src="/acosix/ace/mode-xml.js" />
+                <js src="/acosix/ace/mode-yaml.js" />
+
+                <js src="/acosix/ace/theme-ambiance.js" />
+                <js src="/acosix/ace/theme-chrome.js" />
+                <js src="/acosix/ace/theme-crimson_editor.js" />
+                <js src="/acosix/ace/theme-eclipse.js" />
+                <js src="/acosix/ace/theme-github.js" />
+                <js src="/acosix/ace/theme-monokai.js" />
+                <js src="/acosix/ace/theme-terminal.js" />
+                <js src="/acosix/ace/theme-textmate.js" />
+                <js src="/acosix/ace/theme-twilight.js" />
+                <js src="/acosix/ace/theme-xcode.js" />
+
+                <js src="/acosix/ace/ext-beautify.js" />
+                <js src="/acosix/ace/ext-language_tools.js" />
+                <js src="/acosix/ace/ext-searchbox.js" />
+                <js src="/acosix/ace/ext-whitespace.js" />
+
+                <js src="/acosix/components/form/content-ace.js" />
+                <css src="/acosix/components/form/content-ace.css" />
+            </dependencies>
+        </forms>
+    </config>
+
+</alfresco-config>
