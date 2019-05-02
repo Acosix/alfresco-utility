@@ -207,6 +207,8 @@ if (typeof Acosix === 'undefined' || !Acosix)
     YAHOO.extend(Acosix.formControls.Content, Alfresco.component.Base, {
         options : {
 
+            fieldName : null,
+
             currentValue : '',
 
             disabled : false,
@@ -332,7 +334,7 @@ if (typeof Acosix === 'undefined' || !Acosix)
 
         _populateContent : function Acosix_formControls_Content__populateContent(callback)
         {
-            var onSuccess, onFailure, nodeRefUrl;
+            var onSuccess, onFailure, nodeRefUrl, url;
 
             if (this.options.nodeRef !== null && this.options.nodeRef.length > 0)
             {
@@ -372,8 +374,14 @@ if (typeof Acosix === 'undefined' || !Acosix)
 
                 // attempt to retrieve content
                 nodeRefUrl = this.options.nodeRef.replace('://', '/');
+                url = Alfresco.constants.PROXY_URI + 'acosix/api/utility/node/' + nodeRefUrl + '/content';
+                if (this.options.fieldName)
+                {
+                    url += encodeURIComponent(this.options.fieldName.replace(/^prop_/, '').replace(/_/, ':'));
+                }
+
                 Alfresco.util.Ajax.request({
-                    url : Alfresco.constants.PROXY_URI + 'api/node/content/' + nodeRefUrl,
+                    url : url,
                     method : 'GET',
                     successCallback : {
                         fn : onSuccess,

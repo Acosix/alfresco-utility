@@ -20,6 +20,7 @@
             (function() {
                 new Acosix.formControls.Content("${fieldHtmlId}").setOptions( {
                     <#if form.mode == "view" || (field.disabled && !(field.control.params.forceEditable?? && field.control.params.forceEditable == "true"))>disabled: true,</#if>
+                    fieldName : "${field.name?js_string}",
                     currentValue: "${field.value?js_string}",
                     mandatory: ${field.mandatory?string},
                     formMode: "${form.mode}",

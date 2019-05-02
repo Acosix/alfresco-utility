@@ -43,6 +43,9 @@
 
                 <js src="/acosix/ace/ext-beautify.js" />
                 <js src="/acosix/ace/ext-language_tools.js" />
+                <js src="/acosix/ace/snippets/css.js" />
+                <js src="/acosix/ace/snippets/html.js" />
+                <js src="/acosix/ace/snippets/javascript.js" />
                 <js src="/acosix/ace/ext-searchbox.js" />
                 <js src="/acosix/ace/ext-whitespace.js" />
 

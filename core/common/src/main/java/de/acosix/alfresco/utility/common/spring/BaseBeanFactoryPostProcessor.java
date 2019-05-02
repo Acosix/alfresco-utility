@@ -34,6 +34,8 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.util.PropertyPlaceholderHelper;
 
+import de.acosix.alfresco.utility.common.spring.condition.BeanDefinitionPostProcessorCondition;
+
 /**
  * @author Axel Faust
  */
@@ -91,6 +93,8 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
     protected PropertyPlaceholderHelper placeholderHelper;
 
     protected boolean failIfTargetBeanMissing = true;
+
+    protected BeanDefinitionPostProcessorCondition condition;
 
     /**
      * {@inheritDoc}
@@ -201,6 +205,23 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
     }
 
     /**
+     * @return the condition
+     */
+    public BeanDefinitionPostProcessorCondition getCondition()
+    {
+        return this.condition;
+    }
+
+    /**
+     * @param condition
+     *            the condition to set
+     */
+    public void setCondition(final BeanDefinitionPostProcessorCondition condition)
+    {
+        this.condition = condition;
+    }
+
+    /**
      *
      * {@inheritDoc}
      */
@@ -234,42 +255,49 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
                     dependsOn.forEach(x -> x.postProcessBeanFactory(beanFactory));
                 }
 
-                if (this.targetBeanName != null)
+                if (this.condition == null || this.condition.applies(beanFactory))
                 {
-                    final boolean containsDefinition = beanFactory.containsBeanDefinition(this.targetBeanName);
-                    if (!containsDefinition && this.failIfTargetBeanMissing)
+                    if (this.targetBeanName != null)
                     {
-                        throw new IllegalStateException("Target bean '" + this.targetBeanName + "' has not been defined");
-                    }
+                        final boolean containsDefinition = beanFactory.containsBeanDefinition(this.targetBeanName);
+                        if (!containsDefinition && this.failIfTargetBeanMissing)
+                        {
+                            throw new IllegalStateException("Target bean '" + this.targetBeanName + "' has not been defined");
+                        }
 
-                    if (containsDefinition)
+                        if (containsDefinition)
+                        {
+                            operation.applyChange(beanFactory.getBeanDefinition(this.targetBeanName),
+                                    beanName -> beanFactory.getBeanDefinition(beanName));
+                        }
+                        else
+                        {
+                            LOGGER.info("[{}] patch cannnot be applied as the affected bean {} has not been defined", this.beanName,
+                                    this.targetBeanName);
+                        }
+                    }
+                    else if (this.targetBeanNamePattern != null)
                     {
-                        operation.applyChange(beanFactory.getBeanDefinition(this.targetBeanName),
-                                beanName -> beanFactory.getBeanDefinition(beanName));
+                        final Pattern beanNamePattern = Pattern.compile(this.targetBeanNamePattern);
+                        final String[] beanDefinitionNames = beanFactory.getBeanDefinitionNames();
+                        for (final String beanDefinitionName : beanDefinitionNames)
+                        {
+                            if (beanNamePattern.matcher(beanDefinitionName).matches())
+                            {
+                                operation.applyChange(beanFactory.getBeanDefinition(beanDefinitionName),
+                                        beanName -> beanFactory.getBeanDefinition(beanName));
+                            }
+                        }
                     }
                     else
                     {
-                        LOGGER.info("[{}] patch cannnot be applied as the affected bean {} has not been defined", this.beanName,
-                                this.targetBeanName);
-                    }
-                }
-                else if (this.targetBeanNamePattern != null)
-                {
-                    final Pattern beanNamePattern = Pattern.compile(this.targetBeanNamePattern);
-                    final String[] beanDefinitionNames = beanFactory.getBeanDefinitionNames();
-                    for (final String beanDefinitionName : beanDefinitionNames)
-                    {
-                        if (beanNamePattern.matcher(beanDefinitionName).matches())
-                        {
-                            operation.applyChange(beanFactory.getBeanDefinition(beanDefinitionName),
-                                    beanName -> beanFactory.getBeanDefinition(beanName));
-                        }
+                        LOGGER.info("[{}] patch cannnot be applied as it does not define the name or name pattern of affected bean(s)",
+                                this.beanName);
                     }
                 }
                 else
                 {
-                    LOGGER.info("[{}] patch cannnot be applied as it does not define the name or name pattern of affected bean(s)",
-                            this.beanName);
+                    LOGGER.info("[{}] patch will not be applied as its prerequisite condition does not apply", this.beanName);
                 }
 
                 this.executed = true;
@@ -294,42 +322,49 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
                     dependsOn.forEach(x -> x.postProcessBeanDefinitionRegistry(registry));
                 }
 
-                if (this.targetBeanName != null)
+                if (this.condition == null || this.condition.applies(registry))
                 {
-                    final boolean containsDefinition = registry.containsBeanDefinition(this.targetBeanName);
-                    if (!containsDefinition && this.failIfTargetBeanMissing)
+                    if (this.targetBeanName != null)
                     {
-                        throw new IllegalStateException("Target bean '" + this.targetBeanName + "' has not been defined");
-                    }
+                        final boolean containsDefinition = registry.containsBeanDefinition(this.targetBeanName);
+                        if (!containsDefinition && this.failIfTargetBeanMissing)
+                        {
+                            throw new IllegalStateException("Target bean '" + this.targetBeanName + "' has not been defined");
+                        }
 
-                    if (containsDefinition)
+                        if (containsDefinition)
+                        {
+                            operation.applyChange(registry.getBeanDefinition(this.targetBeanName),
+                                    beanName -> registry.getBeanDefinition(beanName));
+                        }
+                        else
+                        {
+                            LOGGER.info("[{}] patch cannnot be applied as the affected bean {} has not been defined", this.beanName,
+                                    this.targetBeanName);
+                        }
+                    }
+                    else if (this.targetBeanNamePattern != null)
                     {
-                        operation.applyChange(registry.getBeanDefinition(this.targetBeanName),
-                                beanName -> registry.getBeanDefinition(beanName));
+                        final Pattern beanNamePattern = Pattern.compile(this.targetBeanNamePattern);
+                        final String[] beanDefinitionNames = registry.getBeanDefinitionNames();
+                        for (final String beanDefinitionName : beanDefinitionNames)
+                        {
+                            if (beanNamePattern.matcher(beanDefinitionName).matches())
+                            {
+                                operation.applyChange(registry.getBeanDefinition(beanDefinitionName),
+                                        beanName -> registry.getBeanDefinition(beanName));
+                            }
+                        }
                     }
                     else
                     {
-                        LOGGER.info("[{}] patch cannnot be applied as the affected bean {} has not been defined", this.beanName,
-                                this.targetBeanName);
-                    }
-                }
-                else if (this.targetBeanNamePattern != null)
-                {
-                    final Pattern beanNamePattern = Pattern.compile(this.targetBeanNamePattern);
-                    final String[] beanDefinitionNames = registry.getBeanDefinitionNames();
-                    for (final String beanDefinitionName : beanDefinitionNames)
-                    {
-                        if (beanNamePattern.matcher(beanDefinitionName).matches())
-                        {
-                            operation.applyChange(registry.getBeanDefinition(beanDefinitionName),
-                                    beanName -> registry.getBeanDefinition(beanName));
-                        }
+                        LOGGER.info("[{}] patch cannnot be applied as it does not define the name or name pattern of affected bean(s)",
+                                this.beanName);
                     }
                 }
                 else
                 {
-                    LOGGER.info("[{}] patch cannnot be applied as it does not define the name or name pattern of affected bean(s)",
-                            this.beanName);
+                    LOGGER.info("[{}] patch will not be applied as its prerequisite condition does not apply", this.beanName);
                 }
 
                 this.executed = true;
