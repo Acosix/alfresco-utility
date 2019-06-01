@@ -19,12 +19,32 @@
            http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
-    <!-- identical web script, just under different URL -->
-    <bean id="webscript.de.acosix.acosix-utility.content.get" parent="webscript.org.alfresco.content.content.get" />
-    
+    <!-- near-identical web script, just under different URL -->
+    <bean id="webscript.de.acosix.acosix-utility.content.get" parent="webscript.org.alfresco.content.content.get"
+        class="${javaPackageName}.web.scripts.ContentGetWithStatus" />
+
+    <bean id="webscript.de.acosix.acosix-utility.rendition.get" parent="webscript.de.acosix.acosix-utility.content.get"
+        class="${javaPackageName}.web.scripts.RenditionGetWithStatus">
+        <property name="thumbnailService" ref="ThumbnailService" />
+    </bean>
+
+    <!-- near-identical web script, just under different URL -->
+    <bean id="webscript.de.acosix.acosix-utility.content.head" parent="webscript.org.alfresco.content.content.head"
+        class="${javaPackageName}.web.scripts.ContentInfoWithStatus">
+        <property name="namespaceService" ref="NamespaceService" />
+    </bean>
+        
+    <bean id="webscript.de.acosix.acosix-utility.rendition.head" parent="webscript.de.acosix.acosix-utility.content.head"
+        class="${javaPackageName}.web.scripts.RenditionInfoWithStatus">
+        <property name="contentService" ref="ContentService" />
+        <property name="thumbnailService" ref="ThumbnailService" />
+    </bean>
+
+    <!-- identical web script, just under different URL - note: no HEAD variant -->
     <bean id="webscript.de.acosix.acosix-utility.slingshot-content.get" abstract="true" />
 
-    <bean id="${moduleId}.slingshot-content.get.parentSetter" class="${common.artifactId}.spring.BeanParentAlteringBeanDefinitionRegistryPostProcessor">
+    <bean id="${moduleId}.slingshot-content.get.parentSetter"
+        class="${common.artifactId}.spring.BeanParentAlteringBeanDefinitionRegistryPostProcessor">
         <property name="enabled" value="true" />
         <property name="condition">
             <bean class="${common.artifactId}.spring.condition.BeanDefinedCondition">
@@ -37,7 +57,8 @@
         </property>
     </bean>
 
-    <bean id="${moduleId}.slingshot-content.get.deAbstractifier" class="${common.artifactId}.spring.BeanDeAbstractifyingBeanDefinitionRegistryPostProcessor">
+    <bean id="${moduleId}.slingshot-content.get.deAbstractifier"
+        class="${common.artifactId}.spring.BeanDeAbstractifyingBeanDefinitionRegistryPostProcessor">
         <property name="enabled" value="true" />
         <property name="dependsOn">
             <list>

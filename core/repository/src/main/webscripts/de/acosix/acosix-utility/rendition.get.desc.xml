@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<webscript>
+    <shortname>Get Rendition (getRendition)</shortname>
+    <description>Accesses the content stream for the specified rendition - implicitly trying to create the rendition if it does not exist
+    yet.</description>
+
+    <url>/acosix/api/utility/node/rendition/{rendition}/content{property}/{store_type}/{store_id}/{id}?a={attach?}</url>
+    <url>/acosix/api/utility/path/rendition/{rendition}/content{property}/{store_type}/{store_id}/{nodepath}?a={attach?}</url>
+
+    <args>
+        <arg>
+            <shortname>store</shortname>
+            <description>the store name</description>
+        </arg>
+        <arg>
+            <shortname>id</shortname>
+            <description>the node id of the object</description>
+        </arg>
+        <arg>
+            <shortname>rendition</shortname>
+            <description>the name of the rendition from which to retrieve content</description>
+        </arg>
+        <arg>
+            <shortname>property</shortname>
+            <description>the name of the content property for which to acces the rendition</description>
+            <default>cm:content</default>
+        </arg>
+        <arg>
+            <shortname>attach</shortname>
+            <description>if true, force download of content as attachment</description>
+            <default>false</default>
+        </arg>
+    </args>
+
+    <format default="">argument</format>
+
+    <authentication>guest</authentication>
+    <transaction allow="readwrite" />
+    <lifecycle>internal</lifecycle>
+</webscript>

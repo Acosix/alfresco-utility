@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<webscript>
+    <shortname>Head Rendition</shortname>
+    <description>HEAD method for the specified content rendition.</description>
+
+    <url>/acosix/api/utility/node/rendition/{rendition}/{store_type}/{store_id}/{id}</url>
+    <url>/acosix/api/utility/node/rendition/{rendition}/content{property}/{store_type}/{store_id}/{id}</url>
+    <url>/acosix/api/utility/path/rendition/{rendition}/{store_type}/{store_id}/{nodepath}</url>
+    <url>/acosix/api/utility/path/rendition/{rendition}/content{property}/{store_type}/{store_id}/{nodepath}</url>
+
+    <args>
+        <arg>
+            <shortname>store</shortname>
+            <description>the store name</description>
+        </arg>
+        <arg>
+            <shortname>id</shortname>
+            <description>the node id of the object</description>
+        </arg>
+        <arg>
+            <shortname>rendition</shortname>
+            <description>the name of the rendition from which to retrieve content</description>
+        </arg>
+        <arg>
+            <shortname>property</shortname>
+            <description>the name of the content property for which to acces the rendition</description>
+            <default>cm:content</default>
+        </arg>
+    </args>
+
+    <format default="">argument</format>
+
+    <authentication>guest</authentication>
+    <transaction allow="readonly" />
+    <lifecycle>internal</lifecycle>
+</webscript>

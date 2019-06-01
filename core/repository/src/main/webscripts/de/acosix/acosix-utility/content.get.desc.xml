@@ -5,8 +5,10 @@
     <shortname>Get Content (getContent)</shortname>
     <description>Accesses the content stream for the specified document.</description>
 
-    <url>/acosix/api/utility/node/{store_type}/{store_id}/{id}?a={attach?}</url>
+    <url>/acosix/api/utility/node/content{property}/{store_type}/{store_id}/{id}?a={attach?}</url>
     <url>/acosix/api/utility/node/{store_type}/{store_id}/{id}/content{property}?a={attach?}</url>
+    <url>/acosix/api/utility/path/content{property}/{store_type}/{store_id}/{nodepath}?a={attach?}</url>
+    <url>/acosix/api/utility/path/{store_type}/{store_id}/{nodepath}/content{property}?a={attach?}</url>
 
     <args>
         <arg>
@@ -20,6 +22,8 @@
         <arg>
             <shortname>property</shortname>
             <description>the name of the content property to retrieve content from</description>
+            <!-- this is actually a lie - base class ContentGet can't handle absent value -->
+            <!-- and we can't fix / override due to inaccessible class -->
             <default>cm:content</default>
         </arg>
         <arg>
