@@ -31,6 +31,22 @@
         <javaPackageName>de.acosix.alfresco.utility.repo</javaPackageName>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>de.acosix.alfresco.utility</groupId>
+                <artifactId>de.acosix.alfresco.utility.core.repo.quartz1</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>de.acosix.alfresco.utility</groupId>
+                <artifactId>de.acosix.alfresco.utility.core.repo.quartz2</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>org.alfresco</groupId>
@@ -40,6 +56,16 @@
         <dependency>
             <groupId>de.acosix.alfresco.utility</groupId>
             <artifactId>${common.artifactId}</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>de.acosix.alfresco.utility</groupId>
+            <artifactId>de.acosix.alfresco.utility.core.repo.quartz1</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>de.acosix.alfresco.utility</groupId>
+            <artifactId>de.acosix.alfresco.utility.core.repo.quartz2</artifactId>
         </dependency>
 
         <dependency>
@@ -62,7 +88,7 @@
             <groupId>org.jboss.resteasy</groupId>
             <artifactId>resteasy-jackson-provider</artifactId>
         </dependency>
-        
+
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
@@ -209,7 +235,7 @@
                                     <type>jar</type>
                                     <outputDirectory>${project.build.directory}/test-classes/alfresco/subsystems/SubsystemWithClassLoaderFactoryTest-jar/default/lib</outputDirectory>
                                 </artifactItem>
-                                
+
                                 <artifactItem>
                                     <groupId>ch.qos.logback</groupId>
                                     <artifactId>logback-core</artifactId>
@@ -252,7 +278,7 @@
                                     <type>jar</type>
                                     <outputDirectory>${project.build.directory}/test-classes/alfresco/extension/subsystems/SubsystemWithClassLoaderFactoryTest-jarWithOverride/default/default/lib</outputDirectory>
                                 </artifactItem>
-                                
+
                                 <artifactItem>
                                     <groupId>ch.qos.logback</groupId>
                                     <artifactId>logback-core</artifactId>

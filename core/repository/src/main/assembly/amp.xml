@@ -46,6 +46,8 @@
             <outputDirectory>lib</outputDirectory>
             <includes>
                 <include>de.acosix.alfresco.utility:${common.artifactId}:*</include>
+                <include>de.acosix.alfresco.utility:de.acosix.alfresco.utility.core.repo.quartz1:*</include>
+                <include>de.acosix.alfresco.utility:de.acosix.alfresco.utility.core.repo.quartz2:*</include>
             </includes>
             <useTransitiveDependencies>false</useTransitiveDependencies>
         </dependencySet>
