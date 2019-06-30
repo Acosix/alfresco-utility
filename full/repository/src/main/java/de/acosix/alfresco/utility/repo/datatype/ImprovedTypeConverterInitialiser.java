@@ -18,6 +18,7 @@ package de.acosix.alfresco.utility.repo.datatype;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
@@ -48,6 +49,8 @@ public class ImprovedTypeConverterInitialiser implements InitializingBean
 
     // this could easily have been made static, but having an instance-local property makes it easier to reset + test
     private final Map<String, Locale> localeConversionCache = new HashMap<>();
+
+    private final ReentrantReadWriteLock localeConversionCacheLock = new ReentrantReadWriteLock(true);
 
     /**
      *
@@ -139,10 +142,31 @@ public class ImprovedTypeConverterInitialiser implements InitializingBean
     protected Locale convertStringToLocale(final String str)
     {
         // default converter (via I18nUtil) does not cache, always constructing new objects
-        final Locale locale = this.localeConversionCache.computeIfAbsent(str, localeStr -> {
-            final Locale parsed = I18NUtil.parseLocale(localeStr);
-            return parsed;
-        });
+        Locale locale;
+
+        this.localeConversionCacheLock.readLock().lock();
+        try
+        {
+            locale = this.localeConversionCache.get(str);
+        }
+        finally
+        {
+            this.localeConversionCacheLock.readLock().unlock();
+        }
+
+        if (locale == null)
+        {
+            this.localeConversionCacheLock.writeLock().lock();
+            try
+            {
+                locale = I18NUtil.parseLocale(str);
+                this.localeConversionCache.put(str, locale);
+            }
+            finally
+            {
+                this.localeConversionCacheLock.writeLock().unlock();
+            }
+        }
         return locale;
     }
 }
