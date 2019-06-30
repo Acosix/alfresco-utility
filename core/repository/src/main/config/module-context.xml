@@ -18,6 +18,31 @@
     xsi:schemaLocation="
            http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+           
+    <bean id="${moduleId}.basePropertyOrderedNodeBatchWorkProvider" class="${javaPackageName}.batch.PropertyOrderedTransactionalNodeBatchWorkProvider" abstract="true">
+        <property name="namespaceService" ref="NamespaceService" />
+        <property name="dictionaryService" ref="DictionaryService" />
+        <property name="searchService" ref="SearchService" />
+    </bean>
+
+    <bean id="${moduleId}.baseNodesPatchModuleComponent" class="${javaPackageName}.patch.NodesPatchModuleComponent" abstract="true" parent="module.baseComponent">
+        <property name="transactionService" ref="TransactionService" />
+        <property name="namespaceService" ref="NamespaceService" />
+        <property name="dictionaryService" ref="DictionaryService" />
+        <property name="nodeService" ref="NodeService" />
+        <property name="behaviourFilter" ref="policyBehaviourFilter" />
+    </bean>
+
+    <bean id="${moduleId}.baseSimpleNodePropertyMappingPatchRule" class="${javaPackageName}.patch.SimpleNodePropertyMappingPatchRule" abstract="true">
+        <property name="namespaceService" ref="NamespaceService" />
+        <property name="dictionaryService" ref="DictionaryService" />
+    </bean>
+
+    <bean id="${moduleId}.baseSimpleAssociationMappingPatchRule" class="${javaPackageName}.patch.SimpleAssociationMappingPatchRule" abstract="true">
+        <property name="namespaceService" ref="NamespaceService" />
+        <property name="dictionaryService" ref="DictionaryService" />
+        <property name="nodeService" ref="NodeService" />
+    </bean>
 
     <!-- near-identical web script, just under different URL -->
     <bean id="webscript.de.acosix.acosix-utility.content.get" parent="webscript.org.alfresco.content.content.get"
