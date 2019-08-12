@@ -44,6 +44,11 @@
         <property name="nodeService" ref="NodeService" />
     </bean>
 
+    <bean id="${moduleId}.baseEnsureDefaultAspectPresenceNodePatchRule" class="${javaPackageName}.patch.EnsureDefaultAspectPresenceNodePatchRule" abstract="true">
+        <property name="dictionaryService" ref="DictionaryService" />
+        <property name="nodeService" ref="NodeService" />
+    </bean>
+
     <!-- near-identical web script, just under different URL -->
     <bean id="webscript.de.acosix.acosix-utility.content.get" parent="webscript.org.alfresco.content.content.get"
         class="${javaPackageName}.web.scripts.ContentGetWithStatus" />

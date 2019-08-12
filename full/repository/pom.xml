@@ -21,7 +21,7 @@
     <parent>
         <groupId>de.acosix.alfresco.utility</groupId>
         <artifactId>de.acosix.alfresco.utility.full.parent</artifactId>
-        <version>1.0.6.0</version>
+        <version>1.0.7.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>de.acosix.alfresco.utility.repo</artifactId>
@@ -102,6 +102,7 @@
 
         <pluginManagement>
             <plugins>
+
                 <plugin>
                     <artifactId>maven-dependency-plugin</artifactId>
                     <executions>
@@ -123,6 +124,125 @@
                                 </artifactItems>
                             </configuration>
                         </execution>
+                    <!-- need this as a vehicle for classloader tests -->
+                        <execution>
+                            <id>copyTestSubsystemJARs</id>
+                            <phase>process-test-resources</phase>
+                            <goals>
+                                <goal>copy</goal>
+                            </goals>
+                            <configuration>
+                                <artifactItems>
+                                    <artifactItem>
+                                        <groupId>ch.qos.logback</groupId>
+                                        <artifactId>logback-core</artifactId>
+                                        <version>1.1.3</version>
+                                        <type>jar</type>
+                                        <outputDirectory>${project.build.directory}/test-classes/alfresco/subsystems/SubsystemWithClassLoaderFactoryTest-jar/default/lib</outputDirectory>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>org.slf4j</groupId>
+                                        <artifactId>slf4j-api</artifactId>
+                                        <version>1.6.6</version>
+                                        <type>jar</type>
+                                        <outputDirectory>${project.build.directory}/test-classes/alfresco/subsystems/SubsystemWithClassLoaderFactoryTest-jar/default/lib</outputDirectory>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>ch.qos.logback</groupId>
+                                        <artifactId>logback-classic</artifactId>
+                                        <version>1.1.3</version>
+                                        <type>jar</type>
+                                        <outputDirectory>${project.build.directory}/test-classes/alfresco/subsystems/SubsystemWithClassLoaderFactoryTest-jar/default/lib</outputDirectory>
+                                    </artifactItem>
+
+                                    <artifactItem>
+                                        <groupId>ch.qos.logback</groupId>
+                                        <artifactId>logback-core</artifactId>
+                                        <version>1.1.3</version>
+                                        <type>jar</type>
+                                        <outputDirectory>${project.build.directory}/test-classes/alfresco/subsystems/SubsystemWithClassLoaderFactoryTest-jarWithOverride/default/lib</outputDirectory>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>org.slf4j</groupId>
+                                        <artifactId>slf4j-api</artifactId>
+                                        <version>1.6.6</version>
+                                        <type>jar</type>
+                                        <outputDirectory>${project.build.directory}/test-classes/alfresco/subsystems/SubsystemWithClassLoaderFactoryTest-jarWithOverride/default/lib</outputDirectory>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>ch.qos.logback</groupId>
+                                        <artifactId>logback-classic</artifactId>
+                                        <version>1.1.3</version>
+                                        <type>jar</type>
+                                        <outputDirectory>${project.build.directory}/test-classes/alfresco/subsystems/SubsystemWithClassLoaderFactoryTest-jarWithOverride/default/lib</outputDirectory>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>ch.qos.logback</groupId>
+                                        <artifactId>logback-core</artifactId>
+                                        <version>1.2.1</version>
+                                        <type>jar</type>
+                                        <outputDirectory>${project.build.directory}/test-classes/alfresco/extension/subsystems/SubsystemWithClassLoaderFactoryTest-jarWithOverride/default/default/lib</outputDirectory>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>org.slf4j</groupId>
+                                        <artifactId>slf4j-api</artifactId>
+                                        <version>1.7.24</version>
+                                        <type>jar</type>
+                                        <outputDirectory>${project.build.directory}/test-classes/alfresco/extension/subsystems/SubsystemWithClassLoaderFactoryTest-jarWithOverride/default/default/lib</outputDirectory>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>ch.qos.logback</groupId>
+                                        <artifactId>logback-classic</artifactId>
+                                        <version>1.2.1</version>
+                                        <type>jar</type>
+                                        <outputDirectory>${project.build.directory}/test-classes/alfresco/extension/subsystems/SubsystemWithClassLoaderFactoryTest-jarWithOverride/default/default/lib</outputDirectory>
+                                    </artifactItem>
+
+                                    <artifactItem>
+                                        <groupId>ch.qos.logback</groupId>
+                                        <artifactId>logback-core</artifactId>
+                                        <version>1.1.3</version>
+                                        <type>jar</type>
+                                        <outputDirectory>${project.build.directory}/test-classes/alfresco/subsystems/SubsystemWithClassLoaderManagerTest/default/lib</outputDirectory>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>org.slf4j</groupId>
+                                        <artifactId>slf4j-api</artifactId>
+                                        <version>1.6.6</version>
+                                        <type>jar</type>
+                                        <outputDirectory>${project.build.directory}/test-classes/alfresco/subsystems/SubsystemWithClassLoaderManagerTest/default/lib</outputDirectory>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>ch.qos.logback</groupId>
+                                        <artifactId>logback-classic</artifactId>
+                                        <version>1.1.3</version>
+                                        <type>jar</type>
+                                        <outputDirectory>${project.build.directory}/test-classes/alfresco/subsystems/SubsystemWithClassLoaderManagerTest/default/lib</outputDirectory>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>ch.qos.logback</groupId>
+                                        <artifactId>logback-core</artifactId>
+                                        <version>1.2.1</version>
+                                        <type>jar</type>
+                                        <outputDirectory>${project.build.directory}/test-classes/alfresco/extension/subsystems/SubsystemWithClassLoaderManagerTest/default/inst1/lib</outputDirectory>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>org.slf4j</groupId>
+                                        <artifactId>slf4j-api</artifactId>
+                                        <version>1.7.24</version>
+                                        <type>jar</type>
+                                        <outputDirectory>${project.build.directory}/test-classes/alfresco/extension/subsystems/SubsystemWithClassLoaderManagerTest/default/inst1/lib</outputDirectory>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>ch.qos.logback</groupId>
+                                        <artifactId>logback-classic</artifactId>
+                                        <version>1.2.1</version>
+                                        <type>jar</type>
+                                        <outputDirectory>${project.build.directory}/test-classes/alfresco/extension/subsystems/SubsystemWithClassLoaderManagerTest/default/inst1/lib</outputDirectory>
+                                    </artifactItem>
+                                </artifactItems>
+                            </configuration>
+                        </execution>
                     </executions>
                 </plugin>
             </plugins>
@@ -136,127 +256,6 @@
 
             <plugin>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <!-- need this as a vehicle for classloader tests -->
-                    <execution>
-                        <id>copyTestSubsystemJARs</id>
-                        <phase>process-test-resources</phase>
-                        <goals>
-                            <goal>copy</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>ch.qos.logback</groupId>
-                                    <artifactId>logback-core</artifactId>
-                                    <version>1.1.3</version>
-                                    <type>jar</type>
-                                    <outputDirectory>${project.build.directory}/test-classes/alfresco/subsystems/SubsystemWithClassLoaderFactoryTest-jar/default/lib</outputDirectory>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>org.slf4j</groupId>
-                                    <artifactId>slf4j-api</artifactId>
-                                    <version>1.6.6</version>
-                                    <type>jar</type>
-                                    <outputDirectory>${project.build.directory}/test-classes/alfresco/subsystems/SubsystemWithClassLoaderFactoryTest-jar/default/lib</outputDirectory>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>ch.qos.logback</groupId>
-                                    <artifactId>logback-classic</artifactId>
-                                    <version>1.1.3</version>
-                                    <type>jar</type>
-                                    <outputDirectory>${project.build.directory}/test-classes/alfresco/subsystems/SubsystemWithClassLoaderFactoryTest-jar/default/lib</outputDirectory>
-                                </artifactItem>
-
-                                <artifactItem>
-                                    <groupId>ch.qos.logback</groupId>
-                                    <artifactId>logback-core</artifactId>
-                                    <version>1.1.3</version>
-                                    <type>jar</type>
-                                    <outputDirectory>${project.build.directory}/test-classes/alfresco/subsystems/SubsystemWithClassLoaderFactoryTest-jarWithOverride/default/lib</outputDirectory>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>org.slf4j</groupId>
-                                    <artifactId>slf4j-api</artifactId>
-                                    <version>1.6.6</version>
-                                    <type>jar</type>
-                                    <outputDirectory>${project.build.directory}/test-classes/alfresco/subsystems/SubsystemWithClassLoaderFactoryTest-jarWithOverride/default/lib</outputDirectory>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>ch.qos.logback</groupId>
-                                    <artifactId>logback-classic</artifactId>
-                                    <version>1.1.3</version>
-                                    <type>jar</type>
-                                    <outputDirectory>${project.build.directory}/test-classes/alfresco/subsystems/SubsystemWithClassLoaderFactoryTest-jarWithOverride/default/lib</outputDirectory>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>ch.qos.logback</groupId>
-                                    <artifactId>logback-core</artifactId>
-                                    <version>1.2.1</version>
-                                    <type>jar</type>
-                                    <outputDirectory>${project.build.directory}/test-classes/alfresco/extension/subsystems/SubsystemWithClassLoaderFactoryTest-jarWithOverride/default/default/lib</outputDirectory>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>org.slf4j</groupId>
-                                    <artifactId>slf4j-api</artifactId>
-                                    <version>1.7.24</version>
-                                    <type>jar</type>
-                                    <outputDirectory>${project.build.directory}/test-classes/alfresco/extension/subsystems/SubsystemWithClassLoaderFactoryTest-jarWithOverride/default/default/lib</outputDirectory>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>ch.qos.logback</groupId>
-                                    <artifactId>logback-classic</artifactId>
-                                    <version>1.2.1</version>
-                                    <type>jar</type>
-                                    <outputDirectory>${project.build.directory}/test-classes/alfresco/extension/subsystems/SubsystemWithClassLoaderFactoryTest-jarWithOverride/default/default/lib</outputDirectory>
-                                </artifactItem>
-
-                                <artifactItem>
-                                    <groupId>ch.qos.logback</groupId>
-                                    <artifactId>logback-core</artifactId>
-                                    <version>1.1.3</version>
-                                    <type>jar</type>
-                                    <outputDirectory>${project.build.directory}/test-classes/alfresco/subsystems/SubsystemWithClassLoaderManagerTest/default/lib</outputDirectory>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>org.slf4j</groupId>
-                                    <artifactId>slf4j-api</artifactId>
-                                    <version>1.6.6</version>
-                                    <type>jar</type>
-                                    <outputDirectory>${project.build.directory}/test-classes/alfresco/subsystems/SubsystemWithClassLoaderManagerTest/default/lib</outputDirectory>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>ch.qos.logback</groupId>
-                                    <artifactId>logback-classic</artifactId>
-                                    <version>1.1.3</version>
-                                    <type>jar</type>
-                                    <outputDirectory>${project.build.directory}/test-classes/alfresco/subsystems/SubsystemWithClassLoaderManagerTest/default/lib</outputDirectory>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>ch.qos.logback</groupId>
-                                    <artifactId>logback-core</artifactId>
-                                    <version>1.2.1</version>
-                                    <type>jar</type>
-                                    <outputDirectory>${project.build.directory}/test-classes/alfresco/extension/subsystems/SubsystemWithClassLoaderManagerTest/default/inst1/lib</outputDirectory>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>org.slf4j</groupId>
-                                    <artifactId>slf4j-api</artifactId>
-                                    <version>1.7.24</version>
-                                    <type>jar</type>
-                                    <outputDirectory>${project.build.directory}/test-classes/alfresco/extension/subsystems/SubsystemWithClassLoaderManagerTest/default/inst1/lib</outputDirectory>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>ch.qos.logback</groupId>
-                                    <artifactId>logback-classic</artifactId>
-                                    <version>1.2.1</version>
-                                    <type>jar</type>
-                                    <outputDirectory>${project.build.directory}/test-classes/alfresco/extension/subsystems/SubsystemWithClassLoaderManagerTest/default/inst1/lib</outputDirectory>
-                                </artifactItem>
-                            </artifactItems>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
 
             <plugin>
