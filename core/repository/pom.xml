@@ -21,7 +21,7 @@
     <parent>
         <groupId>de.acosix.alfresco.utility</groupId>
         <artifactId>de.acosix.alfresco.utility.core.parent</artifactId>
-        <version>1.0.7.0-SNAPSHOT</version>
+        <version>1.0.7.0</version>
     </parent>
 
     <artifactId>de.acosix.alfresco.utility.core.repo</artifactId>
