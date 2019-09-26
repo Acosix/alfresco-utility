@@ -13,6 +13,31 @@
 
 <#assign jsDisabled=(form.capabilities?? && form.capabilities.javascript?? && form.capabilities.javascript == false) />
 
+<#macro renderEditorOptions field><#compress>
+    <#assign lastGroupKey = "" />
+    <#if field.control.params??>
+        <#list field.control.params?keys?sort as key>
+            <#if key?matches("[a-z][a-zA-Z0-9]+Options\\.[a-z][a-zA-Z0-9]+")>
+                <#assign groupKey = key?substring(0, key?index_of(".")) />
+                <#assign optionKey = key?substring(key?index_of(".") + 1) />
+                <#if groupKey != lastGroupKey>
+                    <#if lastGroupKey != "">
+                    }
+                    </#if>
+                    , ${groupKey?js_string}: {
+                    <#assign lastGroupKey = groupKey />
+                <#else>
+                ,
+                </#if>
+                ${optionKey?js_string}: "${field.control.params[key]?js_string}"
+            </#if>
+        </#list>
+        <#if lastGroupKey != "">
+        }
+        </#if>
+    </#if>
+</#compress></#macro>
+
 <#if form.mode != "view">
 <div class="form-field" id="${fieldHtmlId}-field">
     <#if jsDisabled == false>
@@ -35,6 +60,7 @@
                     <#if field.control.params.forceEditor??>forceEditor: ${field.control.params.forceEditor},</#if>
                     <#if field.control.params.forceContent??>forceContent: ${field.control.params.forceContent},</#if>
                     <@editorParameters field />
+                    <@renderEditorOptions field />
                 }).setMessages(${messages});
             })();
         //]]></script>

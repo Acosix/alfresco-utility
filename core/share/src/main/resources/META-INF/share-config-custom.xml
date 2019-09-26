@@ -50,6 +50,7 @@
                 <js src="/acosix/ace/ext-whitespace.js" />
 
                 <js src="/acosix/components/form/content-ace.js" />
+                <js src="/acosix/components/form/content-ace-language-tools-spellcheck.js" />
                 <css src="/acosix/components/form/content-ace.css" />
             </dependencies>
         </forms>

@@ -21,7 +21,7 @@
     <parent>
         <groupId>de.acosix.alfresco.utility</groupId>
         <artifactId>de.acosix.alfresco.utility.parent</artifactId>
-        <version>1.0.7.0</version>
+        <version>1.0.8.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>de.acosix.alfresco.utility.core.parent</artifactId>
@@ -31,6 +31,8 @@
 
     <properties>
         <moduleId>acosix-utility-core</moduleId>
+        <messages.path>acosix/utility-core</messages.path>
+        <messages.packageId>acosix.utility-core</messages.packageId>
     </properties>
 
     <modules>

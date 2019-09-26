@@ -41,21 +41,27 @@
             editorRootContainer.appendChild(editorContainer);
 
             ace.require('ace/ext/language_tools');
+            ace.require('ace/ext/language-tools-spellcheck');
 
             editor = ace.edit(editorContainer);
             editor.setOptions({
                 autoScrollEditorIntoView : false,
-                showPrintMargin : false,
-                theme : 'ace/theme/' + (options.theme || 'textmate'),
-                newLineMode : (options.newLineMode || 'unix'),
+                showPrintMargin : (options.aceOptions || {}).showPrintMargin || false,
+                theme : 'ace/theme/' + ((options.aceOptions || {}).theme || 'textmate'),
+                newLineMode : ((options.aceOptions || {}).newLineMode || 'unix'),
                 useWorker : false,
-                wrap : false,
+                wrap : (options.aceOptions || {}).wrap || false,
                 foldStyle : 'manual',
                 mode : 'ace/mode/html',
                 enableBasicAutocompletion : true,
                 enableSnippets : true,
-                enableLiveAutocompletion : false,
-                value : textArea.value
+                enableLiveAutocompletion : (options.aceOptions || {}).enableLiveAutoCompletion || false,
+                value : textArea.value,
+                enableLTSpellCheck : (options.aceOptions || {}).enableLTSpellCheck || null,
+                ltSpellCheckUrl : (options.aceOptions || {}).ltSpellCheckUrl || null,
+                ltSpellCheckUrlMode : (options.aceOptions || {}).ltSpellCheckUrlMode || null,
+                ltSpellCheckUrlProxy : (options.aceOptions || {}).ltSpellCheckUrlProxy || null,
+                ltSpellCheckLanguage : (options.aceOptions || {}).ltSpellCheckLanguage || null
             });
 
             if (options.keyboardHandler)

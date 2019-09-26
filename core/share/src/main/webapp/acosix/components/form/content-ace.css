@@ -1,3 +1,9 @@
 .acosix-aceRoot > .editorContainer {
     height: 60ex;
 }
+
+.spellcheck-error {
+    border-bottom: 3px solid red;
+    /* somehow absolute position is missing in ace base styles */
+    position: absolute;
+}
