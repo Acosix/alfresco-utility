@@ -22,14 +22,79 @@ ace
                 [ 'require' ],
                 function(require)
                 {
-                    var $html, Range, activeMarkers, performSpellCheck, onEditorChange, Editor, queuedSpellChecks;
+                    var $html, Range, activeMarkers, Editor, queuedSpellChecks;
 
                     $html = Alfresco.util.encodeHTML;
 
                     Range = require('../range').Range;
                     activeMarkers = [];
 
-                    performSpellCheck = function(queuedCheck)
+                    function buildAnnotatedTextFromSGMLLike(text)
+                    {
+                        var annotatedTextFragments, pos, max, tagStart, tagEnd;
+
+                        annotatedTextFragments = [];
+                        max = text.length;
+                        pos = 0;
+
+                        while (pos < max)
+                        {
+                            tagStart = text.indexOf('<', pos);
+                            if (tagStart !== -1)
+                            {
+                                if (tagStart !== pos)
+                                {
+                                    annotatedTextFragments.push({
+                                        text : text.substring(pos, tagStart).replace(/\n/g, ' ')
+                                    });
+                                }
+                                if (text.indexOf('<![CDATA[', tagStart) === tagStart)
+                                {
+                                    annotatedTextFragments.push({
+                                        markup : '<![CDATA['
+                                    });
+                                    tagEnd = text.indexOf(']]>', tagStart);
+                                    // consider all in CDATA as text - can be any kind of content
+                                    annotatedTextFragments.push({
+                                        text : text.substring(tagStart + 9, tagEnd).replace(/\n/g, ' ')
+                                    });
+                                    annotatedTextFragments.push({
+                                        markup : ']]>'
+                                    });
+                                    pos = tagEnd + 3;
+                                }
+                                else if (text.indexOf('<!--', tagStart) === tagStart)
+                                {
+                                    tagEnd = text.indexOf('-->', tagStart);
+                                    // consider all in comment as markup - can be anything, but definitely not actual "content"
+                                    annotatedTextFragments.push({
+                                        markup : text.substring(tagStart, tagEnd + 3)
+                                    });
+                                    pos = tagEnd + 3;
+                                }
+                                else
+                                {
+                                    tagEnd = text.indexOf('>', tagStart);
+                                    annotatedTextFragments.push({
+                                        markup : text.substring(tagStart, tagEnd + 1)
+                                    });
+                                    pos = tagEnd + 1;
+                                }
+                            }
+                            else
+                            {
+                                // rest is all non-tag content (invalid in SGML, but possible during editing)
+                                annotatedTextFragments.push({
+                                    text : text.substring(pos).replace(/\n/g, ' ')
+                                });
+                                pos = max;
+                            }
+                        }
+
+                        return annotatedTextFragments;
+                    }
+
+                    function performSpellCheck(queuedCheck)
                     {
                         var url, fullText, dataObj, idx;
 
@@ -47,16 +112,28 @@ ace
 
                         fullText = queuedCheck.editorSession.getValue();
                         dataObj = {
-                            text : fullText,
                             language : queuedCheck.editor.$ltSpellCheckLanguage || Alfresco.constants.JS_LOCALE,
                             enabledOnly : 'false'
                         };
+
+                        if (queuedCheck.editorSession.getMode().$id === 'ace/mode/html'
+                                || queuedCheck.editorSession.getMode().$id === 'ace/mode/xml')
+                        {
+                            dataObj.data = JSON.stringify({
+                                annotation : buildAnnotatedTextFromSGMLLike(fullText)
+                            });
+                        }
+                        else
+                        {
+                            dataObj.text = fullText;
+                        }
 
                         queuedCheck.inProgress = true;
                         Alfresco.util.Ajax
                                 .request({
                                     url : url,
                                     dataObj : dataObj,
+                                    method : Alfresco.util.Ajax.POST,
                                     requestContentType : Alfresco.util.Ajax.FORM,
                                     responseContentType : Alfresco.util.Ajax.JSON,
                                     successCallback : {
@@ -116,7 +193,7 @@ ace
                                                 while (overallPositionIdx < match.offset + match.length && rowIdx < textRows.length)
                                                 {
                                                     toSkip = (match.offset + match.length) - overallPositionIdx;
-                                                    if (toSkip >= textRows[rowIdx].length - columnIdx)
+                                                    if (toSkip > textRows[rowIdx].length - columnIdx)
                                                     {
                                                         overallPositionIdx += textRows[rowIdx].length - columnIdx;
                                                         rowIdx++;
@@ -137,7 +214,7 @@ ace
                                                     endOffset = columnIdx;
                                                 }
 
-                                                if (rowIdx < textRows.length && columnIdx < textRows[rowIdx].length)
+                                                if (rowIdx < textRows.length && columnIdx <= textRows[rowIdx].length)
                                                 {
                                                     activeMarkers.push(queuedCheck.editorSession.addMarker(new Range(startRow, startOffset,
                                                             endRow, endOffset), 'spellcheck-error', 'text', false));
@@ -211,10 +288,10 @@ ace
                                 break;
                             }
                         }
-                    };
+                    }
 
                     queuedSpellChecks = [];
-                    onEditorChange = function(delta, editor)
+                    function onEditorChange(delta, editor)
                     {
                         var queued, idx;
 
@@ -251,7 +328,7 @@ ace
                                 queued.timeout = setTimeout(performSpellCheck, Math.max(250, editor.$ltSpellCheckDelay), queued);
                             }
                         }
-                    };
+                    }
 
                     Editor = require('../editor').Editor;
                     require('../config').defineOptions(Editor.prototype, 'editor', {
