@@ -80,6 +80,14 @@
                 }
             });
 
+            if (textArea.value === '' && options.aceOptions && options.aceOptions.defaultHtmlContent)
+            {
+                editor.setValue(options.aceOptions.defaultHtmlContent);
+                editor.selectAll();
+                editor.execCommand('beautify');
+                editor.clearSelection();
+            }
+
             editor.on('change', function()
             {
                 textArea.value = editor.getValue();
