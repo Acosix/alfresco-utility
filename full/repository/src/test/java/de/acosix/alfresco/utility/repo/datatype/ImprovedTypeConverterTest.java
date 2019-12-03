@@ -429,6 +429,5 @@ public class ImprovedTypeConverterTest
         Assert.assertTrue("Improved String to Locale conversion did not provide a 10% reduction of runtime", percentImprovement >= 10);
         Assert.assertTrue("Improved String to Locale conversion did not provide a 20% reduction of runtime", percentImprovement >= 20);
         Assert.assertTrue("Improved String to Locale conversion did not provide a 30% reduction of runtime", percentImprovement >= 30);
-        Assert.assertTrue("Improved String to Locale conversion did not provide a 40% reduction of runtime", percentImprovement >= 40);
     }
 }
