@@ -15,7 +15,12 @@
  */
 package de.acosix.alfresco.utility.repo.job;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+import org.alfresco.error.AlfrescoRuntimeException;
 import org.quartz.Job;
+import org.quartz.utils.StringKeyDirtyFlagMap;
 import org.springframework.scheduling.quartz.JobDetailFactoryBean;
 
 /**
@@ -25,6 +30,8 @@ public class GenericJobDetailsFactoryBean extends JobDetailFactoryBean
 {
 
     private static final Class<? extends Job> EFFECTIVE_JOB_CLASS;
+
+    private static final Method JOB_DATA_PUT_METHOD;
 
     private static final String RELAY_JOB_CLASS_DATA_KEY;
 
@@ -37,16 +44,22 @@ public class GenericJobDetailsFactoryBean extends JobDetailFactoryBean
             {
                 EFFECTIVE_JOB_CLASS = de.acosix.alfresco.utility.core.repo.quartz2.InvocationRelayJob.class;
                 RELAY_JOB_CLASS_DATA_KEY = de.acosix.alfresco.utility.core.repo.quartz2.InvocationRelayJob.RELAY_CLASS;
+                JOB_DATA_PUT_METHOD = StringKeyDirtyFlagMap.class.getMethod("put", String.class, Object.class);
             }
             else
             {
                 EFFECTIVE_JOB_CLASS = de.acosix.alfresco.utility.core.repo.quartz1.InvocationRelayJob.class;
                 RELAY_JOB_CLASS_DATA_KEY = de.acosix.alfresco.utility.core.repo.quartz1.InvocationRelayJob.RELAY_CLASS;
+                JOB_DATA_PUT_METHOD = StringKeyDirtyFlagMap.class.getMethod("put", Object.class, Object.class);
             }
         }
         catch (final ClassNotFoundException cnfe)
         {
             throw new IllegalStateException("Quartz not available", cnfe);
+        }
+        catch (final NoSuchMethodException nsmfe)
+        {
+            throw new IllegalStateException("Unexpected put-method signature", nsmfe);
         }
     }
 
@@ -62,7 +75,14 @@ public class GenericJobDetailsFactoryBean extends JobDetailFactoryBean
     {
         if (GenericJob.class.isAssignableFrom(this.jobClass))
         {
-            this.getJobDataMap().put(RELAY_JOB_CLASS_DATA_KEY, this.jobClass);
+            try
+            {
+                JOB_DATA_PUT_METHOD.invoke(this.getJobDataMap(), RELAY_JOB_CLASS_DATA_KEY, this.jobClass);
+            }
+            catch (final InvocationTargetException | IllegalAccessException ex)
+            {
+                throw new AlfrescoRuntimeException("Failed to set job class", ex);
+            }
             this.setJobClass(EFFECTIVE_JOB_CLASS);
         }
 
