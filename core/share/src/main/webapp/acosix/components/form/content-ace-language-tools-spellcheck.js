@@ -335,7 +335,7 @@ ace
                         enableLTSpellCheck : {
                             set : function(val)
                             {
-                                if (val)
+                                if (val === true || val === 'true')
                                 {
                                     this.on('change', onEditorChange);
                                 }
