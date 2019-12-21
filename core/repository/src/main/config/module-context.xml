@@ -71,7 +71,8 @@
     </bean>
 
     <!-- identical web script, just under different URL - note: no HEAD variant -->
-    <bean id="webscript.de.acosix.acosix-utility.slingshot-content.get" abstract="true" />
+    <!-- can't make abstract since that would cause startup error in repository without alfresco-share-services -->
+    <bean id="webscript.de.acosix.acosix-utility.slingshot-content.get" parent="webscript.default" />
 
     <bean id="${moduleId}.slingshot-content.get.parentSetter"
         class="${common.artifactId}.spring.BeanParentAlteringBeanDefinitionRegistryPostProcessor">
@@ -82,24 +83,6 @@
             </bean>
         </property>
         <property name="parentBeanName" value="webscript.org.alfresco.slingshot.download.get" />
-        <property name="targetBeanName">
-            <idref bean="webscript.de.acosix.acosix-utility.slingshot-content.get" />
-        </property>
-    </bean>
-
-    <bean id="${moduleId}.slingshot-content.get.deAbstractifier"
-        class="${common.artifactId}.spring.BeanDeAbstractifyingBeanDefinitionRegistryPostProcessor">
-        <property name="enabled" value="true" />
-        <property name="dependsOn">
-            <list>
-                <ref bean="${moduleId}.slingshot-content.get.parentSetter" />
-            </list>
-        </property>
-        <property name="condition">
-            <bean class="${common.artifactId}.spring.condition.BeanDefinedCondition">
-                <property name="beanName" value="webscript.org.alfresco.slingshot.download.get" />
-            </bean>
-        </property>
         <property name="targetBeanName">
             <idref bean="webscript.de.acosix.acosix-utility.slingshot-content.get" />
         </property>
