@@ -21,7 +21,7 @@
     <parent>
         <groupId>de.acosix.alfresco.utility</groupId>
         <artifactId>de.acosix.alfresco.utility.core.parent</artifactId>
-        <version>1.0.8.0</version>
+        <version>1.1.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>de.acosix.alfresco.utility.core.repo</artifactId>
@@ -73,22 +73,6 @@
             <artifactId>javax.servlet-api</artifactId>
         </dependency>
 
-        <!-- though we do not perform integration tests we need this for reusable test components -->
-        <dependency>
-            <groupId>org.jboss.arquillian.extension</groupId>
-            <artifactId>arquillian-rest-client-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.jboss.arquillian.extension</groupId>
-            <artifactId>arquillian-rest-client-impl-3x</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.jboss.resteasy</groupId>
-            <artifactId>resteasy-jackson-provider</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
@@ -97,60 +81,10 @@
 
     <build>
 
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-                <excludes>
-                    <exclude>.gitkeep</exclude>
-                </excludes>
-            </resource>
-            <!-- the following are only for mapping source folders in Eclipse -->
-            <resource>
-                <directory>src/main/config</directory>
-                <excludes>
-                    <exclude>**/*</exclude>
-                </excludes>
-            </resource>
-            <resource>
-                <directory>src/main/globalConfig</directory>
-                <excludes>
-                    <exclude>**/*</exclude>
-                </excludes>
-            </resource>
-            <resource>
-                <directory>src/main/messages</directory>
-                <excludes>
-                    <exclude>**/*</exclude>
-                </excludes>
-            </resource>
-            <resource>
-                <directory>src/main/webscripts</directory>
-                <excludes>
-                    <exclude>**/*</exclude>
-                </excludes>
-            </resource>
-            <resource>
-                <directory>src/main/webapp</directory>
-                <excludes>
-                    <exclude>**/*</exclude>
-                </excludes>
-            </resource>
-        </resources>
-        <testResources>
-            <testResource>
-                <directory>src/test/resources</directory>
-                <filtering>true</filtering>
-                <excludes>
-                    <exclude>.gitkeep</exclude>
-                </excludes>
-            </testResource>
-        </testResources>
-
         <pluginManagement>
             <plugins>
 
-            <!-- need this as a vehicle for classloader tests -->
+                <!-- need this as a vehicle for classloader tests -->
                 <plugin>
                     <artifactId>maven-dependency-plugin</artifactId>
                     <executions>
@@ -277,67 +211,6 @@
 
             </plugins>
         </pluginManagement>
-
-        <plugins>
-
-            <plugin>
-                <artifactId>maven-enforcer-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-resources-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-source-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-jar-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-javadoc-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>de.thetaphi</groupId>
-                <artifactId>forbiddenapis</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>de.acosix.maven</groupId>
-                <artifactId>i18n-resources-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.alfresco.maven.plugin</groupId>
-                <artifactId>alfresco-maven-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>de.acosix.maven</groupId>
-                <artifactId>jshint-maven-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>findbugs-maven-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-dependency-plugin</artifactId>
-            </plugin>
-
-        </plugins>
 
     </build>
 

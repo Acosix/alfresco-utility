@@ -21,7 +21,7 @@
     <parent>
         <groupId>de.acosix.alfresco.utility</groupId>
         <artifactId>de.acosix.alfresco.utility.core.parent</artifactId>
-        <version>1.0.8.0</version>
+        <version>1.1.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>de.acosix.alfresco.utility.core.share</artifactId>
@@ -80,62 +80,6 @@
 
     <build>
 
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-                <excludes>
-                    <exclude>.gitkeep</exclude>
-                </excludes>
-            </resource>
-            <!-- the following are only for mapping source folders in Eclipse -->
-            <resource>
-                <directory>src/main/config</directory>
-                <excludes>
-                    <exclude>**/*</exclude>
-                </excludes>
-            </resource>
-            <resource>
-                <directory>src/main/globalConfig</directory>
-                <excludes>
-                    <exclude>**/*</exclude>
-                </excludes>
-            </resource>
-            <resource>
-                <directory>src/main/messages</directory>
-                <excludes>
-                    <exclude>**/*</exclude>
-                </excludes>
-            </resource>
-            <resource>
-                <directory>src/main/site-webscripts</directory>
-                <excludes>
-                    <exclude>**/*</exclude>
-                </excludes>
-            </resource>
-            <resource>
-                <directory>src/main/templates</directory>
-                <excludes>
-                    <exclude>**/*</exclude>
-                </excludes>
-            </resource>
-            <resource>
-                <directory>src/main/webapp</directory>
-                <excludes>
-                    <exclude>**/*</exclude>
-                </excludes>
-            </resource>
-        </resources>
-        <testResources>
-            <testResource>
-                <directory>src/test/resources</directory>
-                <filtering>true</filtering>
-                <excludes>
-                    <exclude>.gitkeep</exclude>
-                </excludes>
-            </testResource>
-        </testResources>
-
         <pluginManagement>
             <plugins>
 
@@ -148,8 +92,10 @@
                             <configuration>
                                 <excludes>
                                     <exclude>**/*.lib.js</exclude>
-                                    <exclude>**/ace/*.js</exclude>
+                                    <exclude>**/*.min.js</exclude>
                                     <exclude>**/*.css</exclude>
+                                    <exclude>**/*.min.css</exclude>
+                                    <exclude>**/ace/*.js</exclude>
                                 </excludes>
                             </configuration>
                         </execution>
@@ -162,61 +108,8 @@
         <plugins>
 
             <plugin>
-                <artifactId>maven-enforcer-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-resources-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-source-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-jar-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-javadoc-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>de.thetaphi</groupId>
-                <artifactId>forbiddenapis</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>de.acosix.maven</groupId>
-                <artifactId>i18n-resources-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.alfresco.maven.plugin</groupId>
-                <artifactId>alfresco-maven-plugin</artifactId>
-            </plugin>
-
-            <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>yuicompressor-maven-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>de.acosix.maven</groupId>
-                <artifactId>jshint-maven-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>findbugs-maven-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
             </plugin>
 
         </plugins>
