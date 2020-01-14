@@ -276,6 +276,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                 LOGGER.info("[{}] Processing beans defined via properties files using prefix {}", this.beanName, this.propertyPrefix);
 
                 final Map<String, BeanDefinition> beanDefinitions = new HashMap<>();
+                final Set<String> updatedBeanNames = new HashSet<>();
 
                 final Function<String, BeanDefinition> getOrCreateBeanDefinition = beanName -> {
                     BeanDefinition definition;
@@ -293,8 +294,9 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                     {
                         LOGGER.debug("[{}] Defining new bean {}", this.beanName, beanName);
                         definition = new GenericBeanDefinition();
-                        beanDefinitions.put(beanName, definition);
                         registry.registerBeanDefinition(beanName, definition);
+                        beanDefinitions.put(beanName, definition);
+                        updatedBeanNames.add(beanName);
                     }
                     return definition;
                 };
@@ -308,10 +310,17 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                 };
 
                 final Set<Object> processedKeys = new HashSet<>();
-                this.processRenamesOrRemovals(registry, processedKeys);
-                this.processBeanConfigurations(getOrCreateBeanDefinition, processedKeys, paddedListRegistrator);
+                this.processRenamesOrRemovals(registry, processedKeys, updatedBeanNames);
+                this.processBeanConfigurations(getOrCreateBeanDefinition, processedKeys, updatedBeanNames, paddedListRegistrator);
 
                 this.compressPaddedLists(paddedLists);
+
+                // any beans we modified may have already had a "merged bean definition" cached in the factory
+                // need to re-register / "fake" override to clear that cache to ensure changes are properly reflected
+                // (no public reset / clear cache API; removing + register may mess up bean order)
+                updatedBeanNames.stream().filter(registry::containsBeanDefinition).forEach(beanName -> {
+                    registry.registerBeanDefinition(beanName, registry.getBeanDefinition(beanName));
+                });
 
                 this.executed = true;
             }
@@ -386,7 +395,8 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         return processeableKeyAndValue;
     }
 
-    protected void processRenamesOrRemovals(final BeanDefinitionRegistry registry, final Set<Object> processedKeys)
+    protected void processRenamesOrRemovals(final BeanDefinitionRegistry registry, final Set<Object> processedKeys,
+            final Set<String> updatedBeanNames)
     {
         final String effectivePropertyPrefix = this.propertyPrefix + DOT;
 
@@ -477,6 +487,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                                     {
                                         LOGGER.debug("[{}] Removing property {} from {}", this.beanName, propertyName, beanName);
                                         propertyValues.removePropertyValue(propertyName);
+                                        updatedBeanNames.add(beanName);
                                     }
                                     else
                                     {
@@ -507,7 +518,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
     }
 
     protected void processBeanConfigurations(final Function<String, BeanDefinition> getOrCreateBeanDefinition,
-            final Set<Object> processedKeys, final Consumer<ManagedList<?>> paddedListRegistrator)
+            final Set<Object> processedKeys, final Set<String> updatedBeanNames, final Consumer<ManagedList<?>> paddedListRegistrator)
     {
         final String effectivePropertyPrefix = this.propertyPrefix + DOT;
 
@@ -533,6 +544,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                             LOGGER.debug("[{}] Setting class name of bean {} to {}", this.beanName, beanName, resolvedValue);
                             getOrCreateBeanDefinition.apply(beanName).setBeanClassName(resolvedValue);
                             processedKeys.add(key);
+                            updatedBeanNames.add(beanName);
                         }
                         else if (beanDefinitionKey.endsWith(SUFFIX_PARENT))
                         {
@@ -540,6 +552,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                             LOGGER.debug("[{}] Setting parent of bean {} to {}", this.beanName, beanName, resolvedValue);
                             getOrCreateBeanDefinition.apply(beanName).setParentName(resolvedValue);
                             processedKeys.add(key);
+                            updatedBeanNames.add(beanName);
                         }
                         else if (beanDefinitionKey.endsWith(SUFFIX_SCOPE))
                         {
@@ -547,6 +560,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                             LOGGER.debug("[{}] Setting scope of bean {} to {}", this.beanName, beanName, resolvedValue);
                             getOrCreateBeanDefinition.apply(beanName).setScope(resolvedValue);
                             processedKeys.add(key);
+                            updatedBeanNames.add(beanName);
                         }
                         else if (beanDefinitionKey.endsWith(SUFFIX_DEPENDS_ON))
                         {
@@ -554,6 +568,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                             LOGGER.debug("[{}] Setting dependsOn of bean {} to {}", this.beanName, beanName, resolvedValue);
                             getOrCreateBeanDefinition.apply(beanName).setDependsOn(resolvedValue.split(","));
                             processedKeys.add(key);
+                            updatedBeanNames.add(beanName);
                         }
                         else if (beanDefinitionKey.endsWith(SUFFIX_ABSTRACT))
                         {
@@ -563,6 +578,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                             if (beanDefinition instanceof AbstractBeanDefinition)
                             {
                                 ((AbstractBeanDefinition) beanDefinition).setAbstract(Boolean.parseBoolean(resolvedValue));
+                                updatedBeanNames.add(beanName);
                             }
                             processedKeys.add(key);
                         }
@@ -578,6 +594,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                         final BeanDefinition beanDefinition = getOrCreateBeanDefinition.apply(beanName);
                         this.processPropertyValueDefinition(beanName, propertyDefinitionKey, resolvedValue, beanDefinition,
                                 paddedListRegistrator);
+                        updatedBeanNames.add(beanName);
 
                         processedKeys.add(key);
                     }

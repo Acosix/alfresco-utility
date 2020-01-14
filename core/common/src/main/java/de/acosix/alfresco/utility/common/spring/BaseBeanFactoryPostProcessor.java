@@ -15,8 +15,10 @@
  */
 package de.acosix.alfresco.utility.common.spring;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -257,6 +259,8 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
 
                 if (this.condition == null || this.condition.applies(beanFactory))
                 {
+                    final Set<String> touchedBeanDefinitionNames = new HashSet<>();
+
                     if (this.targetBeanName != null)
                     {
                         final boolean containsDefinition = beanFactory.containsBeanDefinition(this.targetBeanName);
@@ -267,8 +271,11 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
 
                         if (containsDefinition)
                         {
-                            operation.applyChange(beanFactory.getBeanDefinition(this.targetBeanName),
-                                    beanName -> beanFactory.getBeanDefinition(beanName));
+                            operation.applyChange(beanFactory.getBeanDefinition(this.targetBeanName), beanName -> {
+                                touchedBeanDefinitionNames.add(beanName);
+                                return beanFactory.getBeanDefinition(beanName);
+                            });
+                            touchedBeanDefinitionNames.add(this.targetBeanName);
                         }
                         else
                         {
@@ -284,8 +291,12 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
                         {
                             if (beanNamePattern.matcher(beanDefinitionName).matches())
                             {
-                                operation.applyChange(beanFactory.getBeanDefinition(beanDefinitionName),
-                                        beanName -> beanFactory.getBeanDefinition(beanName));
+                                operation.applyChange(beanFactory.getBeanDefinition(beanDefinitionName), beanName -> {
+                                    touchedBeanDefinitionNames.add(beanName);
+                                    return beanFactory.getBeanDefinition(beanName);
+                                });
+
+                                touchedBeanDefinitionNames.add(this.beanName);
                             }
                         }
                     }
@@ -293,6 +304,17 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
                     {
                         LOGGER.info("[{}] patch cannnot be applied as it does not define the name or name pattern of affected bean(s)",
                                 this.beanName);
+                    }
+
+                    if (beanFactory instanceof BeanDefinitionRegistry)
+                    {
+                        // any beans we modified may have already had a "merged bean definition" cached in the factory
+                        // need to re-register / "fake" override to clear that cache to ensure changes are properly reflected
+                        // (no public reset / clear cache API; removing + register may mess up bean order)
+                        touchedBeanDefinitionNames.stream().forEach(beanName -> {
+                            ((BeanDefinitionRegistry) beanFactory).registerBeanDefinition(beanName,
+                                    beanFactory.getBeanDefinition(beanName));
+                        });
                     }
                 }
                 else
