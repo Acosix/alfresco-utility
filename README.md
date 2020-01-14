@@ -5,7 +5,9 @@ This project defines sets of utility constructs for Repository- or Share-tier mo
 
 ## Compatbility
 
-This module is built to be compatible with Alfresco 5.0d and above. It may be used on either Community or Enterprise Edition.
+This module is built to be compatible with Alfresco 5.0d and above. It may be used on either Community or Enterprise Edition. The following **special** compatibility conditions apply:
+
+ - Spring 5 included in Alfresco 6.2+ introduced some internal changes which may break earlier versions of this addon. Only version 1.1.0+ is fully compatible with Alfresco 6.2+.
 
 ## Features
 
@@ -20,13 +22,16 @@ This module is built to be compatible with Alfresco 5.0d and above. It may be us
 - Subsystem properties factory bean allowing subsystem properties to be exposed to other components as regular java.util.Properties objects
 - Enhanced web script container capable of handling [web script extensibility](https://www.alfresco.com/blogs/developer/2012/05/23/webscript-extensibility-on-the-alfresco-repository/) - raised via [ALF-21794](https://issues.alfresco.com/jira/browse/ALF-21794)
 - Simple override to site.get/site.put/sites.post JSON FTL to allow web script extension templates to augment the site data, e.g. as basis for simpler "Edit Site" dialog customisations either in YUI or Aikau
-- Common utility functions for Quartz job processing, i.e. running a job with a lock and an optional transaction
+- [Common utility functions](./core/repository/src/main/java/de/acosix/alfresco/utility/repo/job/JobUtilities.java) for Quartz job processing, i.e. running a job with a lock and an optional transaction
+- Quartz 1.x/2.x API incompatibility abstraction utilities, allowing addons to be compatible against Alfresco 5.x and 6.x despite binary incompatibilities in Quartz API (requires use of [generic job interface](./core/repository/src/main/java/de/acosix/alfresco/utility/repo/job/GenericJob.java) + [job details factory](./core/repository/src/main/java/de/acosix/alfresco/utility/repo/job/GenericJobDetailsFactoryBean.java) instead of default Alfresco + Quartz classes; utility functions from previous bullet point provide means to extract config from job context without compiling against / using Quartz API)
 - Basic batch process work provider handling cm:people nodes, using transactional metadata queries (TMQ) combined with metadata-based pagination for efficient loading, specifically for larger user bases
 - Transactionally-safe, full XPath-supporting XPathNodeLocator (using selectNodes() API instead of index query)
 - (opt-in) Improved inbound SMTP handling allowing for the full, original RFC 822 email to be processed by handlers (not just some of its parts)
 - (opt-in) Improved inbound SMTP folder handler, storing the RFC 822 email as received, and optional extracting attachments (as siblings or children of the email) - includes simple meta model
 - (opt-in) RFC 822 to HTML content transformer
 - (opt-in) HTML to PDF content transformer via wkhtmltopdf command line tool (if installed)
+- site bootstrap utilities / template to support flexible site bootstrap during Repository initialisation without hacky call to Share web scripts
+- chaining remote user mapper, in case more than one Authentication subsystem is capable of determining a user from an external authentication system (useful e.g. to combine Alfresco Identity Services with certificate based client authentication / legacy CAS)
 
 ### Share-tier
 - Support for share-global.properties files to hold simple configuration key-value pairs which can be provided by modules (similarly to Repository-tier) and overriden by administrators via a share-global.properties file in the Tomcat configuration root folder (./shared/classes/) - properties provided that way are automatically exposed in Spring XML files for placeholder resolution
@@ -35,6 +40,7 @@ This module is built to be compatible with Alfresco 5.0d and above. It may be us
 - Minor enhancements to Surf Dojo widget dependency collection (JSON instead of RegEx-parsing instead of JSON model; improved RegEx-pattern for dependencies detection in JS source files)
 - Minor enhancements to Surf CSS dependency collection (JSON instead of RegEx-parsing of JSON model; improved RegEx-pattern for dependencies detection in JS source files) - effectively adding the ability to load additional CSS files via JSON model
 - Enhanced local web script container addressing an [issue](https://issues.alfresco.com/jira/browse/ALF-21949) with the Surf extensibility handling interfering with AbstractWebScript implementations that directly stream a response to the client
+- Extensible, structured code editor for d:content property form fields, based on the Ace editor (from Cloud9 IDE) - HTML variant provided as a base reference
 
 # Maven usage
 
@@ -72,178 +78,28 @@ By inheritance from the Acosix Alfresco Maven framework, this project uses the [
 </toolchains>
 ```
 
-## Dependency in Alfresco SDK
+## Installation
 
-The simplest option to include the addon in an All-in-One project is by declaring a dependency to the installable JAR artifact. Alternatively, the AMP package may be included which typically requires additional configuration in addition to the dependency.
+The mode of installation varies noticeably based on version of Alfresco SDK, personal preference in packaging, deployment method and/or other aspects. It is therefor difficult to compile a comprehensive guide on how to install the addon in each of the possible scenarios.
 
-### Using SNAPSHOT builds
+This addon produces both installable JAR artifacts as well as more traditional AMP packages. Releases are published on Maven Central, while Snapshots are available on Sonatype's [Open Source Software Repository Hosting (OSS RH)](https://oss.sonatype.org). This addon consists of two layers of modules - a **core** layer with various utilities but without any (more or less aggressive) patches / changes to default Alfresco, and the **full** layer with all the utilities, patches and changes.
 
-In order to use a pre-built SNAPSHOT artifact published to the Open Source Sonatype Repository Hosting site, the artifact repository may need to be added to the POM, global settings.xml or an artifact repository proxy server. The following is the XML snippet for inclusion in a POM file.
+The following artifact coordinates are relevant for AMP based installations:
 
-```xml
-<repositories>
-    <repository>
-        <id>ossrh</id>
-        <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        <snapshots>
-            <enabled>true</enabled>
-        </snapshots>
-    </repository>
-</repositories>
-```
+- de.acosix.alfresco.utility:de.acosix.alfresco.utility.core.repo:&lt;version&gt;:amp - for installing the **core** layer on the Repository tier alone
+- de.acosix.alfresco.utility:de.acosix.alfresco.utility.repo:&lt;version&gt;:amp - for installing the full addon on the Repository tier (includes the **core** layer)
+- de.acosix.alfresco.utility:de.acosix.alfresco.utility.core.share:&lt;version&gt;:amp - for installing the **core** layer on the Share tier alone
+- de.acosix.alfresco.utility:de.acosix.alfresco.utility.share:&lt;version&gt;:amp - for installing the full addon on the Share tier (includes the **core** layer)
 
-### Repository
+The following artifact coordinates are relevant for JAR based installations:
 
-```xml
-<!-- JAR packaging -->
-<dependency>
-    <groupId>de.acosix.alfresco.utility</groupId>
-    <artifactId>de.acosix.alfresco.utility.common</artifactId>
-    <version>1.0.2.1</version>
-    <type>jar</type>
-</dependency>
+- **core** layer only
+    - de.acosix.alfresco.utility:de.acosix.alfresco.utility.common:&lt;version&gt;:jar - for Repository AND Share tiers
+    - de.acosix.alfresco.utility:de.acosix.alfresco.utility.core.repo.quartz1:&lt;version&gt;:jar
+    - de.acosix.alfresco.utility:de.acosix.alfresco.utility.core.repo.quartz2:&lt;version&gt;:jar
+    - de.acosix.alfresco.utility:de.acosix.alfresco.utility.core.repo:&lt;version&gt;:jar:installable
+    - de.acosix.alfresco.utility:de.acosix.alfresco.utility.core.share:&lt;version&gt;:jar:installable
+- additional to form a full install
+    - de.acosix.alfresco.utility:de.acosix.alfresco.utility.repo:&lt;version&gt;:jar:installable
+    - de.acosix.alfresco.utility:de.acosix.alfresco.utility.share:&lt;version&gt;:jar:installable
 
-<dependency>
-    <groupId>de.acosix.alfresco.utility</groupId>
-    <artifactId>de.acosix.alfresco.utility.repo</artifactId>
-    <version>1.0.2.1</version>
-    <type>jar</type>
-    <classifier>installable</classifier>
-</dependency>
-
-<!-- OR -->
-
-<!-- AMP packaging -->
-<dependency>
-    <groupId>de.acosix.alfresco.utility</groupId>
-    <artifactId>de.acosix.alfresco.utility.repo</artifactId>
-    <version>1.0.2.1</version>
-    <type>amp</type>
-</dependency>
-
-<plugin>
-    <artifactId>maven-war-plugin</artifactId>
-    <configuration>
-        <overlays>
-            <overlay />
-            <overlay>
-                <groupId>${alfresco.groupId}</groupId>
-                <artifactId>${alfresco.repo.artifactId}</artifactId>
-                <type>war</type>
-                <excludes />
-            </overlay>
-            <!-- other AMPs -->
-            <overlay>
-                <groupId>de.acosix.alfresco.utility</groupId>
-                <artifactId>de.acosix.alfresco.utility.repo</artifactId>
-                <type>amp</type>
-            </overlay>
-        </overlays>
-    </configuration>
-</plugin>
-```
-
-For Alfresco SDK 3 beta users:
-
-```xml
-<platformModules>
-    <moduleDependency>
-        <groupId>de.acosix.alfresco.utility</groupId>
-        <artifactId>de.acosix.alfresco.utility.repo</artifactId>
-        <version>1.0.2.1</version>
-        <type>amp</type>
-    </moduleDependency>
-</platformModules>
-```
-
-### Share
-
-```xml
-<!-- JAR packaging -->
-<dependency>
-    <groupId>de.acosix.alfresco.utility</groupId>
-    <artifactId>de.acosix.alfresco.utility.common</artifactId>
-    <version>1.0.2.1</version>
-    <type>jar</type>
-</dependency>
-
-<dependency>
-    <groupId>de.acosix.alfresco.utility</groupId>
-    <artifactId>de.acosix.alfresco.utility.share</artifactId>
-    <version>1.0.2.1</version>
-    <type>jar</type>
-    <classifier>installable</classifier>
-</dependency>
-
-<!-- OR -->
-
-<!-- AMP packaging -->
-<dependency>
-    <groupId>de.acosix.alfresco.utility</groupId>
-    <artifactId>de.acosix.alfresco.utility.share</artifactId>
-    <version>1.0.2.1</version>
-    <type>amp</type>
-</dependency>
-
-<plugin>
-    <artifactId>maven-war-plugin</artifactId>
-    <configuration>
-        <overlays>
-            <overlay />
-            <overlay>
-                <groupId>${alfresco.groupId}</groupId>
-                <artifactId>${alfresco.share.artifactId}</artifactId>
-                <type>war</type>
-                <excludes />
-            </overlay>
-            <!-- other AMPs -->
-            <overlay>
-                <groupId>de.acosix.alfresco.utility</groupId>
-                <artifactId>de.acosix.alfresco.utility.share</artifactId>
-                <type>amp</type>
-            </overlay>
-        </overlays>
-    </configuration>
-</plugin>
-```
-
-For Alfresco SDK 3 beta users:
-
-```xml
-<shareModules>
-    <moduleDependency>
-        <groupId>de.acosix.alfresco.utility</groupId>
-        <artifactId>de.acosix.alfresco.utility.share</artifactId>
-        <version>1.0.2.1</version>
-        <type>amp</type>
-    </moduleDependency>
-</shareModules>
-```
-
-# Other installation methods
-
-Using Maven to build the Alfresco WAR is the **recommended** approach to install this module. As an alternative it can be installed manually.
-
-## alfresco-mmt.jar / apply_amps
-
-The default Alfresco installer creates folders *amps* and *amps_share* where you can place AMP files for modules which Alfresco will install when you use the apply\_amps script. Place the AMP for the *de.acosix.alfresco.utility.repo* module in the *amps* directory, *de.acosix.alfresco.utility.share* in the *amps_share* directory, and execute the script to install them. You must restart Alfresco for the installation to take effect.
-
-Alternatively you can use the alfresco-mmt.jar to install the modules as [described in the documentation](http://docs.alfresco.com/5.2/concepts/dev-extensions-modules-management-tool.html).
-
-## Manual "installation" using JAR files
-
-Some addons and some other sources on the net suggest that you can install **any** addon by putting their JARs in a path like &lt;tomcat&gt;/lib, &lt;tomcat&gt;/shared or &lt;tomcat&gt;/shared/lib. This is **not** correct. Only the most trivial addons / extensions can be installed that way - "trivial" in this case means that these addons have no Java class-level dependencies on any component that Alfresco ships, e.g. addons that only consist of static resources, configuration files or web scripts using pure JavaScript / Freemarker.
-
-The only way to manually install an addon using JARs that is **guaranteed** not to cause Java classpath issues is by dropping the JAR files directly into the &lt;tomcat&gt;/webapps/alfresco/WEB-INF/lib (Repository-tier) or &lt;tomcat&gt;/webapps/share/WEB-INF/lib (Share-tier) folders.
-
-For this addon the following JARs need to be dropped into &lt;tomcat&gt;/webapps/alfresco/WEB-INF/lib:
-
- - de.acosix.alfresco.utility.common-&lt;version&gt;.jar
- - de.acosix.alfresco.utility.repo-&lt;version&gt;-installable.jar
- 
-For this addon the following JARs need to be dropped into &lt;tomcat&gt;/webapps/share/WEB-INF/lib:
-
- - de.acosix.alfresco.utility.common-&lt;version&gt;.jar
- - de.acosix.alfresco.utility.share-&lt;version&gt;-installable.jar
-
-If Alfresco has been setup by using the official installer, another, **explicitly recommended** way to install the module manually would be by dropping the JAR(s) into the &lt;alfresco&gt;/modules/platform (Repository-tier) or &lt;alfresco&gt;/modules/share (Share-tier) folders.
