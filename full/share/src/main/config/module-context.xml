@@ -188,4 +188,8 @@
             </list>
         </property>
     </bean>
+    
+    <bean id="${moduleId}.relaxedSmartFolderEvaluator" class="${javaPackageName}.extensibility.StaticallyConfiguredExtensionModuleEvaluator">
+        <property name="applyModule" value="\${${configModuleId}.relaxedSmartFolders.enabled}" />
+    </bean>
 </beans>

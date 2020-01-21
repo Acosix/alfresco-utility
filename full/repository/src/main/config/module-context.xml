@@ -32,9 +32,11 @@
         </property>
     </bean>
 
-    <bean id="transformer.${moduleId}.Rfc822ToHtml" class="${javaPackageName}.content.transformer.RFC822ToBodyHTMLTransformer" parent="baseContentTransformer" />
+    <bean id="transformer.${moduleId}.Rfc822ToHtml" class="${javaPackageName}.content.transformer.RFC822ToBodyHTMLTransformer"
+        parent="baseContentTransformer" />
 
-    <bean id="transformer.${moduleId}.wkhtmlToPdf" class="org.alfresco.repo.content.transform.ProxyContentTransformer" parent="baseContentTransformer">
+    <bean id="transformer.${moduleId}.wkhtmlToPdf" class="org.alfresco.repo.content.transform.ProxyContentTransformer"
+        parent="baseContentTransformer">
         <property name="worker" ref="transformer.worker.${moduleId}.wkhtmlToPdf" />
     </bean>
 
@@ -49,7 +51,8 @@
     </bean>
 
     <!-- depends-on for log4JHierarchyInit only to force early-most initialization -->
-    <bean id="${moduleId}-enhanceInboundSMTPChildApplicationContextFactory" class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor" depends-on="log4JHierarchyInit">
+    <bean id="${moduleId}-enhanceInboundSMTPChildApplicationContextFactory"
+        class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor" depends-on="log4JHierarchyInit">
         <property name="enabledPropertyKey" value="${configModuleId}.email.inboundSMTP.subsystemEnhancement.enabled" />
         <property name="propertiesSource" ref="global-properties" />
 
@@ -58,7 +61,8 @@
         <property name="replacementClassName" value="${javaPackageName}.subsystems.SubsystemChildApplicationContextFactory" />
     </bean>
 
-    <bean id="${moduleId}.tenantExtensibilityContainerPatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
+    <bean id="${moduleId}.tenantExtensibilityContainerPatch"
+        class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
         <property name="enabled" value="\${${configModuleId}.web.scripts.extensibleContainer.enabled}" />
         <property name="targetBeanName" value="webscripts.container" />
         <!-- this should be the default -->
@@ -66,7 +70,8 @@
         <property name="replacementClassName" value="${javaPackageName}.web.scripts.TenantExtensibilityContainer" />
     </bean>
 
-    <bean id="${moduleId}.extensibilityContainerPatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
+    <bean id="${moduleId}.extensibilityContainerPatch"
+        class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
         <property name="enabled" value="\${${configModuleId}.web.scripts.extensibleContainer.enabled}" />
         <property name="targetBeanName" value="webscripts.container" />
         <!-- this is the default based on the original 2012 blog post -->
@@ -74,7 +79,8 @@
         <property name="replacementClassName" value="org.alfresco.repo.web.scripts.ExtensibilityContainer" />
     </bean>
 
-    <bean id="${moduleId}.extensibleDeclarativeWebScriptPatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
+    <bean id="${moduleId}.extensibleDeclarativeWebScriptPatch"
+        class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
         <property name="enabled" value="\${${configModuleId}.web.scripts.extensibleContainer.enabled}" />
         <property name="targetBeanName" value="webscript.default" />
         <!-- this should be the default -->
@@ -89,7 +95,8 @@
         <property name="beanReferenceName" value="extensibility.handler" />
     </bean>
 
-    <bean id="${moduleId}.webScript.indexPatch-proto" class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
+    <bean id="${moduleId}.webScript.indexPatch-proto"
+        class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
         <property name="enabled" value="\${${configModuleId}.web.scripts.improvedIndex.enabled}" />
         <property name="targetBeanName" value="webscripts.index.prototype" />
         <!-- use of prototype is not consistent -->
@@ -98,14 +105,16 @@
         <property name="replacementClassName" value="${common.artifactId}.web.scripts.JaxRSUriIndex" />
     </bean>
 
-    <bean id="${moduleId}.webScript.indexPatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
+    <bean id="${moduleId}.webScript.indexPatch"
+        class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
         <property name="enabled" value="\${${configModuleId}.web.scripts.improvedIndex.enabled}" />
         <property name="targetBeanName" value="webscripts.index" />
         <property name="originalClassName" value="org.springframework.extensions.webscripts.JaxRSUriIndex" />
         <property name="replacementClassName" value="${common.artifactId}.web.scripts.JaxRSUriIndex" />
     </bean>
 
-    <bean id="${moduleId}.globalAuthenticationListener.facadePatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
+    <bean id="${moduleId}.globalAuthenticationListener.facadePatch"
+        class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
         <property name="enabledPropertyKey" value="${configModuleId}.web.auth.multipleAuthenticationListeners.enabled" />
         <property name="propertiesSource" ref="global-properties" />
         <property name="targetBeanName" value="globalAuthenticationListener" />
@@ -114,7 +123,8 @@
         <property name="replacementClassName" value="${javaPackageName}.web.auth.AuthenticationListenersFacade" />
     </bean>
 
-    <bean id="${moduleId}.globalAuthenticationListener.listenersPatch" class="${common.artifactId}.spring.PropertyAlteringBeanDefinitionRegistryPostProcessor">
+    <bean id="${moduleId}.globalAuthenticationListener.listenersPatch"
+        class="${common.artifactId}.spring.PropertyAlteringBeanDefinitionRegistryPostProcessor">
         <property name="dependsOn">
             <list>
                 <ref bean="${moduleId}.globalAuthenticationListener.facadePatch" />
@@ -131,7 +141,8 @@
         </property>
     </bean>
 
-    <bean id="${moduleId}.webDavAuthenticationListener.facadePatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
+    <bean id="${moduleId}.webDavAuthenticationListener.facadePatch"
+        class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
         <property name="enabledPropertyKey" value="${configModuleId}.web.auth.multipleAuthenticationListeners.enabled" />
         <property name="propertiesSource" ref="global-properties" />
         <property name="targetBeanName" value="webDavAuthenticationListener" />
@@ -140,7 +151,8 @@
         <property name="replacementClassName" value="${javaPackageName}.web.auth.AuthenticationListenersFacade" />
     </bean>
 
-    <bean id="${moduleId}.webDavAuthenticationListener.listenersPatch" class="${common.artifactId}.spring.PropertyAlteringBeanDefinitionRegistryPostProcessor">
+    <bean id="${moduleId}.webDavAuthenticationListener.listenersPatch"
+        class="${common.artifactId}.spring.PropertyAlteringBeanDefinitionRegistryPostProcessor">
         <property name="dependsOn">
             <list>
                 <ref bean="${moduleId}.webDavAuthenticationListener.facadePatch" />
@@ -157,7 +169,8 @@
         </property>
     </bean>
 
-    <bean id="${moduleId}.sharepointAuthenticationListener.facadePatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
+    <bean id="${moduleId}.sharepointAuthenticationListener.facadePatch"
+        class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
         <property name="enabledPropertyKey" value="${configModuleId}.web.auth.multipleAuthenticationListeners.enabled" />
         <property name="propertiesSource" ref="global-properties" />
         <property name="targetBeanName" value="sharepointAuthenticationListener" />
@@ -168,7 +181,8 @@
         <property name="replacementClassName" value="${javaPackageName}.web.auth.AuthenticationListenersFacade" />
     </bean>
 
-    <bean id="${moduleId}.sharepointAuthenticationListener.listenersPatch" class="${common.artifactId}.spring.PropertyAlteringBeanDefinitionRegistryPostProcessor">
+    <bean id="${moduleId}.sharepointAuthenticationListener.listenersPatch"
+        class="${common.artifactId}.spring.PropertyAlteringBeanDefinitionRegistryPostProcessor">
         <property name="dependsOn">
             <list>
                 <ref bean="${moduleId}.sharepointAuthenticationListener.facadePatch" />
@@ -187,7 +201,8 @@
         </property>
     </bean>
 
-    <bean id="${moduleId}.webScriptAuthenticationListener.facadePatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
+    <bean id="${moduleId}.webScriptAuthenticationListener.facadePatch"
+        class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
         <property name="propertiesSource" ref="global-properties" />
         <property name="enabledPropertyKey" value="${configModuleId}.web.auth.multipleAuthenticationListeners.enabled" />
         <property name="targetBeanName" value="webScriptAuthenticationListener" />
@@ -196,7 +211,8 @@
         <property name="replacementClassName" value="${javaPackageName}.web.auth.AuthenticationListenersFacade" />
     </bean>
 
-    <bean id="${moduleId}.webScriptAuthenticationListener.listenersPatch" class="${common.artifactId}.spring.PropertyAlteringBeanDefinitionRegistryPostProcessor">
+    <bean id="${moduleId}.webScriptAuthenticationListener.listenersPatch"
+        class="${common.artifactId}.spring.PropertyAlteringBeanDefinitionRegistryPostProcessor">
         <property name="dependsOn">
             <list>
                 <ref bean="${moduleId}.webScriptAuthenticationListener.facadePatch" />
@@ -219,8 +235,9 @@
         <property name="stringToQNameEnabled" value="\${${configModuleId}.datatype.improvedTypeConverter.string2QName.enabled}" />
         <property name="stringToLocaleEnabled" value="\${${configModuleId}.datatype.improvedTypeConverter.string2Locale.enabled}" />
     </bean>
-    
-    <bean id="${moduleId}.xpathNodeLocator.typePatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
+
+    <bean id="${moduleId}.xpathNodeLocator.typePatch"
+        class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
         <property name="enabledPropertyKey" value="${configModuleId}.properXPathNodeLocator.enabled" />
         <property name="propertiesSource" ref="global-properties" />
         <property name="targetBeanName" value="xpathNodeLocator" />
@@ -228,7 +245,8 @@
         <property name="replacementClassName" value="${javaPackageName}.locator.XPathNodeLocator" />
     </bean>
 
-    <bean id="${moduleId}.xpathNodeLocator.namespaceServicePropPatch" class="${common.artifactId}.spring.PropertyAlteringBeanDefinitionRegistryPostProcessor">
+    <bean id="${moduleId}.xpathNodeLocator.namespaceServicePropPatch"
+        class="${common.artifactId}.spring.PropertyAlteringBeanDefinitionRegistryPostProcessor">
         <property name="dependsOn">
             <list>
                 <ref bean="${moduleId}.xpathNodeLocator.typePatch" />
@@ -244,7 +262,8 @@
         </property>
     </bean>
 
-    <bean id="${moduleId}.xpathNodeLocator.nodeServicePropPatch" class="${common.artifactId}.spring.PropertyAlteringBeanDefinitionRegistryPostProcessor">
+    <bean id="${moduleId}.xpathNodeLocator.nodeServicePropPatch"
+        class="${common.artifactId}.spring.PropertyAlteringBeanDefinitionRegistryPostProcessor">
         <property name="dependsOn">
             <list>
                 <ref bean="${moduleId}.xpathNodeLocator.typePatch" />
@@ -257,6 +276,53 @@
         <property name="propertyName" value="nodeService" />
         <property name="beanReferenceName">
             <idref bean="NodeService" />
+        </property>
+    </bean>
+
+    <bean id="${moduleId}.nodeServiceExtension.extensionTypePatch"
+        class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
+        <property name="enabled" value="\${${configModuleId}.relaxedVirtualNodeService.enabled}" />
+        <property name="targetBeanName" value="nodeServiceExtension" />
+        <!-- this should be the default -->
+        <property name="originalClassName" value="org.alfresco.repo.virtual.bundle.VirtualNodeServiceExtension" />
+        <property name="replacementClassName" value="${javaPackageName}.virtual.RelaxedVirtualNodeServiceExtension" />
+    </bean>
+
+    <bean id="${moduleId}.nodeServiceExtension.dictionaryServicePropPatch"
+        class="${common.artifactId}.spring.PropertyAlteringBeanFactoryPostProcessor">
+        <property name="dependsOn">
+            <list>
+                <ref bean="${moduleId}.nodeServiceExtension.extensionTypePatch" />
+            </list>
+        </property>
+        <property name="enabled" value="\${${configModuleId}.relaxedVirtualNodeService.enabled}" />
+        <property name="targetBeanName" value="nodeServiceExtension" />
+        <property name="expectedClassName" value="${javaPackageName}.virtual.RelaxedVirtualNodeServiceExtension" />
+        <property name="propertyName" value="dictionaryService" />
+        <property name="beanReferenceName">
+            <idref bean="dictionaryService" />
+        </property>
+    </bean>
+
+    <bean id="${moduleId}.nodeServiceExtension.storeTypePatch"
+        class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
+        <property name="enabled" value="\${${configModuleId}.relaxedVirtualNodeService.enabled}" />
+        <property name="targetBeanName" value="smartStore" />
+        <!-- this should be the default -->
+        <property name="originalClassName" value="org.alfresco.repo.virtual.store.VirtualStoreImpl" />
+        <property name="replacementClassName" value="${javaPackageName}.virtual.RelaxedVirtualStoreImpl" />
+    </bean>
+
+    <bean id="${moduleId}.nodeServiceExtension.userPermissions.removeReadOnlySmartDeniesPatch"
+        class="${common.artifactId}.spring.PropertyAlteringBeanFactoryPostProcessor">
+        <property name="enabled" value="\${${configModuleId}.relaxedVirtualNodeService.enabled}" />
+        <property name="targetBeanName" value="smartStore" />
+        <property name="expectedClassName" value="${javaPackageName}.virtual.RelaxedVirtualStoreImpl" />
+        <property name="propertyName" value="userPermissions" />
+        <property name="value">
+            <!-- hard/difficult to do targeted replacement of all the properties in the nested bean -->
+            <!-- and we want to remove all restrictions anyway, so simplest to replace the bean with a no-op -->
+            <bean id="smartUserPermissions" class="${javaPackageName}.virtual.RelaxedVirtualUserPermissions" init-method="init" />
         </property>
     </bean>
 

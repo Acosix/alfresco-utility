@@ -62,5 +62,177 @@
                 </config>
             </configurations>
         </module>
+
+        <module>
+            <id>${moduleId} - Relaxed Smart Folders</id>
+            <description>${project.name} - Extension to relax Smart Folder restrictions on default doclib actions</description>
+            <version>${noSnapshotVersion}</version>
+            <auto-deploy>true</auto-deploy>
+
+            <evaluator type="${moduleId}.relaxedSmartFolderEvaluator" />
+
+            <configurations>
+                <config evaluator="string-compare" condition="DocumentLibrary">
+                    <multi-select>
+                        <action type="action-link" id="onActionCopyTo" icon="document-copy-to" label="menu.selected-items.copy"
+                            notAspect="smf:smartFolder" />
+                        <action type="action-link" id="onActionMoveTo" icon="document-move-to" permission="Delete"
+                            label="menu.selected-items.move" notAspect="smf:smartFolder" />
+                    </multi-select>
+                </config>
+
+                <config evaluator="string-compare" condition="DocLibActions">
+                    <actionGroups>
+                        <actionGroup id="document-browse">
+                            <action id="document-approve" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.DocumentEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-reject" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.DocumentEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-copy-to" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.DocumentEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-move-to" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.DocumentEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-delete" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.DocumentEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-manage-granular-permissions" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.DocumentEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-manage-repo-permissions" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.DocumentEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-manage-aspects" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.DocumentEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-view-googlemaps" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.DocumentEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-view-in-source-repository" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.DocumentEnableInSmartFolder</evaluator>
+                            </action>
+                        </actionGroup>
+
+                        <actionGroup id="document-details">
+                            <action id="document-approve" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.DocumentEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-reject" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.DocumentEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-edit-online" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.DocumentEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-copy-to" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.DocumentEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-move-to" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.DocumentEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-unzip-to" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.DocumentEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-delete" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.DocumentEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-manage-granular-permissions" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.DocumentEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-manage-repo-permissions" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.DocumentEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-take-ownership" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.DocumentEnableInSmartFolder</evaluator>
+                            </action>
+                            <!-- even though manage-aspects is (for some reason) enabled by default in this action-group (while not in the other) we still explicitly include this here as well -->
+                            <action id="document-manage-aspects" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.DocumentEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-view-googlemaps" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.DocumentEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-view-in-source-repository" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.DocumentEnableInSmartFolder</evaluator>
+                            </action>
+                        </actionGroup>
+
+                        <actionGroup id="folder-browse">
+                            <action id="document-approve" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.FolderEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-reject" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.FolderEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-locate" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.FolderEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-copy-to" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.FolderEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-move-to" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.FolderEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="folder-manage-rules" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.FolderEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-delete" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.FolderEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-manage-granular-permissions" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.FolderEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-manage-repo-permissions" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.FolderEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-view-in-source-repository" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.FolderEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-view-googlemaps" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.FolderEnableInSmartFolder</evaluator>
+                            </action>
+                        </actionGroup>
+
+                        <actionGroup id="folder-details">
+                            <action id="document-approve" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.FolderEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-reject" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.FolderEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-copy-to" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.FolderEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-move-to" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.FolderEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="folder-manage-rules" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.FolderEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-delete" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.FolderEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-manage-granular-permissions" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.FolderEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-manage-repo-permissions" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.FolderEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-take-ownership" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.FolderEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-view-in-source-repository" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.FolderEnableInSmartFolder</evaluator>
+                            </action>
+                            <action id="document-view-googlemaps" appendEvaluators="true">
+                                <evaluator>evaluator.doclib.action.FolderEnableInSmartFolder</evaluator>
+                            </action>
+                        </actionGroup>
+                    </actionGroups>
+                </config>
+            </configurations>
+        </module>
     </modules>
 </extension>
