@@ -64,6 +64,31 @@
         </module>
 
         <module>
+            <id>${moduleId} - Enhanced Category Manager</id>
+            <description>${project.name} - Extension to enhance the Category Manager to allow management of other classification aspect hierarchies</description>
+            <version>${noSnapshotVersion}</version>
+            <auto-deploy>true</auto-deploy>
+
+            <evaluator type="${moduleId}.enhancedCategoryManagerEvaluator" />
+
+            <customizations>
+                <customization>
+                    <targetPackageRoot>org.alfresco</targetPackageRoot>
+                    <sourcePackageRoot>de.acosix.utility.enhancedCategoryManager</sourcePackageRoot>
+                </customization>
+            </customizations>
+
+            <configurations>
+                <config evaluator="string-compare" condition="CategoryManager">
+                    <suppressed-aspects>
+                        <aspect>cm:taggable</aspect>
+                        <aspect>cm:classifiable</aspect>
+                    </suppressed-aspects>
+                </config>
+            </configurations>
+        </module>
+
+        <module>
             <id>${moduleId} - Relaxed Smart Folders</id>
             <description>${project.name} - Extension to relax Smart Folder restrictions on default doclib actions</description>
             <version>${noSnapshotVersion}</version>

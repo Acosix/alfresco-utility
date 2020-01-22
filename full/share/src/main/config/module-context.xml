@@ -199,4 +199,8 @@
     <bean id="${moduleId}.relaxedSmartFolderEvaluator" class="${javaPackageName}.extensibility.StaticallyConfiguredExtensionModuleEvaluator">
         <property name="applyModule" value="\${${configModuleId}.relaxedSmartFolders.enabled}" />
     </bean>
+
+    <bean id="${moduleId}.enhancedCategoryManagerEvaluator" class="${javaPackageName}.extensibility.StaticallyConfiguredExtensionModuleEvaluator">
+        <property name="applyModule" value="\${${configModuleId}.enhancedCategoryManager.enabled}" />
+    </bean>
 </beans>

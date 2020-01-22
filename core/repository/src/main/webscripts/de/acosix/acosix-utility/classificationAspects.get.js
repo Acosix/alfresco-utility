@@ -1,0 +1,1 @@
+model.aspects = classification.getAllClassificationAspects();

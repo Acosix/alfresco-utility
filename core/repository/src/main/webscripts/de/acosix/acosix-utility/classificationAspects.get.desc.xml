@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<webscript>
+    <shortname>Classification Aspects</shortname>
+    <description>Retrieves all known classification aspects</description>
+    <url>/acosix/api/classificationAspects</url>
+    <format default="json" />
+    <authentication>user</authentication>
+    <transaction allow="readonly">required</transaction>
+</webscript>
