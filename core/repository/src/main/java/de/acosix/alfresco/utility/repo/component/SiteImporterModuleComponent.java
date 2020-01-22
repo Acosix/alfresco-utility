@@ -75,6 +75,8 @@ public class SiteImporterModuleComponent extends AbstractModuleComponent impleme
 
     protected boolean skipIfSiteExists;
 
+    protected String defaultManagerUserName = AuthenticationUtil.getAdminUserName();
+
     /**
      * {@inheritDoc}
      */
@@ -89,6 +91,7 @@ public class SiteImporterModuleComponent extends AbstractModuleComponent impleme
         PropertyCheck.mandatory(this, "siteName", this.siteName);
         PropertyCheck.mandatory(this, "sitePreset", this.sitePreset);
         PropertyCheck.mandatory(this, "siteTitle", this.siteTitle);
+        PropertyCheck.mandatory(this, "defaultManagerUserName", this.defaultManagerUserName);
     }
 
     /**
@@ -209,6 +212,15 @@ public class SiteImporterModuleComponent extends AbstractModuleComponent impleme
     }
 
     /**
+     * @param defaultManagerUserName
+     *            the defaultManagerUserName to set
+     */
+    public void setDefaultManagerUserName(final String defaultManagerUserName)
+    {
+        this.defaultManagerUserName = defaultManagerUserName;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -234,7 +246,9 @@ public class SiteImporterModuleComponent extends AbstractModuleComponent impleme
             {
                 I18NUtil.setLocale(this.locale);
             }
-            AuthenticationUtil.setFullyAuthenticatedUser(AuthenticationUtil.getAdminUserName());
+            // specific user instead of System is unfortunately required due to internal coding of SiteService
+            // (there must be an initial manager)
+            AuthenticationUtil.setFullyAuthenticatedUser(this.defaultManagerUserName);
             try
             {
                 SiteVisibility visibility = SiteVisibility.PUBLIC;
