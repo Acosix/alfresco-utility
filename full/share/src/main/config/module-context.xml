@@ -181,6 +181,13 @@
         <property name="replacementClassName" value="${common.artifactId}.web.scripts.JaxRSUriIndex" />
     </bean>
 
+    <bean id="${moduleId}.webScript.FormUIGetPatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
+        <property name="enabled" value="\${${configModuleId}.web.scripts.correctedFormUIGet.enabled}" />
+        <property name="targetBeanName" value="webscript.org.alfresco.components.form.form.get" />
+        <property name="originalClassName" value="org.alfresco.web.scripts.forms.FormUIGet" />
+        <property name="replacementClassName" value="${javaPackageName}.forms.CorrectedFormUIGet" />
+    </bean>
+
     <bean class="org.alfresco.i18n.ResourceBundleBootstrapComponent">
         <property name="resourceBundles">
             <list>
