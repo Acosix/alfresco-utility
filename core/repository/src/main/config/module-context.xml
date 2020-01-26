@@ -25,6 +25,10 @@
         <property name="searchService" ref="SearchService" />
     </bean>
 
+    <bean id="${moduleId}.baseBulkQueryNodeBatchWorkProvider" class="${javaPackageName}.batch.BulkQueryNodeBatchWorkProvider" abstract="true">
+        <property name="searchService" ref="SearchService" />
+    </bean>
+
     <bean id="${moduleId}.baseNodesPatchModuleComponent" class="${javaPackageName}.patch.NodesPatchModuleComponent" abstract="true" parent="module.baseComponent">
         <property name="transactionService" ref="TransactionService" />
         <property name="namespaceService" ref="NamespaceService" />
@@ -34,6 +38,11 @@
     </bean>
 
     <bean id="${moduleId}.baseSimpleNodePropertyMappingPatchRule" class="${javaPackageName}.patch.SimpleNodePropertyMappingPatchRule" abstract="true">
+        <property name="namespaceService" ref="NamespaceService" />
+        <property name="dictionaryService" ref="DictionaryService" />
+    </bean>
+
+    <bean id="${moduleId}.baseSimpleNodePropertyValueMappingPatchRule" class="${javaPackageName}.patch.SimpleNodePropertyValueMappingPatchRule" abstract="true">
         <property name="namespaceService" ref="NamespaceService" />
         <property name="dictionaryService" ref="DictionaryService" />
     </bean>
