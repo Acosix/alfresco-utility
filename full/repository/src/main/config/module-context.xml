@@ -61,6 +61,31 @@
         <property name="replacementClassName" value="${javaPackageName}.subsystems.SubsystemChildApplicationContextFactory" />
     </bean>
 
+    <bean id="${moduleId}-enhanceModuleStarter-implementation"
+        class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor" depends-on="log4JHierarchyInit">
+        <property name="enabledPropertyKey" value="${configModuleId}.moduleComponent.alfServer.deadlockPrevention.enabled" />
+        <property name="propertiesSource" ref="global-properties" />
+
+        <property name="targetBeanName" value="moduleStarter" />
+        <property name="originalClassName" value="org.alfresco.repo.module.ModuleStarter" />
+        <property name="replacementClassName" value="${javaPackageName}.module.ServerEnsuringModuleStarter" />
+    </bean>
+
+    <bean id="${moduleId}-enhanceModuleStarter-nodeDAOReference"
+        class="${common.artifactId}.spring.PropertyAlteringBeanDefinitionRegistryPostProcessor" depends-on="log4JHierarchyInit">
+        <property name="dependsOn">
+            <list>
+                <ref bean="${moduleId}-enhanceModuleStarter-implementation" />
+            </list>
+        </property>
+        <property name="enabledPropertyKey" value="${configModuleId}.moduleComponent.alfServer.deadlockPrevention.enabled" />
+        <property name="propertiesSource" ref="global-properties" />
+        <property name="targetBeanName" value="moduleStarter" />
+        <property name="expectedClassName" value="${javaPackageName}.module.ServerEnsuringModuleStarter" />
+        <property name="propertyName" value="nodeDAO" />
+        <property name="beanReferenceName" value="nodeDAO" />
+    </bean>
+
     <bean id="${moduleId}.tenantExtensibilityContainerPatch"
         class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
         <property name="enabled" value="\${${configModuleId}.web.scripts.extensibleContainer.enabled}" />
