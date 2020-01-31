@@ -18,18 +18,21 @@
     xsi:schemaLocation="
            http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
-           
-    <bean id="${moduleId}.basePropertyOrderedNodeBatchWorkProvider" class="${javaPackageName}.batch.PropertyOrderedTransactionalNodeBatchWorkProvider" abstract="true">
+
+    <bean id="${moduleId}.basePropertyOrderedNodeBatchWorkProvider"
+        class="${javaPackageName}.batch.PropertyOrderedTransactionalNodeBatchWorkProvider" abstract="true">
         <property name="namespaceService" ref="NamespaceService" />
         <property name="dictionaryService" ref="DictionaryService" />
         <property name="searchService" ref="SearchService" />
     </bean>
 
-    <bean id="${moduleId}.baseBulkQueryNodeBatchWorkProvider" class="${javaPackageName}.batch.BulkQueryNodeBatchWorkProvider" abstract="true">
+    <bean id="${moduleId}.baseBulkQueryNodeBatchWorkProvider" class="${javaPackageName}.batch.BulkQueryNodeBatchWorkProvider"
+        abstract="true">
         <property name="searchService" ref="SearchService" />
     </bean>
 
-    <bean id="${moduleId}.baseNodesPatchModuleComponent" class="${javaPackageName}.patch.NodesPatchModuleComponent" abstract="true" parent="module.baseComponent">
+    <bean id="${moduleId}.baseNodesPatchModuleComponent" class="${javaPackageName}.patch.NodesPatchModuleComponent" abstract="true"
+        parent="module.baseComponent">
         <property name="transactionService" ref="TransactionService" />
         <property name="namespaceService" ref="NamespaceService" />
         <property name="dictionaryService" ref="DictionaryService" />
@@ -37,23 +40,45 @@
         <property name="behaviourFilter" ref="policyBehaviourFilter" />
     </bean>
 
-    <bean id="${moduleId}.baseSimpleNodePropertyMappingPatchRule" class="${javaPackageName}.patch.SimpleNodePropertyMappingPatchRule" abstract="true">
+    <bean id="${moduleId}.baseSimpleNodePropertyMappingPatchRule" class="${javaPackageName}.patch.SimpleNodePropertyMappingPatchRule"
+        abstract="true">
         <property name="namespaceService" ref="NamespaceService" />
         <property name="dictionaryService" ref="DictionaryService" />
     </bean>
 
-    <bean id="${moduleId}.baseSimpleNodePropertyValueMappingPatchRule" class="${javaPackageName}.patch.SimpleNodePropertyValueMappingPatchRule" abstract="true">
+    <bean id="${moduleId}.baseSimpleNodePropertyRemovalPatchRule" class="${javaPackageName}.patch.SimpleNodePropertyRemovalPatchRule"
+        abstract="true">
         <property name="namespaceService" ref="NamespaceService" />
         <property name="dictionaryService" ref="DictionaryService" />
     </bean>
 
-    <bean id="${moduleId}.baseSimpleAssociationMappingPatchRule" class="${javaPackageName}.patch.SimpleAssociationMappingPatchRule" abstract="true">
+    <bean id="${moduleId}.baseSimpleNodePropertyValueMappingPatchRule"
+        class="${javaPackageName}.patch.SimpleNodePropertyValueMappingPatchRule" abstract="true">
+        <property name="namespaceService" ref="NamespaceService" />
+        <property name="dictionaryService" ref="DictionaryService" />
+    </bean>
+
+    <bean id="${moduleId}.baseSimpleAssociationMappingPatchRule" class="${javaPackageName}.patch.SimpleAssociationMappingPatchRule"
+        abstract="true">
         <property name="namespaceService" ref="NamespaceService" />
         <property name="dictionaryService" ref="DictionaryService" />
         <property name="nodeService" ref="NodeService" />
     </bean>
 
-    <bean id="${moduleId}.baseEnsureDefaultAspectPresenceNodePatchRule" class="${javaPackageName}.patch.EnsureDefaultAspectPresenceNodePatchRule" abstract="true">
+    <bean id="${moduleId}.baseSimplePermissionRemovalPatchRule" class="${javaPackageName}.patch.SimplePermissionRemovalPatchRule"
+        abstract="true">
+        <property name="permissionService" ref="PermissionService" />
+    </bean>
+
+    <bean id="${moduleId}.baseSimpleAspectRemovalNodePatchRule" class="${javaPackageName}.patch.SimpleNodeAspectRemovalPatchRule"
+        abstract="true">
+        <property name="namespaceService" ref="NamespaceService" />
+        <property name="dictionaryService" ref="DictionaryService" />
+        <property name="nodeService" ref="NodeService" />
+    </bean>
+
+    <bean id="${moduleId}.baseEnsureDefaultAspectPresenceNodePatchRule"
+        class="${javaPackageName}.patch.EnsureDefaultAspectPresenceNodePatchRule" abstract="true">
         <property name="dictionaryService" ref="DictionaryService" />
         <property name="nodeService" ref="NodeService" />
     </bean>
@@ -72,7 +97,7 @@
         class="${javaPackageName}.web.scripts.ContentInfoWithStatus">
         <property name="namespaceService" ref="NamespaceService" />
     </bean>
-        
+
     <bean id="webscript.de.acosix.acosix-utility.rendition.head" parent="webscript.de.acosix.acosix-utility.content.head"
         class="${javaPackageName}.web.scripts.RenditionInfoWithStatus">
         <property name="contentService" ref="ContentService" />

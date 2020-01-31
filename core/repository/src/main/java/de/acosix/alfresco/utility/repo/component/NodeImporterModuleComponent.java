@@ -23,6 +23,7 @@ import org.alfresco.repo.importer.ImporterBootstrap;
 import org.alfresco.repo.module.ImporterModuleComponent;
 import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.util.PropertyCheck;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.extensions.surf.util.I18NUtil;
 
 /**
@@ -31,11 +32,12 @@ import org.springframework.extensions.surf.util.I18NUtil;
  * <li>cleanup of importer state to avoid issues with duplicate execution on context refresh</li>
  * <li>ability to disable all behaviours during bootstrap without having to set up a complex, custom importer + importer component...</li>
  * <li>ability to specify specific locale for import execution</li>
+ * <li>ability to set a simple skip flag for disabling the component (e.g. in specific environments)</lI>
  * </ul>
  *
  * @author Axel Faust
  */
-public class NodeImporterModuleComponent extends ImporterModuleComponent
+public class NodeImporterModuleComponent extends ImporterModuleComponent implements InitializingBean
 {
 
     protected ImporterBootstrap importer;
@@ -46,12 +48,14 @@ public class NodeImporterModuleComponent extends ImporterModuleComponent
 
     protected boolean disableBehaviours;
 
+    protected boolean skip;
+
     /**
      *
      * {@inheritDoc}
      */
     @Override
-    public void init()
+    public void afterPropertiesSet()
     {
         PropertyCheck.mandatory(this, "importer", this.importer);
         if (this.disableBehaviours)
@@ -59,7 +63,12 @@ public class NodeImporterModuleComponent extends ImporterModuleComponent
             PropertyCheck.mandatory(this, "behaviourFilter", this.behaviourFilter);
         }
 
-        super.init();
+        if (this.skip)
+        {
+            // use lowest possible version number to effectively disable this component
+            this.setAppliesFromVersion("0");
+            this.setAppliesToVersion("0");
+        }
     }
 
     /**
@@ -97,6 +106,15 @@ public class NodeImporterModuleComponent extends ImporterModuleComponent
     public void setDisableBehaviours(final boolean disableBehaviours)
     {
         this.disableBehaviours = disableBehaviours;
+    }
+
+    /**
+     * @param skip
+     *            the skip to set
+     */
+    public void setSkip(final boolean skip)
+    {
+        this.skip = skip;
     }
 
     /**

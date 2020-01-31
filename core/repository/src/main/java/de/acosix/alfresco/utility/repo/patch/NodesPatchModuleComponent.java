@@ -82,6 +82,8 @@ public class NodesPatchModuleComponent extends AbstractModuleComponent implement
 
     protected int loggingInterval = 100;
 
+    protected boolean skip;
+
     /**
      *
      * {@inheritDoc}
@@ -110,6 +112,13 @@ public class NodesPatchModuleComponent extends AbstractModuleComponent implement
             return classQName;
 
         }).collect(Collectors.toSet());
+
+        if (this.skip)
+        {
+            // use lowest possible version number to effectively disable this component
+            this.setAppliesFromVersion("0");
+            this.setAppliesToVersion("0");
+        }
     }
 
     /**
@@ -242,6 +251,15 @@ public class NodesPatchModuleComponent extends AbstractModuleComponent implement
             throw new IllegalArgumentException("'loggingInterval' must be a positive integer value");
         }
         this.loggingInterval = loggingInterval;
+    }
+
+    /**
+     * @param skip
+     *            the skip to set
+     */
+    public void setSkip(final boolean skip)
+    {
+        this.skip = skip;
     }
 
     /**
