@@ -1,0 +1,242 @@
+/*
+ * Copyright 2016 - 2019 Acosix GmbH
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package de.acosix.alfresco.utility.repo.form;
+
+import static org.alfresco.repo.forms.processor.node.FormFieldConstants.PROP_DATA_PREFIX;
+
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.alfresco.repo.forms.FieldDefinition;
+import org.alfresco.repo.forms.Form;
+import org.alfresco.repo.forms.FormData;
+import org.alfresco.repo.forms.FormData.FieldData;
+import org.alfresco.repo.forms.PropertyFieldDefinition;
+import org.alfresco.repo.forms.processor.AbstractFilter;
+import org.alfresco.repo.forms.processor.node.FormFieldConstants;
+import org.alfresco.service.cmr.dictionary.DataTypeDefinition;
+import org.alfresco.service.cmr.dictionary.DictionaryService;
+import org.alfresco.service.cmr.dictionary.PropertyDefinition;
+import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.namespace.NamespaceService;
+import org.alfresco.service.namespace.QName;
+import org.alfresco.util.ISO8601DateFormat;
+import org.alfresco.util.PropertyCheck;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+
+/**
+ * This form filter ensures that all {@code d:date} property fields are properly fixated on {@code 00:00} in a specific timezone upon
+ * submission from any client, regardless of the time component provided. It also ensures that the stored values of {@code d:date} values
+ * are provided as date-only strings to clients when requesting a structured form definition with associated values, so as to force the
+ * client to treat the fixed date as if in its local time zone. In essence, this filter is meant to remove any ambiguity with regards to
+ * timezone handling of {@code d:date} values between the server and the client.
+ *
+ * @author Axel Faust
+ */
+public class FixateDateOnlyTimezoneFilter extends AbstractFilter<Object, NodeRef> implements InitializingBean
+{
+
+    private static final ZoneId UTC = ZoneId.of("UTC");
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(FixateDateOnlyTimezoneFilter.class);
+
+    private static final Pattern PROPERTY_NAME_PATTERN = Pattern.compile(PROP_DATA_PREFIX + "([a-zA-Z0-9-]+)_(.*)");
+
+    protected NamespaceService namespaceService;
+
+    protected DictionaryService dictionaryService;
+
+    protected String fixedDateTimezone;
+
+    protected ZoneId timezoneId;
+
+    protected List<String> namespaceUris;
+
+    /**
+     *
+     * {@inheritDoc}
+     */
+    @Override
+    public void afterPropertiesSet()
+    {
+        PropertyCheck.mandatory(this, "namespaceService", this.namespaceService);
+        PropertyCheck.mandatory(this, "dictionaryService", this.dictionaryService);
+        PropertyCheck.mandatory(this, "fixedDateTimezone", this.fixedDateTimezone);
+        this.timezoneId = ZoneId.of(this.fixedDateTimezone);
+    }
+
+    /**
+     * @param namespaceService
+     *            the namespaceService to set
+     */
+    public void setNamespaceService(final NamespaceService namespaceService)
+    {
+        this.namespaceService = namespaceService;
+    }
+
+    /**
+     * @param dictionaryService
+     *            the dictionaryService to set
+     */
+    public void setDictionaryService(final DictionaryService dictionaryService)
+    {
+        this.dictionaryService = dictionaryService;
+    }
+
+    /**
+     * @param fixedDateTimezone
+     *            the fixedDateTimezone to set
+     */
+    public void setFixedDateTimezone(final String fixedDateTimezone)
+    {
+        this.fixedDateTimezone = fixedDateTimezone;
+    }
+
+    /**
+     * @param namespaceUris
+     *            the namespaceUris to set
+     */
+    public void setNamespaceUris(final List<String> namespaceUris)
+    {
+        this.namespaceUris = namespaceUris;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void beforeGenerate(final Object item, final List<String> fields, final List<String> forcedFields, final Form form,
+            final Map<String, Object> context)
+    {
+        // NO-OP
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void afterGenerate(final Object item, final List<String> fields, final List<String> forcedFields, final Form form,
+            final Map<String, Object> context)
+    {
+        final List<FieldDefinition> fieldDefinitions = form.getFieldDefinitions();
+        if (fieldDefinitions != null)
+        {
+            fieldDefinitions.stream().filter(PropertyFieldDefinition.class::isInstance).map(PropertyFieldDefinition.class::cast)
+                    .filter(d -> this.namespaceUris == null
+                            || this.namespaceUris.contains(QName.resolveToQName(this.namespaceService, d.getName()).getNamespaceURI()))
+                    .filter(d -> DataTypeDefinition.DATE.equals(QName.resolveToQName(this.namespaceService, d.getDataType())))
+                    .forEach(fieldDef -> {
+                        final FieldData fieldData = form.getFormData().getFieldData(fieldDef.getDataKeyName());
+                        if (fieldData != null)
+                        {
+                            final Object value = fieldData.getValue();
+
+                            Date dValue = null;
+                            if (value instanceof Date)
+                            {
+                                dValue = (Date) value;
+                            }
+                            else if (value instanceof String)
+                            {
+                                dValue = ISO8601DateFormat.parse((String) value);
+                            }
+                            else
+                            {
+                                LOGGER.debug("Unable to support value {} of type {} in field {}", value, value.getClass(),
+                                        fieldDef.getName());
+                            }
+
+                            if (dValue != null)
+                            {
+                                final String timezoneFixedDateOnlyValue = dValue.toInstant().atZone(this.timezoneId)
+                                        .format(DateTimeFormatter.ISO_LOCAL_DATE);
+                                LOGGER.debug("Fixed date {} of field {} to timezone {} local date value of {}", dValue, fieldDef.getName(),
+                                        this.timezoneId, timezoneFixedDateOnlyValue);
+                                form.getFormData().addFieldData(fieldDef.getDataKeyName(), timezoneFixedDateOnlyValue, true);
+                            }
+                        }
+                    });
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void beforePersist(final Object item, final FormData data)
+    {
+        data.getFieldNames().stream().filter(fn -> fn.startsWith(FormFieldConstants.PROP_DATA_PREFIX)).filter(fn -> {
+            boolean dateOnlyField = false;
+            final Matcher m = PROPERTY_NAME_PATTERN
+                    .matcher(fn.replaceAll(FormFieldConstants.DOT_CHARACTER_REPLACEMENT, FormFieldConstants.DOT_CHARACTER));
+            if (m.matches())
+            {
+                final String qNamePrefix = m.group(1);
+                final String localName = m.group(2);
+                final QName fullQName = QName.createQName(qNamePrefix, localName, this.namespaceService);
+                final PropertyDefinition property = this.dictionaryService.getProperty(fullQName);
+                dateOnlyField = (this.namespaceUris == null || this.namespaceUris.contains(fullQName.getNamespaceURI())) && property != null
+                        && DataTypeDefinition.DATE.equals(property.getDataType().getName());
+            }
+
+            return dateOnlyField;
+        }).forEach(fn -> {
+            final FieldData fieldData = data.getFieldData(fn);
+            final Object value = fieldData.getValue();
+
+            Date dValue = null;
+            if (value instanceof Date)
+            {
+                // unlikely but maybe there was some pre-filtering going on
+                dValue = (Date) value;
+            }
+            else if (value instanceof String)
+            {
+                dValue = ISO8601DateFormat.parse((String) value);
+            }
+            else
+            {
+                LOGGER.debug("Unable to support value {} of type {} in field {}", value, value != null ? value.getClass() : null, fn);
+            }
+
+            if (dValue != null)
+            {
+                final String timezoneFixedDateOnlyValue = dValue.toInstant().atZone(this.timezoneId).withHour(0).withMinute(0).withSecond(0)
+                        .withNano(0).withZoneSameInstant(UTC).format(DateTimeFormatter.ISO_DATE_TIME);
+                LOGGER.debug("Fixed date {} of field {} to timezone {} local midnight time value of {}", dValue, fn, this.timezoneId,
+                        timezoneFixedDateOnlyValue);
+                data.addFieldData(fn, timezoneFixedDateOnlyValue, true);
+            }
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void afterPersist(final Object item, final FormData data, final NodeRef persistedObject)
+    {
+        // NO-OP
+    }
+
+}
