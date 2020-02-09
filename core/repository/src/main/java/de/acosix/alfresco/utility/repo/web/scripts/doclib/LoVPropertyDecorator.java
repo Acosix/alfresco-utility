@@ -33,6 +33,7 @@ import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.dictionary.PropertyDefinition;
 import org.alfresco.service.cmr.dictionary.TypeDefinition;
 import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.PropertyCheck;
 import org.json.simple.JSONArray;
@@ -93,37 +94,33 @@ public class LoVPropertyDecorator extends BasePropertyDecorator implements Initi
 
         if (propertyDefinition != null)
         {
-            if (value instanceof String)
-            {
-                @SuppressWarnings("unchecked")
-                final Map<String, String> map = new JSONObject();
-                map.put("value", (String) value);
-                result = (JSONObject) map;
-
-                this.retrieveDisplayLabel((String) value, propertyDefinition, map);
-            }
-            else if (value instanceof Collection<?>)
+            if (value instanceof Collection<?>)
             {
                 @SuppressWarnings("unchecked")
                 final List<Object> list = new JSONArray();
 
                 for (final Object element : (Collection<?>) value)
                 {
-                    if (element instanceof String)
-                    {
-                        @SuppressWarnings("unchecked")
-                        final Map<String, String> map = new JSONObject();
-                        map.put("value", (String) element);
-                        this.retrieveDisplayLabel((String) element, propertyDefinition, map);
-                        list.add(map);
-                    }
+                    final String valueText = DefaultTypeConverter.INSTANCE.convert(String.class, element);
+
+                    @SuppressWarnings("unchecked")
+                    final Map<String, String> map = new JSONObject();
+                    map.put("value", valueText);
+                    this.retrieveDisplayLabel(valueText, propertyDefinition, map);
+                    list.add(map);
                 }
 
                 result = (JSONArray) list;
             }
             else
             {
-                result = null;
+                final String valueText = DefaultTypeConverter.INSTANCE.convert(String.class, value);
+                @SuppressWarnings("unchecked")
+                final Map<String, String> map = new JSONObject();
+                map.put("value", valueText);
+                result = (JSONObject) map;
+
+                this.retrieveDisplayLabel(valueText, propertyDefinition, map);
             }
         }
         else
