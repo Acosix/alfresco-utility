@@ -222,7 +222,7 @@ public class FixateDateOnlyTimezoneFilter extends AbstractFilter<Object, NodeRef
             if (dValue != null)
             {
                 final String timezoneFixedDateOnlyValue = dValue.toInstant().atZone(this.timezoneId).withHour(0).withMinute(0).withSecond(0)
-                        .withNano(0).withZoneSameInstant(UTC).format(DateTimeFormatter.ISO_DATE_TIME);
+                        .withNano(0).withZoneSameInstant(UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
                 LOGGER.debug("Fixed date {} of field {} to timezone {} local midnight time value of {}", dValue, fn, this.timezoneId,
                         timezoneFixedDateOnlyValue);
                 data.addFieldData(fn, timezoneFixedDateOnlyValue, true);
