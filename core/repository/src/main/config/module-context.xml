@@ -31,7 +31,7 @@
         <property name="searchService" ref="SearchService" />
     </bean>
 
-    <bean id="${moduleId}.baseNodesPatchModuleComponent" class="${javaPackageName}.patch.NodesPatchModuleComponent" abstract="true"
+    <bean id="${moduleId}.baseNodesPatchModuleComponent" class="${javaPackageName}.component.NodesPatchModuleComponent" abstract="true"
         parent="module.baseComponent">
         <property name="transactionService" ref="TransactionService" />
         <property name="namespaceService" ref="NamespaceService" />
@@ -40,37 +40,37 @@
         <property name="behaviourFilter" ref="policyBehaviourFilter" />
     </bean>
 
-    <bean id="${moduleId}.baseSimpleNodePropertyMappingPatchRule" class="${javaPackageName}.patch.SimpleNodePropertyMappingPatchRule"
+    <bean id="${moduleId}.baseSimpleNodePropertyMappingPatchRule" class="${javaPackageName}.component.SimpleNodePropertyMappingPatchRule"
         abstract="true">
         <property name="namespaceService" ref="NamespaceService" />
         <property name="dictionaryService" ref="DictionaryService" />
     </bean>
 
-    <bean id="${moduleId}.baseSimpleNodePropertyRemovalPatchRule" class="${javaPackageName}.patch.SimpleNodePropertyRemovalPatchRule"
+    <bean id="${moduleId}.baseSimpleNodePropertyRemovalPatchRule" class="${javaPackageName}.component.SimpleNodePropertyRemovalPatchRule"
         abstract="true">
         <property name="namespaceService" ref="NamespaceService" />
         <property name="dictionaryService" ref="DictionaryService" />
     </bean>
 
     <bean id="${moduleId}.baseSimpleNodePropertyValueMappingPatchRule"
-        class="${javaPackageName}.patch.SimpleNodePropertyValueMappingPatchRule" abstract="true">
+        class="${javaPackageName}.component.SimpleNodePropertyValueMappingPatchRule" abstract="true">
         <property name="namespaceService" ref="NamespaceService" />
         <property name="dictionaryService" ref="DictionaryService" />
     </bean>
 
-    <bean id="${moduleId}.baseSimpleAssociationMappingPatchRule" class="${javaPackageName}.patch.SimpleAssociationMappingPatchRule"
+    <bean id="${moduleId}.baseSimpleAssociationMappingPatchRule" class="${javaPackageName}.component.SimpleAssociationMappingPatchRule"
         abstract="true">
         <property name="namespaceService" ref="NamespaceService" />
         <property name="dictionaryService" ref="DictionaryService" />
         <property name="nodeService" ref="NodeService" />
     </bean>
 
-    <bean id="${moduleId}.baseSimplePermissionRemovalPatchRule" class="${javaPackageName}.patch.SimplePermissionRemovalPatchRule"
+    <bean id="${moduleId}.baseSimplePermissionRemovalPatchRule" class="${javaPackageName}.component.SimplePermissionRemovalPatchRule"
         abstract="true">
         <property name="permissionService" ref="PermissionService" />
     </bean>
 
-    <bean id="${moduleId}.baseSimpleAspectRemovalNodePatchRule" class="${javaPackageName}.patch.SimpleNodeAspectRemovalPatchRule"
+    <bean id="${moduleId}.baseSimpleAspectRemovalNodePatchRule" class="${javaPackageName}.component.SimpleNodeAspectRemovalPatchRule"
         abstract="true">
         <property name="namespaceService" ref="NamespaceService" />
         <property name="dictionaryService" ref="DictionaryService" />
@@ -78,7 +78,7 @@
     </bean>
 
     <bean id="${moduleId}.baseEnsureDefaultAspectPresenceNodePatchRule"
-        class="${javaPackageName}.patch.EnsureDefaultAspectPresenceNodePatchRule" abstract="true">
+        class="${javaPackageName}.component.EnsureDefaultAspectPresenceNodePatchRule" abstract="true">
         <property name="dictionaryService" ref="DictionaryService" />
         <property name="nodeService" ref="NodeService" />
     </bean>

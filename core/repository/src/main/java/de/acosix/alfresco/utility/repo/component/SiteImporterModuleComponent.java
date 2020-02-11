@@ -300,6 +300,8 @@ public class SiteImporterModuleComponent extends AbstractModuleComponent impleme
                     LOGGER.debug("Running content bootstrap for site {}", this.siteName);
                     this.spacesBootstrap.bootstrap();
                 }
+
+                ModuleComponentFlags.flagTransactionalChanges();
             }
             finally
             {

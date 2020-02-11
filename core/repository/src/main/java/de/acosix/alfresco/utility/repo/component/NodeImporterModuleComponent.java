@@ -141,6 +141,7 @@ public class NodeImporterModuleComponent extends ImporterModuleComponent impleme
         try
         {
             super.executeInternal();
+            ModuleComponentFlags.flagTransactionalChanges();
         }
         finally
         {

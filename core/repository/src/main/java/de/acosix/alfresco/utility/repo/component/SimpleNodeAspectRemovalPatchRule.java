@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.acosix.alfresco.utility.repo.patch;
+package de.acosix.alfresco.utility.repo.component;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
+import org.alfresco.service.cmr.dictionary.AspectDefinition;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
-import org.alfresco.service.cmr.dictionary.TypeDefinition;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.PropertyCheck;
 import org.slf4j.Logger;
@@ -30,19 +27,22 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
 /**
- * Simple patch rule which ensures that all default aspects are applied to a node. This patch rule should only be used on nodes which can
- * only have aspects without mandatory non-default properties / associations.
- *
  * @author Axel Faust
  */
-public class EnsureDefaultAspectPresenceNodePatchRule implements NodePatchRule, InitializingBean
+public class SimpleNodeAspectRemovalPatchRule implements NodePatchRule, InitializingBean
 {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(EnsureDefaultAspectPresenceNodePatchRule.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SimpleNodeAspectRemovalPatchRule.class);
+
+    protected NamespaceService namespaceService;
 
     protected DictionaryService dictionaryService;
 
     protected NodeService nodeService;
+
+    protected String aspectName;
+
+    protected QName aspectQName;
 
     /**
      *
@@ -51,8 +51,32 @@ public class EnsureDefaultAspectPresenceNodePatchRule implements NodePatchRule, 
     @Override
     public void afterPropertiesSet()
     {
+        PropertyCheck.mandatory(this, "namespaceService", this.namespaceService);
         PropertyCheck.mandatory(this, "dictionaryService", this.dictionaryService);
         PropertyCheck.mandatory(this, "nodeService", this.nodeService);
+
+        PropertyCheck.mandatory(this, "aspectName", this.aspectName);
+
+        this.aspectQName = QName.resolveToQName(this.namespaceService, this.aspectName);
+        if (this.aspectQName == null)
+        {
+            throw new IllegalStateException("Association  name " + this.aspectName + " cannot be resolved to a QName");
+        }
+
+        final AspectDefinition aspectDef = this.dictionaryService.getAspect(this.aspectQName);
+        if (aspectDef == null)
+        {
+            throw new IllegalStateException("The aspect " + this.aspectName + " is not defined in the data model");
+        }
+    }
+
+    /**
+     * @param namespaceService
+     *            the namespaceService to set
+     */
+    public void setNamespaceService(final NamespaceService namespaceService)
+    {
+        this.namespaceService = namespaceService;
     }
 
     /**
@@ -74,24 +98,25 @@ public class EnsureDefaultAspectPresenceNodePatchRule implements NodePatchRule, 
     }
 
     /**
+     * @param aspectName
+     *            the aspectName to set
+     */
+    public void setAspectName(final String aspectName)
+    {
+        this.aspectName = aspectName;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
     public void apply(final NodeRef node)
     {
-        final QName type = this.nodeService.getType(node);
-        final Set<QName> aspectQNames = this.nodeService.getAspects(node);
-        final TypeDefinition anonymousType = this.dictionaryService.getAnonymousType(type, aspectQNames);
-        final Set<QName> defaultAspectQNames = anonymousType.getDefaultAspectNames();
-
-        final Set<QName> missingAspectQnames = new HashSet<>(defaultAspectQNames);
-        missingAspectQnames.removeAll(aspectQNames);
-
-        if (!missingAspectQnames.isEmpty())
+        if (this.nodeService.hasAspect(node, this.aspectQName))
         {
-            LOGGER.debug("Applying missing aspects {} to {}", missingAspectQnames, node);
-
-            missingAspectQnames.forEach(aspectQName -> this.nodeService.addAspect(node, aspectQName, Collections.emptyMap()));
+            LOGGER.debug("Removing aspect {} from node {}", this.aspectQName, node);
+            this.nodeService.removeAspect(node, this.aspectQName);
         }
     }
+
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.acosix.alfresco.utility.repo.patch;
+package de.acosix.alfresco.utility.repo.component;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -270,12 +270,25 @@ public class NodesPatchModuleComponent extends AbstractModuleComponent implement
     {
         if (!this.propertiesPatchRules.isEmpty() || !this.complexPatchRules.isEmpty())
         {
+            final boolean hasTransactionChanges = ModuleComponentFlags.hasTransactionalChanges();
+            int effectiveWorkerThreads = this.workerThreads;
+            boolean splitTxn = true;
+
+            if (hasTransactionChanges)
+            {
+                LOGGER.info(
+                        "Transaction has been flaged by other module components as having transactional updates - batch processing will be disabled for {}",
+                        this.getName());
+                effectiveWorkerThreads = 1;
+                splitTxn = false;
+            }
+
             final BatchProcessor<NodeRef> patchBatchProcessor = new BatchProcessor<>(this.getName(),
-                    this.transactionService.getRetryingTransactionHelper(), this.workProvider, this.workerThreads, this.batchSize, null,
+                    this.transactionService.getRetryingTransactionHelper(), this.workProvider, effectiveWorkerThreads, this.batchSize, null,
                     LogFactory.getLog(NodesPatchModuleComponent.class), this.loggingInterval);
 
             final BatchProcessWorker<NodeRef> worker = new NodesPatchModuleComponentWorker();
-            patchBatchProcessor.process(worker, true);
+            patchBatchProcessor.process(worker, splitTxn);
         }
         else
         {
