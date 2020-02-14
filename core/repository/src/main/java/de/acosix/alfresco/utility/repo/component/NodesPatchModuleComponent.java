@@ -277,7 +277,7 @@ public class NodesPatchModuleComponent extends AbstractModuleComponent implement
             if (hasTransactionChanges)
             {
                 LOGGER.info(
-                        "Transaction has been flaged by other module components as having transactional updates - batch processing will be disabled for {}",
+                        "Transaction has been flagged by other module components as having transactional updates - batch processing will be disabled for {}",
                         this.getName());
                 effectiveWorkerThreads = 1;
                 splitTxn = false;
