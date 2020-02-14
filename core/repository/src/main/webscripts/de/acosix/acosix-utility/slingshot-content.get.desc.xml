@@ -15,6 +15,6 @@
     <format default="">argument</format>
 
     <authentication>user</authentication>
-    <transaction allow="readonly">required</transaction>
+    <transaction buffersize="4096" allow="readonly">required</transaction>
     <lifecycle>internal</lifecycle>
 </webscript>

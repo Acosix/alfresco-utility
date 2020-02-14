@@ -35,6 +35,6 @@
     <format default="">argument</format>
 
     <authentication>guest</authentication>
-    <transaction allow="readwrite" />
+    <transaction buffersize="4096" allow="readwrite">required</transaction>
     <lifecycle>internal</lifecycle>
 </webscript>
