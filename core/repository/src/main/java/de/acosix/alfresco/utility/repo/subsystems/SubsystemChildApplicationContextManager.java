@@ -16,6 +16,7 @@
 package de.acosix.alfresco.utility.repo.subsystems;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -23,13 +24,14 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.repo.management.subsystems.AbstractPropertyBackedBean;
 import org.alfresco.repo.management.subsystems.DefaultChildApplicationContextManager;
 import org.alfresco.repo.management.subsystems.PropertyBackedBeanState;
+import org.alfresco.util.ParameterCheck;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 
@@ -225,20 +227,37 @@ public class SubsystemChildApplicationContextManager extends DefaultChildApplica
     protected class SubsystemApplicationContextManagerState extends ApplicationContextManagerState
     {
 
+        // identical value to DefaultChildApplicationContextManager.ORDER_PROPERTY (inaccessible)
         private static final String PROPERTY_CHAIN = "chain";
 
-        /** The instance ids. */
-        protected final List<String> instanceIds = new ArrayList<>(10);
+        protected final List<String> instanceIds;
 
-        /** The child application contexts. */
-        protected final Map<String, SubsystemChildApplicationContextFactory> childApplicationContexts = new TreeMap<>();
+        protected final Map<String, SubsystemChildApplicationContextFactory> childApplicationContexts;
 
-        /** The default type name. */
         protected final String defaultTypeName;
 
+        @SuppressWarnings("unchecked")
         protected SubsystemApplicationContextManagerState(final String defaultChain, final String defaultTypeName)
         {
-            super(defaultChain, defaultTypeName);
+            // pass null to avoid most of init logic in private, unextendable methods
+            // especially avoid updateOrder call in base class constructor
+            super(null, null);
+
+            try
+            {
+                final Field childApplicationContextsField = ApplicationContextManagerState.class
+                        .getDeclaredField("childApplicationContexts");
+                final Field instanceIdsField = ApplicationContextManagerState.class.getDeclaredField("instanceIds");
+                childApplicationContextsField.setAccessible(true);
+                instanceIdsField.setAccessible(true);
+                this.childApplicationContexts = (Map<String, SubsystemChildApplicationContextFactory>) childApplicationContextsField
+                        .get(this);
+                this.instanceIds = (List<String>) instanceIdsField.get(this);
+            }
+            catch (NoSuchFieldException | IllegalAccessException e)
+            {
+                throw new AlfrescoRuntimeException("Error synching manager state across class hierarchy", e);
+            }
 
             // Work out what the default type name should be; either specified explicitly or implied by the first member
             // of the default chain
@@ -250,26 +269,36 @@ public class SubsystemChildApplicationContextManager extends DefaultChildApplica
                 {
                     this.updateChain(defaultChain, AbstractPropertyBackedBean.DEFAULT_INSTANCE_NAME);
                     this.defaultTypeName = this.childApplicationContexts.get(this.instanceIds.get(0)).getTypeName();
+                    this.setBaseClassDefaultTypeName(this.defaultTypeName);
                 }
                 else
                 {
                     this.defaultTypeName = defaultTypeName;
+                    this.setBaseClassDefaultTypeName(this.defaultTypeName);
                     this.updateChain(defaultChain, defaultTypeName);
                 }
             }
             else if (defaultTypeName == null)
             {
                 this.defaultTypeName = AbstractPropertyBackedBean.DEFAULT_INSTANCE_NAME;
+                this.setBaseClassDefaultTypeName(this.defaultTypeName);
             }
             else
             {
                 this.defaultTypeName = defaultTypeName;
+                this.setBaseClassDefaultTypeName(this.defaultTypeName);
             }
         }
 
+        /**
+         *
+         * {@inheritDoc}
+         */
         @Override
         public String getProperty(final String name)
         {
+            ParameterCheck.mandatoryString("name", name);
+
             if (!name.equals(PROPERTY_CHAIN))
             {
                 return null;
@@ -277,20 +306,34 @@ public class SubsystemChildApplicationContextManager extends DefaultChildApplica
             return this.getChainString();
         }
 
+        /**
+         *
+         * {@inheritDoc}
+         */
         @Override
         public void setProperty(final String name, final String value)
         {
-            super.setProperty(name, value);
+            ParameterCheck.mandatoryString("name", name);
 
             if (name.equals(PROPERTY_CHAIN))
             {
                 this.updateChain(value, this.defaultTypeName);
             }
+            else
+            {
+                super.setProperty(name, value);
+            }
         }
 
+        /**
+         *
+         * {@inheritDoc}
+         */
         @Override
         public ApplicationContext getApplicationContext(final String id)
         {
+            ParameterCheck.mandatoryString("id", id);
+
             final SubsystemChildApplicationContextFactory child = this.childApplicationContexts.get(id);
             return child == null ? null : child.getApplicationContext();
         }
@@ -303,6 +346,20 @@ public class SubsystemChildApplicationContextManager extends DefaultChildApplica
         protected SubsystemChildApplicationContextFactory getApplicationContextFactory(final String id)
         {
             return this.childApplicationContexts.get(id);
+        }
+
+        protected void setBaseClassDefaultTypeName(final String defaultTypeName)
+        {
+            try
+            {
+                final Field field = ApplicationContextManagerState.class.getDeclaredField("defaultTypeName");
+                field.setAccessible(true);
+                field.set(this, defaultTypeName);
+            }
+            catch (NoSuchFieldException | IllegalAccessException e)
+            {
+                throw new AlfrescoRuntimeException("Error synching manager state across class hierarchy", e);
+            }
         }
 
         protected String getChainString()

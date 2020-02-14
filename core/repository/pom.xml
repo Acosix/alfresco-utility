@@ -84,6 +84,27 @@
         <pluginManagement>
             <plugins>
 
+                <plugin>
+                    <groupId>de.thetaphi</groupId>
+                    <artifactId>forbiddenapis</artifactId>
+                    <configuration>
+                        <failOnUnsupportedJava>false</failOnUnsupportedJava>
+                        <failOnMissingClasses>false</failOnMissingClasses>
+                        <failOnUnresolvableSignatures>false</failOnUnresolvableSignatures>
+                        <bundledSignatures>
+                            <bundledSignature>jdk-unsafe</bundledSignature>
+                            <bundledSignature>jdk-deprecated</bundledSignature>
+                            <bundledSignature>jdk-internal</bundledSignature>
+                            <bundledSignature>jdk-system-out</bundledSignature>
+                            <bundledSignature>jdk-non-portable</bundledSignature>
+                            <!-- disabled (compared to inherited default) as we can't avoid setAccessible -->
+                            <!-- 
+                            <bundledSignature>jdk-reflection</bundledSignature>
+                             -->
+                        </bundledSignatures>
+                    </configuration>
+                </plugin>
+
                 <!-- need this as a vehicle for classloader tests -->
                 <plugin>
                     <artifactId>maven-dependency-plugin</artifactId>

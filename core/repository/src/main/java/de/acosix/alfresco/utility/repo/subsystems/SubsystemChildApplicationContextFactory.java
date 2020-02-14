@@ -161,6 +161,25 @@ public class SubsystemChildApplicationContextFactory extends ChildApplicationCon
      * {@inheritDoc}
      */
     @Override
+    public ApplicationContext getReadOnlyApplicationContext()
+    {
+        this.lock.readLock().lock();
+        try
+        {
+            return ((ApplicationContextState) this.getState(false)).getReadOnlyApplicationContext();
+        }
+        finally
+        {
+            this.lock.readLock().unlock();
+        }
+
+    }
+
+    /**
+     *
+     * {@inheritDoc}
+     */
+    @Override
     public String toString()
     {
         // base class does not offer a proper toString
@@ -213,6 +232,5 @@ public class SubsystemChildApplicationContextFactory extends ChildApplicationCon
         {
             super(allowInitAccess);
         }
-
     }
 }

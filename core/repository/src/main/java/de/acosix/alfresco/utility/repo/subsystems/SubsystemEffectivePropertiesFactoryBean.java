@@ -127,8 +127,17 @@ public class SubsystemEffectivePropertiesFactoryBean
         {
             final String subsystemInstanceId = ((MultiInstanceSubsystemHandler) this.subsystemChildApplicationContextManager)
                     .determineInstanceId(this.applicationContext);
-            effectiveProperties = ((MultiInstanceSubsystemHandler) this.subsystemChildApplicationContextManager)
-                    .getSubsystemEffectiveProperties(subsystemInstanceId);
+            if (subsystemInstanceId != null)
+            {
+                effectiveProperties = ((MultiInstanceSubsystemHandler) this.subsystemChildApplicationContextManager)
+                        .getSubsystemEffectiveProperties(subsystemInstanceId);
+            }
+            else
+            {
+                LOGGER.warn("Subsystem for application context {} could not be resolved to an instance ID via {}", this.applicationContext,
+                        this.subsystemChildApplicationContextManager);
+                effectiveProperties = new Properties();
+            }
         }
         else
         {
