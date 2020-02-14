@@ -625,7 +625,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         final MutablePropertyValues propertyValues = beanDefinition.getPropertyValues();
 
         final boolean isList = definitionKeyRemainder.startsWith(PREFIX_LIST);
-        final boolean isSet = definitionKeyRemainder.startsWith(PREFIX_LIST);
+        final boolean isSet = definitionKeyRemainder.startsWith(PREFIX_SET);
         final boolean isMap = definitionKeyRemainder.startsWith(PREFIX_MAP);
 
         if (isList)
@@ -661,7 +661,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                 if (propertyValue != null && propertyValue.getValue() != null)
                 {
                     LOGGER.debug("[{}] Property {} on {} already defined with value {} - overriding with different value", this.beanName,
-                            beanName, propertyName, propertyValue.getValue());
+                            propertyName, beanName, propertyValue.getValue());
                 }
                 propertyValue = new PropertyValue(propertyName, valueToSet);
                 propertyValues.addPropertyValue(propertyValue);
@@ -937,7 +937,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         PropertyValue propertyValue = propertyValues.getPropertyValue(propertyName);
         if (propertyValue == null)
         {
-            LOGGER.trace("[{}] Property {} on {} not defined yet - initializing new managed list", this.beanName, beanName, propertyName);
+            LOGGER.trace("[{}] Property {} on {} not defined yet - initializing new managed list", this.beanName, propertyName, beanName);
             valueList = new ManagedList<>();
             propertyValue = new PropertyValue(propertyName, valueList);
             propertyValues.addPropertyValue(propertyValue);
@@ -950,7 +950,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         else
         {
             LOGGER.debug("[{}] Property {} on {} already defined with value {} - overriding with list value based on properties",
-                    this.beanName, beanName, propertyName, propertyValue.getValue());
+                    this.beanName, propertyName, beanName, propertyValue.getValue());
             valueList = new ManagedList<>();
             propertyValue = new PropertyValue(propertyName, valueList);
             propertyValues.addPropertyValue(propertyValue);
@@ -966,20 +966,20 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         PropertyValue propertyValue = propertyValues.getPropertyValue(propertyName);
         if (propertyValue == null)
         {
-            LOGGER.trace("[{}] Property {} on {} not defined yet - initializing new managed set", this.beanName, beanName, propertyName);
+            LOGGER.trace("[{}] Property {} on {} not defined yet - initializing new managed set", this.beanName, propertyName, beanName);
             valueSet = new ManagedSet<>();
             propertyValue = new PropertyValue(propertyName, valueSet);
             propertyValues.addPropertyValue(propertyValue);
         }
         else if (propertyValue.getValue() instanceof ManagedList<?>)
         {
-            LOGGER.trace("[{}] Property {} on {} already has a set value - amending", this.beanName, beanName, propertyName);
+            LOGGER.trace("[{}] Property {} on {} already has a set value - amending", this.beanName, propertyName, beanName);
             valueSet = (ManagedSet<Object>) propertyValue.getValue();
         }
         else
         {
             LOGGER.debug("[{}] Property {} on {} already defined with value {} - overriding with set value based on properties",
-                    this.beanName, beanName, propertyName, propertyValue.getValue());
+                    this.beanName, propertyName, beanName, propertyValue.getValue());
             valueSet = new ManagedSet<>();
             propertyValue = new PropertyValue(propertyName, valueSet);
             propertyValues.addPropertyValue(propertyValue);
@@ -995,20 +995,20 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         PropertyValue propertyValue = propertyValues.getPropertyValue(propertyName);
         if (propertyValue == null)
         {
-            LOGGER.trace("[{}] Property {} on {} not defined yet - initializing new managed map", this.beanName, beanName, propertyName);
+            LOGGER.trace("[{}] Property {} on {} not defined yet - initializing new managed map", this.beanName, propertyName, beanName);
             valueMap = new ManagedMap<>();
             propertyValue = new PropertyValue(propertyName, valueMap);
             propertyValues.addPropertyValue(propertyValue);
         }
         else if (propertyValue.getValue() instanceof ManagedMap<?, ?>)
         {
-            LOGGER.trace("[{}] Property {} on {} already has a map value - amending", this.beanName, beanName, propertyName);
+            LOGGER.trace("[{}] Property {} on {} already has a map value - amending", this.beanName, propertyName, beanName);
             valueMap = (ManagedMap<Object, Object>) propertyValue.getValue();
         }
         else
         {
             LOGGER.debug("[{}] Property {} on {} already defined with value {} - overriding with map value based on properties",
-                    this.beanName, beanName, propertyName, propertyValue.getValue());
+                    this.beanName, propertyName, beanName, propertyValue.getValue());
             valueMap = new ManagedMap<>();
             propertyValue = new PropertyValue(propertyName, valueMap);
             propertyValues.addPropertyValue(propertyValue);
@@ -1021,17 +1021,17 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         final Object result;
         if (SUFFIX_PROPERTY_REF.equals(definitionKey))
         {
-            LOGGER.trace("[{}] Treating value of property {} on {} as reference to bean {}", this.beanName, beanName, propertyName, value);
+            LOGGER.trace("[{}] Treating value of property {} on {} as reference to bean {}", this.beanName, propertyName, beanName, value);
             result = new RuntimeBeanReference(value);
         }
         else if (SUFFIX_PROPERTY_NULL.equals(definitionKey) && Boolean.parseBoolean(value))
         {
-            LOGGER.trace("[{}] Treating value of property {} on {} as null", this.beanName, beanName, propertyName);
+            LOGGER.trace("[{}] Treating value of property {} on {} as null", this.beanName, propertyName, beanName);
             result = null;
         }
         else if (definitionKey.isEmpty())
         {
-            LOGGER.trace("[{}] Treating value of property {} on {} as literal value {}", this.beanName, beanName, propertyName, value);
+            LOGGER.trace("[{}] Treating value of property {} on {} as literal value {}", this.beanName, propertyName, beanName, value);
             result = value;
         }
         else
