@@ -45,7 +45,9 @@ import org.springframework.extensions.webscripts.Authenticator;
 import org.springframework.extensions.webscripts.ExtendedScriptConfigModel;
 import org.springframework.extensions.webscripts.ExtendedTemplateConfigModel;
 import org.springframework.extensions.webscripts.ScriptConfigModel;
+import org.springframework.extensions.webscripts.Status;
 import org.springframework.extensions.webscripts.TemplateConfigModel;
+import org.springframework.extensions.webscripts.WebScriptException;
 import org.springframework.extensions.webscripts.WebScriptPropertyResourceBundle;
 import org.springframework.extensions.webscripts.WebScriptRequest;
 import org.springframework.extensions.webscripts.WebScriptResponse;
@@ -198,9 +200,22 @@ public class TenantExtensibilityContainer extends TenantRepositoryContainer impl
             throws IOException
     {
         final ExtensibilityModel extModel = this.openExtensibilityModel();
+        boolean exceptionOccurred = false;
         try
         {
             super.executeScript(scriptReq, scriptRes, auth);
+        }
+        catch (final Exception e)
+        {
+            LOGGER.debug(
+                    "{} occurred during script execution - not closing extensibility model and thus not flushing response (relegated to container status handling)",
+                    e.getClass());
+            exceptionOccurred = true;
+            if (e instanceof RuntimeException || e instanceof IOException)
+            {
+                throw e;
+            }
+            throw new WebScriptException(Status.STATUS_INTERNAL_SERVER_ERROR, "Unexpected error", e);
         }
         finally
         {
@@ -208,7 +223,7 @@ public class TenantExtensibilityContainer extends TenantRepositoryContainer impl
             // model. An example of this would be the StreamContent WebScript. It is important not to attempt to close
             // an unused model since the WebScript executed may have already flushed the response if it has overridden
             // the default .execute() method.
-            if (extModel.isModelStarted())
+            if (!exceptionOccurred && extModel.isModelStarted())
             {
                 try
                 {

@@ -20,6 +20,8 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.extensions.surf.RequestContext;
 import org.springframework.extensions.surf.RequestContextUtil;
 import org.springframework.extensions.surf.ServletUtil;
@@ -29,7 +31,9 @@ import org.springframework.extensions.webscripts.Authenticator;
 import org.springframework.extensions.webscripts.Description;
 import org.springframework.extensions.webscripts.Description.RequiredAuthentication;
 import org.springframework.extensions.webscripts.LocalWebScriptRuntimeContainer;
+import org.springframework.extensions.webscripts.Status;
 import org.springframework.extensions.webscripts.WebScript;
+import org.springframework.extensions.webscripts.WebScriptException;
 import org.springframework.extensions.webscripts.WebScriptRequest;
 import org.springframework.extensions.webscripts.WebScriptResponse;
 import org.springframework.extensions.webscripts.servlet.WebScriptServletRuntime;
@@ -43,6 +47,8 @@ import org.springframework.extensions.webscripts.servlet.WebScriptServletRuntime
  */
 public class ExtensibilityFixedLocalWebScriptRuntimeContainer extends LocalWebScriptRuntimeContainer
 {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExtensibilityFixedLocalWebScriptRuntimeContainer.class);
 
     /**
      * This keeps track of wether the application of extensibility has been suppressed for the current thread.
@@ -137,9 +143,22 @@ public class ExtensibilityFixedLocalWebScriptRuntimeContainer extends LocalWebSc
             {
                 // call through to the parent container to perform the WebScript processing
                 final ExtensibilityModel extModel = this.openExtensibilityModel();
+                boolean exceptionOccurred = false;
                 try
                 {
                     this.executeScriptImpl(scriptReq, scriptRes, auth);
+                }
+                catch (final Exception e)
+                {
+                    LOGGER.debug(
+                            "{} occurred during script execution - not closing extensibility model and thus not flushing response (relegated to container status handling)",
+                            e.getClass());
+                    exceptionOccurred = true;
+                    if (e instanceof RuntimeException || e instanceof IOException)
+                    {
+                        throw e;
+                    }
+                    throw new WebScriptException(Status.STATUS_INTERNAL_SERVER_ERROR, "Unexpected error", e);
                 }
                 finally
                 {
@@ -147,7 +166,7 @@ public class ExtensibilityFixedLocalWebScriptRuntimeContainer extends LocalWebSc
                     // model. An example of this would be the StreamContent WebScript. It is important not to attempt to close
                     // an unused model since the WebScript executed may have already flushed the response if it has overridden
                     // the default .execute() method.
-                    if (extModel.isModelStarted())
+                    if (!exceptionOccurred && extModel.isModelStarted())
                     {
                         this.closeExtensibilityModel(extModel, scriptRes.getWriter());
                     }
