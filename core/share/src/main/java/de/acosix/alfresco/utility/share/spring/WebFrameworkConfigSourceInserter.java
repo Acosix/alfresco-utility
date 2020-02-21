@@ -149,7 +149,7 @@ public class WebFrameworkConfigSourceInserter implements BeanDefinitionRegistryP
             throw new IllegalStateException("None of the 'before' source URLs " + this.beforeConfigSources + " could be found");
         }
 
-        if (endIdx <= startIdx)
+        if (endIdx < startIdx)
         {
             throw new IllegalStateException(
                     "Order of 'after' and 'before' source URLs does not allow for any source URLs to be inserted between them");
