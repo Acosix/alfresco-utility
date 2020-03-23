@@ -68,7 +68,11 @@ public class FixateDateOnlyTimezoneFilter extends AbstractFilter<Object, NodeRef
 
     protected String fixedDateTimezone;
 
+    protected String fixedDateDisplayTimezone;
+
     protected ZoneId timezoneId;
+
+    protected ZoneId displayTimezoneId;
 
     protected List<String> namespaceUris;
 
@@ -82,7 +86,10 @@ public class FixateDateOnlyTimezoneFilter extends AbstractFilter<Object, NodeRef
         PropertyCheck.mandatory(this, "namespaceService", this.namespaceService);
         PropertyCheck.mandatory(this, "dictionaryService", this.dictionaryService);
         PropertyCheck.mandatory(this, "fixedDateTimezone", this.fixedDateTimezone);
+        PropertyCheck.mandatory(this, "fixedDateDisplayTimezone", this.fixedDateDisplayTimezone);
+
         this.timezoneId = ZoneId.of(this.fixedDateTimezone);
+        this.displayTimezoneId = ZoneId.of(this.fixedDateDisplayTimezone);
     }
 
     /**
@@ -110,6 +117,15 @@ public class FixateDateOnlyTimezoneFilter extends AbstractFilter<Object, NodeRef
     public void setFixedDateTimezone(final String fixedDateTimezone)
     {
         this.fixedDateTimezone = fixedDateTimezone;
+    }
+
+    /**
+     * @param fixedDateDisplayTimezone
+     *            the fixedDateDisplayTimezone to set
+     */
+    public void setFixedDateDisplayTimezone(final String fixedDateDisplayTimezone)
+    {
+        this.fixedDateDisplayTimezone = fixedDateDisplayTimezone;
     }
 
     /**
@@ -144,7 +160,8 @@ public class FixateDateOnlyTimezoneFilter extends AbstractFilter<Object, NodeRef
             fieldDefinitions.stream().filter(PropertyFieldDefinition.class::isInstance).map(PropertyFieldDefinition.class::cast)
                     .filter(d -> this.namespaceUris == null
                             || this.namespaceUris.contains(QName.resolveToQName(this.namespaceService, d.getName()).getNamespaceURI()))
-                    .filter(d -> DataTypeDefinition.DATE.equals(QName.resolveToQName(this.namespaceService, d.getDataType())))
+                    .filter(d -> DataTypeDefinition.DATE
+                            .equals(QName.createQName(NamespaceService.DICTIONARY_MODEL_1_0_URI, d.getDataType())))
                     .forEach(fieldDef -> {
                         final FieldData fieldData = form.getFormData().getFieldData(fieldDef.getDataKeyName());
                         if (fieldData != null)
@@ -168,11 +185,15 @@ public class FixateDateOnlyTimezoneFilter extends AbstractFilter<Object, NodeRef
 
                             if (dValue != null)
                             {
-                                final String timezoneFixedDateOnlyValue = dValue.toInstant().atZone(this.timezoneId)
-                                        .format(DateTimeFormatter.ISO_LOCAL_DATE);
-                                LOGGER.debug("Fixed date {} of field {} to timezone {} local date value of {}", dValue, fieldDef.getName(),
-                                        this.timezoneId, timezoneFixedDateOnlyValue);
-                                form.getFormData().addFieldData(fieldDef.getDataKeyName(), timezoneFixedDateOnlyValue, true);
+                                // we need to use a full ISO8601 date for rendering in Share date controls, which use Spring Surf
+                                // ISO8601DateFormatMethod that cannot deal with date-only values
+                                // we use a separately configured display timezone (typically Share server timezone) to ensure we don't have
+                                // issues with timezone shifts
+                                final String timezoneShiftedValue = dValue.toInstant().atZone(this.timezoneId)
+                                        .withZoneSameLocal(this.displayTimezoneId).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+                                LOGGER.debug("Fixed date {} of field {} to timezone {} local value shifted to {} as {}", dValue,
+                                        fieldDef.getName(), this.timezoneId, this.displayTimezoneId, timezoneShiftedValue);
+                                form.getFormData().addFieldData(fieldDef.getDataKeyName(), timezoneShiftedValue, true);
                             }
                         }
                     });
