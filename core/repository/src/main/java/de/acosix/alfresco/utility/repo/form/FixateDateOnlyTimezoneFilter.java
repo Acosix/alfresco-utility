@@ -15,12 +15,22 @@
  */
 package de.acosix.alfresco.utility.repo.form;
 
+import static java.time.temporal.ChronoField.DAY_OF_MONTH;
+import static java.time.temporal.ChronoField.HOUR_OF_DAY;
+import static java.time.temporal.ChronoField.MINUTE_OF_HOUR;
+import static java.time.temporal.ChronoField.MONTH_OF_YEAR;
+import static java.time.temporal.ChronoField.NANO_OF_SECOND;
+import static java.time.temporal.ChronoField.SECOND_OF_MINUTE;
+import static java.time.temporal.ChronoField.YEAR;
 import static org.alfresco.repo.forms.processor.node.FormFieldConstants.PROP_DATA_PREFIX;
 
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.SignStyle;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -61,6 +71,18 @@ public class FixateDateOnlyTimezoneFilter extends AbstractFilter<Object, NodeRef
     private static final Logger LOGGER = LoggerFactory.getLogger(FixateDateOnlyTimezoneFilter.class);
 
     private static final Pattern PROPERTY_NAME_PATTERN = Pattern.compile(PROP_DATA_PREFIX + "([a-zA-Z0-9-]+)_(.*)");
+
+    // custom variant to the regular DateTimeFormatter.ISO_OFFSET_DATE_TIME constant because clients (*cough* Share *cough*) may not be able
+    // to deal with variable nanosecond fraction length
+    private static final DateTimeFormatter ISO_OFFSET_DATE_TIME;
+    static
+    {
+        ISO_OFFSET_DATE_TIME = new DateTimeFormatterBuilder().parseCaseInsensitive().appendValue(YEAR, 4, 10, SignStyle.EXCEEDS_PAD)
+                .appendLiteral('-').appendValue(MONTH_OF_YEAR, 2).appendLiteral('-').appendValue(DAY_OF_MONTH, 2).appendLiteral('T')
+                .appendValue(HOUR_OF_DAY, 2).appendLiteral(':').appendValue(MINUTE_OF_HOUR, 2).optionalStart().appendLiteral(':')
+                .appendValue(SECOND_OF_MINUTE, 2).optionalStart().appendFraction(NANO_OF_SECOND, 3, 3, true).appendOffsetId()
+                .toFormatter(Locale.getDefault(Locale.Category.FORMAT));
+    }
 
     protected NamespaceService namespaceService;
 
@@ -190,7 +212,7 @@ public class FixateDateOnlyTimezoneFilter extends AbstractFilter<Object, NodeRef
                                 // we use a separately configured display timezone (typically Share server timezone) to ensure we don't have
                                 // issues with timezone shifts
                                 final String timezoneShiftedValue = dValue.toInstant().atZone(this.timezoneId)
-                                        .withZoneSameLocal(this.displayTimezoneId).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+                                                .withZoneSameLocal(this.displayTimezoneId).format(ISO_OFFSET_DATE_TIME);
                                 LOGGER.debug("Fixed date {} of field {} to timezone {} local value shifted to {} as {}", dValue,
                                         fieldDef.getName(), this.timezoneId, this.displayTimezoneId, timezoneShiftedValue);
                                 form.getFormData().addFieldData(fieldDef.getDataKeyName(), timezoneShiftedValue, true);
