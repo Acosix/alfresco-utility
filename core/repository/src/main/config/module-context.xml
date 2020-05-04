@@ -40,14 +40,14 @@
         <property name="behaviourFilter" ref="policyBehaviourFilter" />
     </bean>
 
-    <bean id="${moduleId}.baseSimpleNodePropertyMappingPatchRule" class="${javaPackageName}.component.SimpleNodePropertyMappingPatchRule"
-        abstract="true">
+    <bean id="${moduleId}.baseSimpleNodePropertyMappingPatchRule"
+        class="${javaPackageName}.component.SimpleNodePropertyMappingPatchRule" abstract="true">
         <property name="namespaceService" ref="NamespaceService" />
         <property name="dictionaryService" ref="DictionaryService" />
     </bean>
 
-    <bean id="${moduleId}.baseSimpleNodePropertyRemovalPatchRule" class="${javaPackageName}.component.SimpleNodePropertyRemovalPatchRule"
-        abstract="true">
+    <bean id="${moduleId}.baseSimpleNodePropertyRemovalPatchRule"
+        class="${javaPackageName}.component.SimpleNodePropertyRemovalPatchRule" abstract="true">
         <property name="namespaceService" ref="NamespaceService" />
         <property name="dictionaryService" ref="DictionaryService" />
     </bean>
@@ -122,6 +122,20 @@
             </bean>
         </property>
         <property name="parentBeanName" value="webscript.org.alfresco.slingshot.download.get" />
+        <property name="targetBeanName">
+            <idref bean="webscript.de.acosix.acosix-utility.slingshot-content.get" />
+        </property>
+    </bean>
+
+    <bean id="${moduleId}.slingshot-content.get.classSetter"
+        class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
+        <property name="enabled" value="true" />
+        <property name="condition">
+            <bean class="${common.artifactId}.spring.condition.BeanDefinedCondition">
+                <property name="beanName" value="webscript.org.alfresco.slingshot.download.get" />
+            </bean>
+        </property>
+        <property name="replacementClassName" value="${javaPackageName}.web.scripts.SlingshotContentGetWithStatus" />
         <property name="targetBeanName">
             <idref bean="webscript.de.acosix.acosix-utility.slingshot-content.get" />
         </property>

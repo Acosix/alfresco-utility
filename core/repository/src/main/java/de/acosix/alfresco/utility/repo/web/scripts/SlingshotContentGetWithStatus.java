@@ -19,9 +19,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.alfresco.repo.web.scripts.content.ContentGet;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.namespace.QName;
+import org.alfresco.slingshot.web.scripts.SlingshotContentGet;
 import org.springframework.extensions.webscripts.Cache;
 import org.springframework.extensions.webscripts.Status;
 import org.springframework.extensions.webscripts.WebScriptException;
@@ -31,7 +31,7 @@ import org.springframework.extensions.webscripts.WebScriptResponse;
 /**
  * @author Axel Faust
  */
-public class ContentGetWithStatus extends ContentGet
+public class SlingshotContentGetWithStatus extends SlingshotContentGet
 {
 
     protected final ThreadLocal<Boolean> streamCalled = new ThreadLocal<>();
