@@ -177,7 +177,7 @@ public class FixateDateOnlyTimezoneFilter extends AbstractFilter<Object, NodeRef
             final Map<String, Object> context)
     {
         final List<FieldDefinition> fieldDefinitions = form.getFieldDefinitions();
-        if (fieldDefinitions != null)
+        if (fieldDefinitions != null && form.getFormData() != null)
         {
             fieldDefinitions.stream().filter(PropertyFieldDefinition.class::isInstance).map(PropertyFieldDefinition.class::cast)
                     .filter(d -> this.namespaceUris == null
