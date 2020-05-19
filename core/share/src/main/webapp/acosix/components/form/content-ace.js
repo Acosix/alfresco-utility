@@ -18,9 +18,21 @@
 
 (function()
 {
-    var Dom;
+    var Dom, defaultCreateYUIPanel;
 
     Dom = YAHOO.util.Dom;
+
+    // need to ensure that any YUI panel uses a zIndex higher than the highest value introduced by ACE
+    defaultCreateYUIPanel = Alfresco.util.createYUIPanel;
+    Alfresco.util.createYUIPanel = function Acosix_formControls_Content_aceHtml__createYUIPanelFix(el, params, custom)
+    {
+        var efParams;
+
+        efParams = params || {};
+        efParams.zIndex = !efParams.zIndex || efParams.zIndex <= 6 ? 7 : efParams.zIndex;
+
+        return defaultCreateYUIPanel(el, efParams, custom);
+    };
 
     YAHOO.Bubbling.fire('Acosix.formControls.Content.registerEditor', {
         name : 'ace-html',
