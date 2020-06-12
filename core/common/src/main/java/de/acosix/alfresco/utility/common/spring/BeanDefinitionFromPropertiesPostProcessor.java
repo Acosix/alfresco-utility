@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.alfresco.util.Pair;
 import org.slf4j.Logger;
@@ -76,6 +77,8 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
     private static final String FRAGMENT_PROPERTY = ".property.";
 
     private static final String FRAGMENT_RENAME = "._rename.";
+
+    private static final String SUFFIX_PROCESS = "._process";
 
     private static final String SUFFIX_REMOVE = "._remove";
 
@@ -275,8 +278,21 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
 
                 LOGGER.info("[{}] Processing beans defined via properties files using prefix {}", this.beanName, this.propertyPrefix);
 
+                final Set<Object> processedKeys = new HashSet<>();
+                final Map<String, Boolean> processableByBeanName = new HashMap<>();
                 final Map<String, BeanDefinition> beanDefinitions = new HashMap<>();
                 final Set<String> updatedBeanNames = new HashSet<>();
+
+                final Predicate<String> isProcessableBean = beanName -> Boolean.TRUE
+                        .equals(processableByBeanName.computeIfAbsent(beanName, beanNameI -> {
+
+                            final String key = this.propertyPrefix + DOT + beanNameI + SUFFIX_PROCESS;
+                            processedKeys.add(key);
+                            String value = this.propertiesSource.getProperty(key, "true");
+                            value = this.placeholderHelper.replacePlaceholders(value, this.propertiesSource);
+                                    final Boolean processeable = Boolean.valueOf(value);
+                            return processeable;
+                        }));
 
                 final Function<String, BeanDefinition> getOrCreateBeanDefinition = beanName -> {
                     BeanDefinition definition;
@@ -309,9 +325,10 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                     }
                 };
 
-                final Set<Object> processedKeys = new HashSet<>();
-                this.processRenamesOrRemovals(registry, processedKeys, updatedBeanNames);
-                this.processBeanConfigurations(getOrCreateBeanDefinition, processedKeys, updatedBeanNames, paddedListRegistrator);
+                this.processRenamesOrRemovals(registry, isProcessableBean, processedKeys, updatedBeanNames);
+                this.processBeanConfigurations(isProcessableBean, getOrCreateBeanDefinition, processedKeys,
+                        updatedBeanNames,
+                        paddedListRegistrator);
 
                 this.compressPaddedLists(paddedLists);
 
@@ -395,8 +412,9 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         return processeableKeyAndValue;
     }
 
-    protected void processRenamesOrRemovals(final BeanDefinitionRegistry registry, final Set<Object> processedKeys,
-            final Set<String> updatedBeanNames)
+    protected void processRenamesOrRemovals(final BeanDefinitionRegistry registry,
+            final Predicate<String> isProcessableBean,
+            final Set<Object> processedKeys, final Set<String> updatedBeanNames)
     {
         final String effectivePropertyPrefix = this.propertyPrefix + DOT;
 
@@ -417,51 +435,26 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                         if (beanDefinitionKey.contains(FRAGMENT_RENAME))
                         {
                             final String beanName = beanDefinitionKey.substring(0, beanDefinitionKey.indexOf(FRAGMENT_RENAME));
-                            final String targetBeanName = beanDefinitionKey
-                                    .substring(beanDefinitionKey.indexOf(FRAGMENT_RENAME) + FRAGMENT_RENAME.length());
-
-                            if (Boolean.parseBoolean(resolvedValue))
+                            if (isProcessableBean.test(beanName))
                             {
-                                if (registry.containsBeanDefinition(beanName))
-                                {
-                                    LOGGER.debug("[{}] Renaming bean {} to {}", this.beanName, beanName, targetBeanName);
-                                    final BeanDefinition beanDefinition = registry.getBeanDefinition(beanName);
-                                    registry.removeBeanDefinition(beanName);
-                                    registry.registerBeanDefinition(targetBeanName, beanDefinition);
-                                }
-                                else
-                                {
-                                    LOGGER.debug("[{}] Unable to rename bean {} to {} - bean has not been defined", this.beanName, beanName,
-                                            targetBeanName);
-                                }
+                                this.processBeanRename(registry, beanName, key, beanDefinitionKey, resolvedValue, processedKeys);
                             }
                             else
                             {
-                                LOGGER.debug("[{}] Not renaming bean {} to {} due to non-true property value", this.beanName, beanName,
-                                        targetBeanName);
+                                LOGGER.trace("[{}] Processing of bean {} has been disabled", this.beanName, beanName);
                             }
-                            processedKeys.add(key);
                         }
                         else if (beanDefinitionKey.endsWith(SUFFIX_REMOVE))
                         {
                             final String beanName = beanDefinitionKey.substring(0, beanDefinitionKey.indexOf(SUFFIX_REMOVE));
-                            if (Boolean.parseBoolean(resolvedValue))
+                            if (isProcessableBean.test(beanName))
                             {
-                                if (registry.containsBeanDefinition(beanName))
-                                {
-                                    LOGGER.debug("[{}] Removing bean {}", this.beanName, beanName);
-                                    registry.removeBeanDefinition(beanName);
-                                }
-                                else
-                                {
-                                    LOGGER.debug("[{}] Unable to remove bean {} - bean has not been defined", this.beanName, beanName);
-                                }
+                                this.processBeanRemoval(registry, beanName, key, beanDefinitionKey, resolvedValue, processedKeys);
                             }
                             else
                             {
-                                LOGGER.debug("[{}] Not removing bean {} due to non-true property value", this.beanName, beanName);
+                                LOGGER.trace("[{}] Processing of bean {} has been disabled", this.beanName, beanName);
                             }
-                            processedKeys.add(key);
                         }
                         else
                         {
@@ -472,43 +465,20 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                     else
                     {
                         final String beanName = beanDefinitionKey.substring(0, propertyFragmentIdx);
-                        final String propertyDefinitionKey = beanDefinitionKey.substring(propertyFragmentIdx + FRAGMENT_PROPERTY.length());
-
-                        if (propertyDefinitionKey.endsWith(SUFFIX_REMOVE))
+                        if (isProcessableBean.test(beanName))
                         {
-                            final String propertyName = propertyDefinitionKey.substring(0, propertyDefinitionKey.indexOf(SUFFIX_REMOVE));
-                            if (registry.containsBeanDefinition(beanName))
+                            final String propertyDefinitionKey = beanDefinitionKey
+                                    .substring(propertyFragmentIdx + FRAGMENT_PROPERTY.length());
+
+                            if (propertyDefinitionKey.endsWith(SUFFIX_REMOVE))
                             {
-                                final BeanDefinition beanDefinition = registry.getBeanDefinition(beanName);
-                                final MutablePropertyValues propertyValues = beanDefinition.getPropertyValues();
-                                if (propertyValues.contains(propertyName))
-                                {
-                                    if (value instanceof String && Boolean.parseBoolean(resolvedValue))
-                                    {
-                                        LOGGER.debug("[{}] Removing property {} from {}", this.beanName, propertyName, beanName);
-                                        propertyValues.removePropertyValue(propertyName);
-                                        updatedBeanNames.add(beanName);
-                                    }
-                                    else
-                                    {
-                                        LOGGER.debug("[{}] Not removing property {} from [} due to non-true property value", this.beanName,
-                                                propertyName, beanName);
-                                    }
-                                    processedKeys.add(key);
-                                }
-                                else
-                                {
-                                    LOGGER.trace(
-                                            "[{}] Property {} not found in bean {} - key {} may refer to removal of values in collection-like property",
-                                            this.beanName, propertyName, beanName, key);
-                                }
+                                this.processPropertyRemoval(registry, beanName, updatedBeanNames, key, propertyDefinitionKey, resolvedValue,
+                                        processedKeys);
                             }
-                            else
-                            {
-                                LOGGER.debug("[{}] Unable to remove property {} from {} - bean has not been defined", this.beanName,
-                                        propertyName, beanName);
-                                processedKeys.add(key);
-                            }
+                        }
+                        else
+                        {
+                            LOGGER.trace("[{}] Processing of bean {} has been disabled", this.beanName, beanName);
                         }
                     }
                 }
@@ -517,8 +487,93 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
 
     }
 
-    protected void processBeanConfigurations(final Function<String, BeanDefinition> getOrCreateBeanDefinition,
-            final Set<Object> processedKeys, final Set<String> updatedBeanNames, final Consumer<ManagedList<?>> paddedListRegistrator)
+    protected void processBeanRename(final BeanDefinitionRegistry registry, final String beanName, final Object key,
+            final String beanDefinitionKey, final String value, final Set<Object> processedKeys)
+    {
+        final String targetBeanName = beanDefinitionKey.substring(beanDefinitionKey.indexOf(FRAGMENT_RENAME) + FRAGMENT_RENAME.length());
+
+        if (Boolean.parseBoolean(value))
+        {
+            if (registry.containsBeanDefinition(beanName))
+            {
+                LOGGER.debug("[{}] Renaming bean {} to {}", this.beanName, beanName, targetBeanName);
+                final BeanDefinition beanDefinition = registry.getBeanDefinition(beanName);
+                registry.removeBeanDefinition(beanName);
+                registry.registerBeanDefinition(targetBeanName, beanDefinition);
+            }
+            else
+            {
+                LOGGER.debug("[{}] Unable to rename bean {} to {} - bean has not been defined", this.beanName, beanName, targetBeanName);
+            }
+        }
+        else
+        {
+            LOGGER.debug("[{}] Not renaming bean {} to {} due to non-true property value", this.beanName, beanName, targetBeanName);
+        }
+        processedKeys.add(key);
+    }
+
+    protected void processBeanRemoval(final BeanDefinitionRegistry registry, final String beanName, final Object key,
+            final String beanDefinitionKey, final String value, final Set<Object> processedKeys)
+    {
+        if (Boolean.parseBoolean(value))
+        {
+            if (registry.containsBeanDefinition(beanName))
+            {
+                LOGGER.debug("[{}] Removing bean {}", this.beanName, beanName);
+                registry.removeBeanDefinition(beanName);
+            }
+            else
+            {
+                LOGGER.debug("[{}] Unable to remove bean {} - bean has not been defined", this.beanName, beanName);
+            }
+        }
+        else
+        {
+            LOGGER.debug("[{}] Not removing bean {} due to non-true property value", this.beanName, beanName);
+        }
+        processedKeys.add(key);
+    }
+
+    protected void processPropertyRemoval(final BeanDefinitionRegistry registry, final String beanName, final Set<String> updatedBeanNames,
+            final Object key, final String propertyDefinitionKey, final String value, final Set<Object> processedKeys)
+    {
+        final String propertyName = propertyDefinitionKey.substring(0, propertyDefinitionKey.indexOf(SUFFIX_REMOVE));
+        if (registry.containsBeanDefinition(beanName))
+        {
+            final BeanDefinition beanDefinition = registry.getBeanDefinition(beanName);
+            final MutablePropertyValues propertyValues = beanDefinition.getPropertyValues();
+            if (propertyValues.contains(propertyName))
+            {
+                if (Boolean.parseBoolean(value))
+                {
+                    LOGGER.debug("[{}] Removing property {} from {}", this.beanName, propertyName, beanName);
+                    propertyValues.removePropertyValue(propertyName);
+                    updatedBeanNames.add(beanName);
+                }
+                else
+                {
+                    LOGGER.debug("[{}] Not removing property {} from [} due to non-true property value", this.beanName, propertyName,
+                            beanName);
+                }
+                processedKeys.add(key);
+            }
+            else
+            {
+                LOGGER.trace("[{}] Property {} not found in bean {} - key {} may refer to removal of values in collection-like property",
+                        this.beanName, propertyName, beanName, key);
+            }
+        }
+        else
+        {
+            LOGGER.debug("[{}] Unable to remove property {} from {} - bean has not been defined", this.beanName, propertyName, beanName);
+            processedKeys.add(key);
+        }
+    }
+
+    protected void processBeanConfigurations(final Predicate<String> isProcessableBean,
+            final Function<String, BeanDefinition> getOrCreateBeanDefinition, final Set<Object> processedKeys,
+            final Set<String> updatedBeanNames, final Consumer<ManagedList<?>> paddedListRegistrator)
     {
         final String effectivePropertyPrefix = this.propertyPrefix + DOT;
 
@@ -541,48 +596,83 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                         if (beanDefinitionKey.endsWith(SUFFIX_CLASS_NAME))
                         {
                             final String beanName = beanDefinitionKey.substring(0, beanDefinitionKey.length() - SUFFIX_CLASS_NAME.length());
-                            LOGGER.debug("[{}] Setting class name of bean {} to {}", this.beanName, beanName, resolvedValue);
-                            getOrCreateBeanDefinition.apply(beanName).setBeanClassName(resolvedValue);
-                            processedKeys.add(key);
-                            updatedBeanNames.add(beanName);
+                            if (isProcessableBean.test(beanName))
+                            {
+                                LOGGER.debug("[{}] Setting class name of bean {} to {}", this.beanName, beanName, resolvedValue);
+                                getOrCreateBeanDefinition.apply(beanName).setBeanClassName(resolvedValue);
+                                processedKeys.add(key);
+                                updatedBeanNames.add(beanName);
+                            }
+                            else
+                            {
+                                LOGGER.trace("[{}] Processing of bean {} has been disabled", this.beanName, beanName);
+                            }
                         }
                         else if (beanDefinitionKey.endsWith(SUFFIX_PARENT))
                         {
                             final String beanName = beanDefinitionKey.substring(0, beanDefinitionKey.length() - SUFFIX_PARENT.length());
-                            LOGGER.debug("[{}] Setting parent of bean {} to {}", this.beanName, beanName, resolvedValue);
-                            getOrCreateBeanDefinition.apply(beanName).setParentName(resolvedValue);
-                            processedKeys.add(key);
-                            updatedBeanNames.add(beanName);
+                            if (isProcessableBean.test(beanName))
+                            {
+                                LOGGER.debug("[{}] Setting parent of bean {} to {}", this.beanName, beanName, resolvedValue);
+                                getOrCreateBeanDefinition.apply(beanName).setParentName(resolvedValue);
+                                processedKeys.add(key);
+                                updatedBeanNames.add(beanName);
+                            }
+                            else
+                            {
+                                LOGGER.trace("[{}] Processing of bean {} has been disabled", this.beanName, beanName);
+                            }
                         }
                         else if (beanDefinitionKey.endsWith(SUFFIX_SCOPE))
                         {
                             final String beanName = beanDefinitionKey.substring(0, beanDefinitionKey.length() - SUFFIX_SCOPE.length());
-                            LOGGER.debug("[{}] Setting scope of bean {} to {}", this.beanName, beanName, resolvedValue);
-                            getOrCreateBeanDefinition.apply(beanName).setScope(resolvedValue);
-                            processedKeys.add(key);
-                            updatedBeanNames.add(beanName);
+                            if (isProcessableBean.test(beanName))
+                            {
+                                LOGGER.debug("[{}] Setting scope of bean {} to {}", this.beanName, beanName, resolvedValue);
+                                getOrCreateBeanDefinition.apply(beanName).setScope(resolvedValue);
+                                processedKeys.add(key);
+                                updatedBeanNames.add(beanName);
+                            }
+                            else
+                            {
+                                LOGGER.trace("[{}] Processing of bean {} has been disabled", this.beanName, beanName);
+                            }
                         }
                         else if (beanDefinitionKey.endsWith(SUFFIX_DEPENDS_ON))
                         {
                             final String beanName = beanDefinitionKey.substring(0, beanDefinitionKey.length() - SUFFIX_DEPENDS_ON.length());
-                            LOGGER.debug("[{}] Setting dependsOn of bean {} to {}", this.beanName, beanName, resolvedValue);
-                            getOrCreateBeanDefinition.apply(beanName).setDependsOn(resolvedValue.split(","));
-                            processedKeys.add(key);
-                            updatedBeanNames.add(beanName);
+                            if (isProcessableBean.test(beanName))
+                            {
+                                LOGGER.debug("[{}] Setting dependsOn of bean {} to {}", this.beanName, beanName, resolvedValue);
+                                getOrCreateBeanDefinition.apply(beanName).setDependsOn(resolvedValue.split(","));
+                                processedKeys.add(key);
+                                updatedBeanNames.add(beanName);
+                            }
+                            else
+                            {
+                                LOGGER.trace("[{}] Processing of bean {} has been disabled", this.beanName, beanName);
+                            }
                         }
                         else if (beanDefinitionKey.endsWith(SUFFIX_ABSTRACT))
                         {
                             final String beanName = beanDefinitionKey.substring(0, beanDefinitionKey.length() - SUFFIX_ABSTRACT.length());
-                            LOGGER.debug("[{}] Setting abstract of bean {} to {}", this.beanName, beanName, resolvedValue);
-                            final BeanDefinition beanDefinition = getOrCreateBeanDefinition.apply(beanName);
-                            if (beanDefinition instanceof AbstractBeanDefinition)
+                            if (isProcessableBean.test(beanName))
                             {
-                                ((AbstractBeanDefinition) beanDefinition).setAbstract(Boolean.parseBoolean(resolvedValue));
-                                updatedBeanNames.add(beanName);
+                                LOGGER.debug("[{}] Setting abstract of bean {} to {}", this.beanName, beanName, resolvedValue);
+                                final BeanDefinition beanDefinition = getOrCreateBeanDefinition.apply(beanName);
+                                if (beanDefinition instanceof AbstractBeanDefinition)
+                                {
+                                    ((AbstractBeanDefinition) beanDefinition).setAbstract(Boolean.parseBoolean(resolvedValue));
+                                    updatedBeanNames.add(beanName);
+                                }
+                                processedKeys.add(key);
                             }
-                            processedKeys.add(key);
+                            else
+                            {
+                                LOGGER.trace("[{}] Processing of bean {} has been disabled", this.beanName, beanName);
+                            }
                         }
-                        else
+                        else if (!beanDefinitionKey.endsWith(SUFFIX_PROCESS))
                         {
                             LOGGER.warn("[{}] Unsupported setting: {} = {}", this.beanName, key, resolvedValue);
                         }
@@ -590,13 +680,21 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                     else
                     {
                         final String beanName = beanDefinitionKey.substring(0, propertyFragmentIdx);
-                        final String propertyDefinitionKey = beanDefinitionKey.substring(propertyFragmentIdx + FRAGMENT_PROPERTY.length());
-                        final BeanDefinition beanDefinition = getOrCreateBeanDefinition.apply(beanName);
-                        this.processPropertyValueDefinition(beanName, propertyDefinitionKey, resolvedValue, beanDefinition,
-                                paddedListRegistrator);
-                        updatedBeanNames.add(beanName);
+                        if (isProcessableBean.test(beanName))
+                        {
+                            final String propertyDefinitionKey = beanDefinitionKey
+                                    .substring(propertyFragmentIdx + FRAGMENT_PROPERTY.length());
+                            final BeanDefinition beanDefinition = getOrCreateBeanDefinition.apply(beanName);
+                            this.processPropertyValueDefinition(beanName, propertyDefinitionKey, resolvedValue, beanDefinition,
+                                    paddedListRegistrator);
+                            updatedBeanNames.add(beanName);
 
-                        processedKeys.add(key);
+                            processedKeys.add(key);
+                        }
+                        else
+                        {
+                            LOGGER.trace("[{}] Processing of bean {} has been disabled", this.beanName, beanName);
+                        }
                     }
                 }
             }

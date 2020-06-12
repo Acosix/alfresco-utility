@@ -118,6 +118,18 @@ public class BeanDefinitionFromPropertiesPostProcessorTest
         }
     }
 
+    @Test
+    public void processFlag()
+    {
+        try (final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+                "classpath:BeanDefinitionFromPropertiesPostProcessorTest/processFlag-context.xml"))
+        {
+            Assert.assertTrue("beanTypeX.processedBean1 should have been defined", context.containsBean("beanTypeX.processedBean1"));
+            Assert.assertTrue("beanTypeX.processedBean2 should have been defined", context.containsBean("beanTypeX.processedBean2"));
+            Assert.assertFalse("beanTypeX.unprocessedBean should not have been defined", context.containsBean("beanTypeX.unprocessedBean"));
+        }
+    }
+
     // TODO Test constructs with override / removal of predefined beans
 
     protected void verifyBean(final TestDummyBean beanToVerify, final TestDummyBean refBean1, final TestDummyBean refBean2,
