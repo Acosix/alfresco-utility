@@ -5,3 +5,6 @@ bin/
 target/
 alfresco.log
 alfresco.log.*
+.idea/
+*.iml
+*.iws
