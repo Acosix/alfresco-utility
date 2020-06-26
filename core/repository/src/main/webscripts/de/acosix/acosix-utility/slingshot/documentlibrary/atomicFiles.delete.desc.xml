@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<webscript>
+    <shortname>files</shortname>
+    <description>Document List Action - Delete multiple files in an atomic operation</description>
+    <url>/slingshot/doclib/action/atomicFiles</url>
+    <format default="json">argument</format>
+    <authentication>user</authentication>
+    <transaction>required</transaction>
+    <lifecycle>internal</lifecycle>
+</webscript>

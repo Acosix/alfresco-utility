@@ -46,7 +46,9 @@
 
                 <config evaluator="string-compare" condition="DocLibCustom">
                     <dependencies>
+                        <css src="acosix/components/documentlibrary/toolbar.css" />
                         <js src="acosix/components/documentlibrary/toolbar.js" />
+                        <js src="acosix/components/documentlibrary/actions.js" />
                     </dependencies>
                 </config>
             </configurations>

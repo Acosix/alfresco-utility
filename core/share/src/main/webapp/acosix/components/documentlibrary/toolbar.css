@@ -1,0 +1,5 @@
+.toolbar .onToolbarActionDeleteWithBackendErrorMessage,
+.toolbar .onToolbarActionAtomicDeleteWithBackendErrorMessage
+{
+   background-image: url(../../../components/documentlibrary/actions/document-delete-16.png);
+}
