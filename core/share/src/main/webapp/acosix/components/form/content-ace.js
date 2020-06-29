@@ -18,7 +18,7 @@
 
 (function()
 {
-    var Dom, defaultCreateYUIPanel;
+    var Dom, defaultCreateYUIPanel, lastChange;
 
     Dom = YAHOO.util.Dom;
 
@@ -103,11 +103,36 @@
             editor.on('change', function()
             {
                 textArea.value = editor.getValue();
-
                 onChange();
+                lastChange = new Date().getTime();
             });
 
             Dom.addClass(textArea, 'hidden');
+
+            // start timer to keep session alive
+            // once every 5 minutes should be sufficient to prevent HTTP session / auth expiration if user is active
+            setInterval(function()
+            {
+                var now = new Date().getTime();
+                if (lastChange && (now - lastChange) < 5 * 60 * 1000)
+                {
+                    Alfresco.util.Ajax.jsonGet({
+                        url : Alfresco.constants.URL_SERVICECONTEXT + 'modules/authenticated?noCache=' + now,
+                        successCallback : {
+                            fn : function noop()
+                            {
+                                // NO-OP
+                            }
+                        },
+                        failureCallback : {
+                            fn : function noop()
+                            {
+                                // NO-OP
+                            }
+                        }
+                    });
+                }
+            }, 5 * 60 * 1000);
 
             return editor;
         }
