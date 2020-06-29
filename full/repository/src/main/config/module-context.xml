@@ -351,4 +351,90 @@
         </property>
     </bean>
 
+    <bean id="${moduleId}.legacyTransform.executorServicePatch.condition"
+        class="${common.artifactId}.spring.condition.AggregateCondition">
+        <property name="conditions">
+            <list>
+                <bean class="${common.artifactId}.spring.condition.BeanDefinedCondition">
+                    <property name="beanName" value="legacyTransformClient" />
+                </bean>
+                <bean class="${common.artifactId}.spring.condition.BeanPropertySetCondition">
+                    <property name="beanName" value="legacyTransformClient" />
+                    <property name="propertyName" value="executorService" />
+                    <property name="negate" value="true" />
+                </bean>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="${moduleId}.legacyTransform.executorServicePatch.threadPool" abstract="true"
+        class="org.alfresco.util.ThreadPoolExecutorFactoryBean">
+        <property name="poolName" value="legacy.transform.service" />
+        <property name="corePoolSize" value="${legacy.transform.service.corePoolSize}" />
+        <property name="maximumPoolSize" value="${legacy.transform.service.maximumPoolSize}" />
+        <property name="threadPriority" value="${legacy.transform.service.threadPriority}" />
+    </bean>
+
+    <bean id="${moduleId}.legacyTransform.executorServicePatch.registerThreadPool"
+        class="${common.artifactId}.spring.PropertyAlteringBeanDefinitionRegistryPostProcessor">
+        <property name="enabledPropertyKey" value="{${configModuleId}.localTransform.executorService.enabled" />
+        <property name="propertiesSource" ref="global-properties" />
+        <property name="condition" ref="${moduleId}.legacyTransform.executorServicePatch.condition" />
+        <property name="targetBeanName" value="legacyTransformClient" />
+        <property name="expectedClassName" value="org.alfresco.repo.rendition2.LegacyTransformClient" />
+        <property name="propertyName" value="executorService" />
+        <property name="beanReferenceName" value="${moduleId}.legacyTransform.executorServicePatch.threadPool" />
+    </bean>
+
+    <bean id="${moduleId}.legacyTransform.executorServicePatch.enableThreadPool"
+        class="${common.artifactId}.spring.BeanDeAbstractifyingBeanDefinitionRegistryPostProcessor">
+        <property name="enabledPropertyKey" value="{${configModuleId}.localTransform.executorService.enabled" />
+        <property name="propertiesSource" ref="global-properties" />
+        <property name="condition" ref="${moduleId}.legacyTransform.executorServicePatch.condition" />
+        <property name="targetBeanName" value="${moduleId}.legacyTransform.executorServicePatch.threadPool" />
+    </bean>
+
+    <bean id="${moduleId}.localTransform.executorServicePatch.condition"
+        class="${common.artifactId}.spring.condition.AggregateCondition">
+        <property name="conditions">
+            <list>
+                <bean class="${common.artifactId}.spring.condition.BeanDefinedCondition">
+                    <property name="beanName" value="localTransformClient" />
+                </bean>
+                <bean class="${common.artifactId}.spring.condition.BeanPropertySetCondition">
+                    <property name="beanName" value="localTransformClient" />
+                    <property name="propertyName" value="executorService" />
+                    <property name="negate" value="true" />
+                </bean>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="${moduleId}.localTransform.executorServicePatch.threadPool" abstract="true"
+        class="org.alfresco.util.ThreadPoolExecutorFactoryBean">
+        <property name="poolName" value="legacy.transform.service" />
+        <property name="corePoolSize" value="${local.transform.service.corePoolSize}" />
+        <property name="maximumPoolSize" value="${local.transform.service.maximumPoolSize}" />
+        <property name="threadPriority" value="${local.transform.service.threadPriority}" />
+    </bean>
+
+    <bean id="${moduleId}.localTransform.executorServicePatch.registerThreadPool"
+        class="${common.artifactId}.spring.PropertyAlteringBeanDefinitionRegistryPostProcessor">
+        <property name="enabledPropertyKey" value="{${configModuleId}.localTransform.executorService.enabled" />
+        <property name="propertiesSource" ref="global-properties" />
+        <property name="condition" ref="${moduleId}.localTransform.executorServicePatch.condition" />
+        <property name="targetBeanName" value="localTransformClient" />
+        <property name="expectedClassName" value="org.alfresco.repo.rendition2.LocalTransformClient" />
+        <property name="propertyName" value="executorService" />
+        <property name="beanReferenceName" value="${moduleId}.localTransform.executorServicePatch.threadPool" />
+    </bean>
+
+    <bean id="${moduleId}.localTransform.executorServicePatch.enableThreadPool"
+        class="${common.artifactId}.spring.BeanDeAbstractifyingBeanDefinitionRegistryPostProcessor">
+        <property name="enabledPropertyKey" value="{${configModuleId}.localTransform.executorService.enabled" />
+        <property name="propertiesSource" ref="global-properties" />
+        <property name="condition" ref="${moduleId}.localTransform.executorServicePatch.condition" />
+        <property name="targetBeanName" value="${moduleId}.localTransform.executorServicePatch.threadPool" />
+    </bean>
+
 </beans>
