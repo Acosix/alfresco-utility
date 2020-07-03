@@ -26,4 +26,22 @@
             </list>
         </property>
     </bean>
+
+    <bean class="${javaPackageName}.spring.WebFrameworkConfigSourceInserter">
+        <property name="afterConfigSources">
+            <list>
+                <value>classpath:alfresco/share-config.xml</value>
+            </list>
+        </property>
+        <property name="beforeConfigSources">
+            <list>
+                <value>classpath:alfresco/share-form-config.xml</value>
+            </list>
+        </property>
+        <property name="configSources">
+            <list>
+                <value>classpath:alfresco/module/${moduleId}/form-config.xml</value>
+            </list>
+        </property>
+    </bean>
 </beans>

@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<alfresco-config>
+    <config>
+        <forms>
+            <dependencies>
+                <js src="/acosix/components/object-finder/category-aware-object-finder.js" />
+            </dependencies>
+        </forms>
+    </config>
+</alfresco-config>
