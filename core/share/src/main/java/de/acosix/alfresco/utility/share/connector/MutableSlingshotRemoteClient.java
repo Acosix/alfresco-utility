@@ -32,15 +32,52 @@ import org.alfresco.web.scripts.SlingshotRemoteClient;
 public class MutableSlingshotRemoteClient extends SlingshotRemoteClient
 {
 
-    protected final Set<String> removeRequestHeaders = new HashSet<>();
+    protected Set<String> removeRequestHeaders = new HashSet<>();
 
-    protected final Set<String> removeResponseHeaders = new HashSet<>();
+    protected Set<String> removeResponseHeaders = new HashSet<>();
 
-    protected final Map<String, String> requestProperties = new HashMap<>();
+    protected Map<String, String> requestProperties = new HashMap<>();
 
-    protected final Map<String, String> requestHeaders = new HashMap<>();
+    protected Map<String, String> requestHeaders = new HashMap<>();
 
-    protected final Map<String, String> cookies = new HashMap<>();
+    protected Map<String, String> cookies = new HashMap<>();
+
+    protected boolean swfEnabled;
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setSwfEnabled(final boolean swfEnabled)
+    {
+        super.setSwfEnabled(swfEnabled);
+        this.swfEnabled = swfEnabled;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Object clone() throws CloneNotSupportedException
+    {
+        final MutableSlingshotRemoteClient clone = (MutableSlingshotRemoteClient) super.clone();
+        // not handled by base class
+        clone.setSwfEnabled(this.swfEnabled);
+
+        // our custom state
+        clone.removeRequestHeaders = new HashSet<>();
+        clone.removeResponseHeaders = new HashSet<>();
+        clone.requestHeaders = new HashMap<>();
+        clone.requestProperties = new HashMap<>();
+        clone.cookies = new HashMap<>();
+        clone.setRemoveRequestHeaders(this.removeRequestHeaders);
+        clone.setRemoveResponseHeaders(this.removeResponseHeaders);
+        clone.setRequestHeaders(this.requestHeaders);
+        clone.setRequestProperties(this.requestProperties);
+        clone.setCookies(this.cookies);
+
+        return clone;
+    }
 
     /**
      * {@inheritDoc}
