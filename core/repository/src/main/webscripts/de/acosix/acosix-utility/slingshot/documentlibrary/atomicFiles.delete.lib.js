@@ -19,6 +19,8 @@ function runAction(p_params)
     }
 
     results = [];
+    linkNodes = [];
+    nodes = [];
     for (file in files)
     {
         if (files.hasOwnProperty(file))
