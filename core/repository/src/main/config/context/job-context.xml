@@ -1,0 +1,51 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- 
+ Copyright 2016 - 2020 Acosix GmbH
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+ http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+ -->
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+           http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+    <bean class="org.springframework.scheduling.quartz.SchedulerAccessorBean">
+        <property name="scheduler" ref="schedulerFactory" />
+        <property name="triggers">
+            <list>
+                <ref bean="${configModuleId}-ContentStoreDeletedCleanerJobTrigger" />
+            </list>
+        </property>
+    </bean>
+
+    <bean id="${configModuleId}-ContentStoreDeletedCleanerJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="cronExpression" value="\${${configModuleId}.job.contentstoreDeleted.cleanup.cron}" />
+        <!-- system.cronJob.startDelayMilliseconds is only available in 6.0+, so we need the default value to be 5.x compatible -->
+        <property name="startDelay" value="${system.cronJob.startDelayMilliseconds:60000}" />
+        <property name="jobDetail">
+            <bean id="${configModuleId}-ConsolidateActiveUsersAuditJob"
+                class="${javaPackageName}.job.GenericJobDetailsFactoryBean">
+                <property name="jobClass" value="${javaPackageName}.job.ContentStoreDeletedCleanerJob" />
+                <property name="jobDataAsMap">
+                    <map>
+                        <entry key="contentStoreDeleted" value-ref="deletedContentStore" />
+
+                        <entry key="enabled" value="\${${configModuleId}.job.contentstoreDeleted.cleanup.enabled}" />
+                        <entry key="cleanupDelayDuration" value="\${${configModuleId}.job.contentstoreDeleted.cleanup.delayDuration}" />
+                    </map>
+                </property>
+            </bean>
+        </property>
+    </bean>
+
+</beans>
