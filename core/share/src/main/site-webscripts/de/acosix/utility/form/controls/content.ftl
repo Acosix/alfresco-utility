@@ -71,6 +71,6 @@
         <#if field.description??>title="${field.description?html}"</#if>
         <#if field.control.params.styleClass??>class="${field.control.params.styleClass}"</#if>
         <#if field.control.params.style??>style="${field.control.params.style}"</#if>
-        <#if field.disabled && !(field.control.params.forceEditable?? && field.control.params.forceEditable == "true")>disabled="true"</#if>><#if jsDisabled>${field.content?html}</#if></textarea>
+        <#if field.disabled && !(field.control.params.forceEditable?? && field.control.params.forceEditable == "true")>disabled="true"</#if>>${(field.content!"")?html}</textarea>
 </div>
 </#if>

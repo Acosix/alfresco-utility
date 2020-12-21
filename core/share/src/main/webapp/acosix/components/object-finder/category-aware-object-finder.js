@@ -51,7 +51,7 @@ if (typeof Acosix === 'undefined' || !Acosix)
 
                         onRenderCurrentValue : function Acosix_utility_CategoryAwareObjectFinder_onRenderCurrentValue(layer, args)
                         {
-                            var items, displayValue, item, link, l, key, template;
+                            var items, displayValue, item, link, l, key, lastPathSepIdx, template;
 
                             if ($hasEventInterest(this, args))
                             {
@@ -92,8 +92,16 @@ if (typeof Acosix === 'undefined' || !Acosix)
                                                 {
                                                     // 12 - length of /categories/ path prefix
                                                     // so we aim to find the path below the specific classification
-                                                    item.breadcrumb = item.displayPath.substring(item.displayPath.indexOf('/', 12) + 1);
-                                                    item.breadcrumb += '/' + item.name;
+                                                    lastPathSepIdx = item.displayPath.indexOf('/', 12);
+                                                    if (lastPathSepIdx !== -1)
+                                                    {
+                                                        item.breadcrumb = item.displayPath.substring(lastPathSepIdx + 1) + '/';
+                                                    }
+                                                    else
+                                                    {
+                                                        item.breadcrumb = '';
+                                                    }
+                                                    item.breadcrumb += item.name;
                                                     item.breadcrumb = item.breadcrumb.split('/').join(
                                                             this.options.categoryBreadcrumbSeparator);
                                                 }

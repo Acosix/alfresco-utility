@@ -174,7 +174,6 @@ if (typeof Acosix === 'undefined' || !Acosix)
             // register the listener to add saving of the editor contents before form is submitted
             YAHOO.Bubbling.on('formBeforeSubmit', handleChange);
 
-            // MNT-10232: Description is displayed with tags
             if (id.indexOf('_prop_cm_') > 0 && id.indexOf('_prop_cm_content') === -1)
             {
                 editor.getEditor().on('SaveContent', function(e)
@@ -237,8 +236,9 @@ if (typeof Acosix === 'undefined' || !Acosix)
 
         onReady : function Acosix_formControls_Content__onReady()
         {
-            var mimetype;
+            var field, mimetype;
 
+            field = Dom.get(this.id);
             mimetype = this._determineMimeType();
 
             if (mimetype !== null)
@@ -252,6 +252,10 @@ if (typeof Acosix === 'undefined' || !Acosix)
                         {
                             this._renderEditor(mimetype);
                         }
+                    }
+                    else if (field.value && field.value.trim().length > 0)
+                    {
+                        this._renderEditor(mimetype);
                     }
                     else
                     {
@@ -281,7 +285,10 @@ if (typeof Acosix === 'undefined' || !Acosix)
             }
             else if (this.options.forceEditor)
             {
-                this._populateContent();
+                if (!field.value || field.value.trim().length === 0)
+                {
+                    this._populateContent();
+                }
             }
             else
             {
@@ -379,6 +386,8 @@ if (typeof Acosix === 'undefined' || !Acosix)
                 {
                     url += encodeURIComponent(this.options.fieldName.replace(/^prop_/, '').replace(/_/, ':'));
                 }
+                // force fresh load (even lowest values for Cache-Control max-age interfere with correct function)
+                url += '?noCache=' + new Date().getTime();
 
                 Alfresco.util.Ajax.request({
                     url : url,
