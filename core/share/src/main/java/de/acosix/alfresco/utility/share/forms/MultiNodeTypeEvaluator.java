@@ -26,7 +26,7 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 /**
- * This evaluator implemenation supports the evaluation of a node's type against a list of node types (separated by semi-colons) in the
+ * This evaluator implementation supports the evaluation of a node's type against a list of node types (separated by semi-colons) in the
  * condition of a config section.
  *
  * @author Axel Faust

@@ -4,6 +4,7 @@
     <plug-ins>
         <evaluators>
             <evaluator id="node-types" class="${javaPackageName}.forms.MultiNodeTypeEvaluator" />
+            <evaluator id="model-types" class="${javaPackageName}.forms.MultiModelTypeEvaluator" />
         </evaluators>
     </plug-ins>
 
