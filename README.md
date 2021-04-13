@@ -8,6 +8,7 @@ This project defines sets of utility constructs for Repository- or Share-tier mo
 This module is built to be compatible with Alfresco 5.0d and above. It may be used on either Community or Enterprise Edition. The following **special** compatibility conditions apply:
 
  - Spring 5 included in Alfresco 6.2+ introduced some internal changes which may break earlier versions of this addon. Only version 1.1.0+ is fully compatible with Alfresco 6.2+.
+ - ACS 7.0 has finalised the removal of ContentService-based (legacy) transformers which breaks earlier versions of this addon. Only version 1.3.0+ is fully compatible with Aflresco 7.0+.
 
 ## Features
 
