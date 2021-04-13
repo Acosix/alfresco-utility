@@ -29,8 +29,6 @@ This module is built to be compatible with Alfresco 5.0d and above. It may be us
 - Transactionally-safe, full XPath-supporting XPathNodeLocator (using selectNodes() API instead of index query)
 - (opt-in) Improved inbound SMTP handling allowing for the full, original RFC 822 email to be processed by handlers (not just some of its parts)
 - (opt-in) Improved inbound SMTP folder handler, storing the RFC 822 email as received, and optional extracting attachments (as siblings or children of the email) - includes simple meta model
-- (opt-in) RFC 822 to HTML content transformer
-- (opt-in) HTML to PDF content transformer via wkhtmltopdf command line tool (if installed)
 - site bootstrap utilities / template to support flexible site bootstrap during Repository initialisation without hacky call to Share web scripts
 - chaining remote user mapper, in case more than one Authentication subsystem is capable of determining a user from an external authentication system (useful e.g. to combine Alfresco Identity Services with certificate based client authentication / legacy CAS)
 

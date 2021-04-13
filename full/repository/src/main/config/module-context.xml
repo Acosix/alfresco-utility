@@ -32,24 +32,6 @@
         </property>
     </bean>
 
-    <bean id="transformer.${moduleId}.Rfc822ToHtml" class="${javaPackageName}.content.transformer.RFC822ToBodyHTMLTransformer"
-        parent="baseContentTransformer" />
-
-    <bean id="transformer.${moduleId}.wkhtmlToPdf" class="org.alfresco.repo.content.transform.ProxyContentTransformer"
-        parent="baseContentTransformer">
-        <property name="worker" ref="transformer.worker.${moduleId}.wkhtmlToPdf" />
-    </bean>
-
-    <bean id="transformer.worker.${moduleId}.wkhtmlToPdf" class="org.alfresco.repo.management.subsystems.SubsystemProxyFactory">
-        <property name="sourceApplicationContextFactory" ref="thirdparty" />
-        <property name="sourceBeanName" value="transformer.worker.${moduleId}.wkhtmlToPdf" />
-        <property name="interfaces">
-            <list>
-                <value>org.alfresco.repo.content.transform.ContentTransformerWorker</value>
-            </list>
-        </property>
-    </bean>
-
     <!-- depends-on for log4JHierarchyInit only to force early-most initialization -->
     <bean id="${moduleId}-enhanceInboundSMTPChildApplicationContextFactory"
         class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor" depends-on="log4JHierarchyInit">
