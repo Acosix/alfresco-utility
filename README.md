@@ -13,7 +13,7 @@ This module is built to be compatible with Alfresco 5.0d and above. It may be us
 ## Features
 
 ### Common
-- Collection of Spring bean factory / bean definition registry post processors for customising out-of-the-box Alfresco Spring beans without overriding / copy&pasting Spring XML
+- Collection of [Spring bean factory / bean definition registry post processors](./docs/Common-Spring-Processors.md) for customising out-of-the-box Alfresco Spring beans without overriding / copy&pasting Spring XML
 - Thread-safe SSL socket factory (default Alfresco SSL socket factory uses static, shared state)
 - Enhanced default declarative web script which respects the web script format during lookup of JS customisations (e.g. site.put.json.js will look for site.put.json.js and site.put.js customisation files instead of only site.put.js) 
 

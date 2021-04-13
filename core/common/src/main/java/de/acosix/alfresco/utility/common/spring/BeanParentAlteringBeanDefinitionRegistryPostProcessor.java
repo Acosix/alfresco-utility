@@ -15,10 +15,7 @@
  */
 package de.acosix.alfresco.utility.common.spring;
 
-import java.util.function.Function;
-
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
@@ -29,28 +26,10 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProce
  *
  * @author Axel Faust
  */
-public class BeanParentAlteringBeanDefinitionRegistryPostProcessor extends BaseBeanFactoryPostProcessor<BeanDefinitionRegistryPostProcessor>
+public class BeanParentAlteringBeanDefinitionRegistryPostProcessor extends
+        BeanParentAlteringBeanFactoryPostProcessor<BeanDefinitionRegistryPostProcessor>
         implements BeanDefinitionRegistryPostProcessor
 {
-
-    protected String parentBeanName;
-
-    /**
-     * @return the parentBeanName
-     */
-    public String getParentBeanName()
-    {
-        return this.parentBeanName;
-    }
-
-    /**
-     * @param parentBeanName
-     *            the parentBeanName to set
-     */
-    public void setParentBeanName(final String parentBeanName)
-    {
-        this.parentBeanName = parentBeanName;
-    }
 
     /**
      * {@inheritDoc}
@@ -68,15 +47,5 @@ public class BeanParentAlteringBeanDefinitionRegistryPostProcessor extends BaseB
     public void postProcessBeanDefinitionRegistry(final BeanDefinitionRegistry registry) throws BeansException
     {
         this.execute(registry, this.dependsOn, this::applyChange);
-    }
-
-    /**
-     *
-     * {@inheritDoc}
-     */
-    @Override
-    protected void applyChange(final BeanDefinition affectedBeanDefinition, final Function<String, BeanDefinition> getBeanDefinition)
-    {
-        affectedBeanDefinition.setParentName(this.parentBeanName);
     }
 }

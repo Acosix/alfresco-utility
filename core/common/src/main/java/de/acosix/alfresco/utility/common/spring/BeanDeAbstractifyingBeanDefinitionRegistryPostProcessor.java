@@ -15,14 +15,8 @@
  */
 package de.acosix.alfresco.utility.common.spring;
 
-import java.util.function.Function;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 
@@ -33,11 +27,9 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProce
  *
  * @author Axel Faust
  */
-public class BeanDeAbstractifyingBeanDefinitionRegistryPostProcessor
-        extends BaseBeanFactoryPostProcessor<BeanDefinitionRegistryPostProcessor> implements BeanDefinitionRegistryPostProcessor
+public class BeanDeAbstractifyingBeanDefinitionRegistryPostProcessor extends
+        BeanDeAbstractifyingBeanFactoryPostProcessor<BeanDefinitionRegistryPostProcessor> implements BeanDefinitionRegistryPostProcessor
 {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(BeanDeAbstractifyingBeanDefinitionRegistryPostProcessor.class);
 
     /**
      * {@inheritDoc}
@@ -55,22 +47,5 @@ public class BeanDeAbstractifyingBeanDefinitionRegistryPostProcessor
     public void postProcessBeanDefinitionRegistry(final BeanDefinitionRegistry registry) throws BeansException
     {
         this.execute(registry, this.dependsOn, this::applyChange);
-    }
-
-    /**
-     *
-     * {@inheritDoc}
-     */
-    @Override
-    protected void applyChange(final BeanDefinition affectedBeanDefinition, final Function<String, BeanDefinition> getBeanDefinition)
-    {
-        if (affectedBeanDefinition instanceof AbstractBeanDefinition)
-        {
-            ((AbstractBeanDefinition) affectedBeanDefinition).setAbstract(false);
-        }
-        else
-        {
-            LOGGER.warn("[{}] patch cannnot be applied on {} as it does not allow to set the abstract flag", affectedBeanDefinition);
-        }
     }
 }

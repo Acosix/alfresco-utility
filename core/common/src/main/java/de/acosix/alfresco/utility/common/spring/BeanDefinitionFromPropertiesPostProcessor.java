@@ -51,6 +51,8 @@ import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.support.ManagedSet;
 import org.springframework.util.PropertyPlaceholderHelper;
 
+import de.acosix.alfresco.utility.common.spring.condition.BeanDefinitionPostProcessorCondition;
+
 /**
  * Base class for post processors that need to emit, enhance or remove bean definitions based on simple configuration in properties files
  * (i.e. alfresco-global.properties) to provide more dynamic configuration options than via pre-defined XML bean definitions.
@@ -121,6 +123,8 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
     protected String valueSeparator = PlaceholderConfigurerSupport.DEFAULT_VALUE_SEPARATOR;
 
     protected PropertyPlaceholderHelper placeholderHelper;
+
+    protected BeanDefinitionPostProcessorCondition condition;
 
     /**
      * {@inheritDoc}
@@ -224,6 +228,23 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
     }
 
     /**
+     * @return the condition
+     */
+    public BeanDefinitionPostProcessorCondition getCondition()
+    {
+        return this.condition;
+    }
+
+    /**
+     * @param condition
+     *            the condition to set
+     */
+    public void setCondition(final BeanDefinitionPostProcessorCondition condition)
+    {
+        this.condition = condition;
+    }
+
+    /**
      *
      * {@inheritDoc}
      */
@@ -265,9 +286,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
     {
         if (!this.executed)
         {
-            final boolean enabled = this.isEnabled();
-
-            if (enabled)
+            if (this.isEnabled())
             {
                 if (this.dependsOn != null)
                 {
@@ -276,68 +295,74 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
                     });
                 }
 
-                LOGGER.info("[{}] Processing beans defined via properties files using prefix {}", this.beanName, this.propertyPrefix);
+                if (this.condition == null || this.condition.applies(registry))
+                {
+                    LOGGER.info("[{}] Processing beans defined via properties files using prefix {}", this.beanName, this.propertyPrefix);
 
-                final Set<Object> processedKeys = new HashSet<>();
-                final Map<String, Boolean> processableByBeanName = new HashMap<>();
-                final Map<String, BeanDefinition> beanDefinitions = new HashMap<>();
-                final Set<String> updatedBeanNames = new HashSet<>();
+                    final Set<Object> processedKeys = new HashSet<>();
+                    final Map<String, Boolean> processableByBeanName = new HashMap<>();
+                    final Map<String, BeanDefinition> beanDefinitions = new HashMap<>();
+                    final Set<String> updatedBeanNames = new HashSet<>();
 
-                final Predicate<String> isProcessableBean = beanName -> Boolean.TRUE
-                        .equals(processableByBeanName.computeIfAbsent(beanName, beanNameI -> {
+                    final Predicate<String> isProcessableBean = beanName -> Boolean.TRUE
+                            .equals(processableByBeanName.computeIfAbsent(beanName, beanNameI -> {
 
-                            final String key = this.propertyPrefix + DOT + beanNameI + SUFFIX_PROCESS;
-                            processedKeys.add(key);
-                            String value = this.propertiesSource.getProperty(key, "true");
-                            value = this.placeholderHelper.replacePlaceholders(value, this.propertiesSource);
-                                    final Boolean processeable = Boolean.valueOf(value);
-                            return processeable;
-                        }));
+                                final String key = this.propertyPrefix + DOT + beanNameI + SUFFIX_PROCESS;
+                                processedKeys.add(key);
+                                String value = this.propertiesSource.getProperty(key, "true");
+                                value = this.placeholderHelper.replacePlaceholders(value, this.propertiesSource);
+                                final Boolean processeable = Boolean.valueOf(value);
+                                return processeable;
+                            }));
 
-                final Function<String, BeanDefinition> getOrCreateBeanDefinition = beanName -> {
-                    BeanDefinition definition;
-                    if (beanDefinitions.containsKey(beanName))
-                    {
-                        definition = beanDefinitions.get(beanName);
-                    }
-                    else if (registry.containsBeanDefinition(beanName))
-                    {
-                        LOGGER.debug("[{}] Customizing pre-defined bean {}", this.beanName, beanName);
-                        definition = registry.getBeanDefinition(beanName);
-                        beanDefinitions.put(beanName, definition);
-                    }
-                    else
-                    {
-                        LOGGER.debug("[{}] Defining new bean {}", this.beanName, beanName);
-                        definition = new GenericBeanDefinition();
-                        registry.registerBeanDefinition(beanName, definition);
-                        beanDefinitions.put(beanName, definition);
-                        updatedBeanNames.add(beanName);
-                    }
-                    return definition;
-                };
+                    final Function<String, BeanDefinition> getOrCreateBeanDefinition = beanName -> {
+                        BeanDefinition definition;
+                        if (beanDefinitions.containsKey(beanName))
+                        {
+                            definition = beanDefinitions.get(beanName);
+                        }
+                        else if (registry.containsBeanDefinition(beanName))
+                        {
+                            LOGGER.debug("[{}] Customizing pre-defined bean {}", this.beanName, beanName);
+                            definition = registry.getBeanDefinition(beanName);
+                            beanDefinitions.put(beanName, definition);
+                        }
+                        else
+                        {
+                            LOGGER.debug("[{}] Defining new bean {}", this.beanName, beanName);
+                            definition = new GenericBeanDefinition();
+                            registry.registerBeanDefinition(beanName, definition);
+                            beanDefinitions.put(beanName, definition);
+                            updatedBeanNames.add(beanName);
+                        }
+                        return definition;
+                    };
 
-                final Collection<ManagedList<?>> paddedLists = new ArrayList<>();
-                final Consumer<ManagedList<?>> paddedListRegistrator = list -> {
-                    if (!paddedLists.contains(list))
-                    {
-                        paddedLists.add(list);
-                    }
-                };
+                    final Collection<ManagedList<?>> paddedLists = new ArrayList<>();
+                    final Consumer<ManagedList<?>> paddedListRegistrator = list -> {
+                        if (!paddedLists.contains(list))
+                        {
+                            paddedLists.add(list);
+                        }
+                    };
 
-                this.processRenamesOrRemovals(registry, isProcessableBean, processedKeys, updatedBeanNames);
-                this.processBeanConfigurations(isProcessableBean, getOrCreateBeanDefinition, processedKeys,
-                        updatedBeanNames,
-                        paddedListRegistrator);
+                    this.processRenamesOrRemovals(registry, isProcessableBean, processedKeys, updatedBeanNames);
+                    this.processBeanConfigurations(isProcessableBean, getOrCreateBeanDefinition, processedKeys, updatedBeanNames,
+                            paddedListRegistrator);
 
-                this.compressPaddedLists(paddedLists);
+                    this.compressPaddedLists(paddedLists);
 
-                // any beans we modified may have already had a "merged bean definition" cached in the factory
-                // need to re-register / "fake" override to clear that cache to ensure changes are properly reflected
-                // (no public reset / clear cache API; removing + register may mess up bean order)
-                updatedBeanNames.stream().filter(registry::containsBeanDefinition).forEach(beanName -> {
-                    registry.registerBeanDefinition(beanName, registry.getBeanDefinition(beanName));
-                });
+                    // any beans we modified may have already had a "merged bean definition" cached in the factory
+                    // need to re-register / "fake" override to clear that cache to ensure changes are properly reflected
+                    // (no public reset / clear cache API; removing + register may mess up bean order)
+                    updatedBeanNames.stream().filter(registry::containsBeanDefinition).forEach(beanName -> {
+                        registry.registerBeanDefinition(beanName, registry.getBeanDefinition(beanName));
+                    });
+                }
+                else
+                {
+                    LOGGER.info("[{}] patch will not be applied as its prerequisite condition does not apply", this.beanName);
+                }
 
                 this.executed = true;
             }
@@ -412,8 +437,7 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         return processeableKeyAndValue;
     }
 
-    protected void processRenamesOrRemovals(final BeanDefinitionRegistry registry,
-            final Predicate<String> isProcessableBean,
+    protected void processRenamesOrRemovals(final BeanDefinitionRegistry registry, final Predicate<String> isProcessableBean,
             final Set<Object> processedKeys, final Set<String> updatedBeanNames)
     {
         final String effectivePropertyPrefix = this.propertyPrefix + DOT;

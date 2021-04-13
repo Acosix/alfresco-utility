@@ -397,7 +397,7 @@ public class PropertyAlteringBeanFactoryPostProcessor<D extends BeanFactoryPostP
 
         final ManagedSet<Object> set = new ManagedSet<>();
 
-        // TODO Support merge if list is defined on parent bean
+        // TODO Support merge if set is defined on parent bean
         if (this.merge && configuredValue != null)
         {
             final Object configuredValueDefinition = configuredValue.getValue();
