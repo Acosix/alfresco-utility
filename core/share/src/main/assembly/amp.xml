@@ -47,7 +47,6 @@
             <includes>
                 <include>de.acosix.alfresco.utility:${common.artifactId}:*</include>
                 <!-- a shame that this is still missing in Share -->
-                <include>org.slf4j:slf4j-log4j12:*</include>
                 <include>org.slf4j:jcl-over-slf4j:*</include>
                 <!-- ideally we'd also include an empty commons-logging JAR to ensure only one impl is available -->
             </includes>

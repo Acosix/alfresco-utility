@@ -63,11 +63,10 @@
             <artifactId>javax.servlet-api</artifactId>
         </dependency>
 
+        <!-- we used to include this in the AMP in previous versions, but newer ACS versions now contain this in Share so we need to avoid the conflict -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
-            <!-- normally this is for test, but here for inclusion in AMP -->
-            <scope>compile</scope>
         </dependency>
 
         <dependency>
