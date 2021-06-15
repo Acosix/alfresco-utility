@@ -32,6 +32,7 @@
     </bean>
 
     <import resource="classpath:alfresco/module/${moduleId}/context/bootstrap-context.xml" />
+    <import resource="classpath:alfresco/module/${moduleId}/context/action-context.xml" />
     <import resource="classpath:alfresco/module/${moduleId}/context/job-context.xml" />
     <import resource="classpath:alfresco/module/${moduleId}/context/webscripts-context.xml" />
 </beans>

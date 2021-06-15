@@ -160,19 +160,14 @@ if (typeof Acosix === 'undefined' || !Acosix)
 
             handleChange = function()
             {
-                if (editor.isDirty())
-                {
-                    editor.save();
-                }
-
+                editor.save();
                 onChange();
             };
 
             // Make sure we persist the dom content from the editor in to the hidden textarea when appropriate
-            editor.getEditor().on('BeforeSetContent', handleChange);
-
-            // register the listener to add saving of the editor contents before form is submitted
-            YAHOO.Bubbling.on('formBeforeSubmit', handleChange);
+            editor.getEditor().on('NewBlock', handleChange);
+            editor.getEditor().on('NodeChange', handleChange);
+            editor.getEditor().on('SetContent', handleChange);
 
             if (id.indexOf('_prop_cm_') > 0 && id.indexOf('_prop_cm_content') === -1)
             {
@@ -218,7 +213,7 @@ if (typeof Acosix === 'undefined' || !Acosix)
             editorParameters : null,
 
             formMode : 'edit',
-
+            
             nodeRef : null,
 
             mimeType : null,
@@ -314,9 +309,8 @@ if (typeof Acosix === 'undefined' || !Acosix)
                 mtEndIdx = this.options.currentValue.indexOf('|', mtBegIdx);
                 result = this.options.currentValue.substring(mtBegIdx, mtEndIdx);
             }
-
             // if the content url did not contain the mimetype examine the mimeType parameter
-            if (this.options.mimeType !== null && this.options.mimeType.length > 0)
+            else if (this.options.mimeType !== null && this.options.mimeType.length > 0)
             {
                 result = this.options.mimeType;
             }

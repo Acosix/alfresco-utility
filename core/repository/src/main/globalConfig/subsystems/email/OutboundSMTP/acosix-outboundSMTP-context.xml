@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- 
+ Copyright 2016 - 2021 Acosix GmbH
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+ http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+ -->
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+           http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+    <bean id="acosix-mail" class="${javaPackageName}.action.SendMailActionExecuter" parent="action-executer">
+        <property name="queueName" value="outboundMail" />
+        <property name="mailService" ref="mailService" />
+        <property name="transactionService" ref="transactionService" />
+        <property name="nodeService" ref="nodeService" />
+        <property name="authenticationService" ref="authenticationService" />
+        <property name="authorityService" ref="authorityService" />
+        <property name="personService" ref="personService" />
+        <property name="templateService" ref="mailTemplateService" />
+        <property name="sysAdminParams" ref="sysAdminParams" />
+        <property name="preferenceService" ref="preferenceService" />
+        <property name="tenantService" ref="tenantService" />
+        <property name="imageResolver" ref="defaultImageResolver" />
+        <property name="serviceRegistry" ref="ServiceRegistry" />
+        <property name="repository" ref="repositoryHelper" />
+        <property name="headerEncoding" value="${mail.header}" />
+        <property name="fromDefaultAddress" value="${mail.from.default}" />
+        <property name="fromEnabled" value="${mail.from.enabled}" />
+        <property name="validateAddresses" value="${mail.validate.addresses}" />
+    </bean>
+
+</beans>

@@ -11,6 +11,23 @@
     <#assign columns=60 />
 </#if>
 
+<#assign mimetype = "" />
+<#if field.control.params.mimetype??>
+    <#assign mimetype=field.control.params.mimetype />
+<#elseif context.properties.mimeType??>
+    <#assign mimetype=context.properties.mimeType />
+</#if>
+
+<#assign preferredEditors = [] />
+<#if field.control.params.preferredEditors??>
+    <#assign preferredEditors = field.control.params.preferredEditors?split(',') />
+</#if>
+
+<#assign forbiddenEditors = [] />
+<#if field.control.params.forbiddenEditors??>
+    <#assign forbiddenEditors = field.control.params.forbiddenEditors?split(',') />
+</#if>
+
 <#assign jsDisabled=(form.capabilities?? && form.capabilities.javascript?? && form.capabilities.javascript == false) />
 
 <#macro renderEditorOptions field><#compress>
@@ -56,9 +73,11 @@
                     <#else>
                         nodeRef: "",
                     </#if>
-                    mimeType: "${(context.properties.mimeType!"")?js_string}",
+                    mimeType: "${mimetype?js_string}",
                     <#if field.control.params.forceEditor??>forceEditor: ${field.control.params.forceEditor},</#if>
                     <#if field.control.params.forceContent??>forceContent: ${field.control.params.forceContent},</#if>
+                    <#if preferredEditors??>preferredEditors: [<#list preferredEditors as editor>"${editor}"<#if editor_has_next>,</#if></#list>],</#if>
+                    <#if forbiddenEditors??>forbiddenEditors: [<#list forbiddenEditors as editor>"${editor}"<#if editor_has_next>,</#if></#list>],</#if>
                     <@editorParameters field />
                     <@renderEditorOptions field />
                 }).setMessages(${messages});

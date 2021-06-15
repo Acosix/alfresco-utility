@@ -61,13 +61,13 @@ import org.springframework.core.io.support.ResourcePatternResolver;
  * For example, if {module.id} is "org.alfresco.module.someModule", then within your source code you'll have:
  *
  * <pre>
- * config / alfresco / module / org.alfresco.module.someModule / log4j.properties
+ * config/alfresco/module/org.alfresco.module.someModule/log4j.properties
  * </pre>
  *
  * This would be deployed to:
  *
  * <pre>
- * WEB - INF / classes / alfresco / module / org.alfresco.module.someModule / log4j.properties
+ * WEB-INF/classes/alfresco/module/org.alfresco.module.someModule/log4j.properties
  * </pre>
  *
  *
