@@ -399,7 +399,7 @@
 
     <bean id="${moduleId}.localTransform.executorServicePatch.threadPool" abstract="true"
         class="org.alfresco.util.ThreadPoolExecutorFactoryBean">
-        <property name="poolName" value="legacy.transform.service" />
+        <property name="poolName" value="local.transform.service" />
         <property name="corePoolSize" value="${local.transform.service.corePoolSize}" />
         <property name="maximumPoolSize" value="${local.transform.service.maximumPoolSize}" />
         <property name="threadPriority" value="${local.transform.service.threadPriority}" />
