@@ -59,7 +59,9 @@
       params: "${field.control.params.params!""}",
       createNewItemUri: "${field.control.params.createNewItemUri!}",
       createNewItemIcon: "${field.control.params.createNewItemIcon!}",
-      categoryBreadcrumbSeparator: "${field.control.params.categoryBreadcrumbSeparator!" > "}"
+      categoryBreadcrumbSeparator: "${field.control.params.categoryBreadcrumbSeparator!" > "}",
+      finderAPI: Alfresco.constants.PROXY_URI + '${field.control.params.finderAPI!'acosix/api/forms/picker/{itemFamily}'}',
+      multiTieredClassification: ${((field.control.params.multiTieredClassification!'true') == 'true')?string('true', 'false')}
    });
 })();
 //]]></script>

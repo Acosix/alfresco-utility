@@ -37,7 +37,8 @@ if (typeof Acosix === 'undefined' || !Acosix)
         Alfresco.util.ComponentManager.reregister(this);
 
         this.setOptions({
-            categoryBreadcrumbSeparator : ' > '
+            categoryBreadcrumbSeparator : ' > ',
+            multiTieredClassification: true
         });
 
         return this;
@@ -48,6 +49,114 @@ if (typeof Acosix === 'undefined' || !Acosix)
                     Acosix.CategoryAwareObjectFinder,
                     Alfresco.ObjectFinder,
                     {
+                    
+                        _createNavigationControls: function Acosix_utility_CategoryAwareObjectFinder__createNavigationControls()
+                        {
+                            var zInput;
+                            if (this._inCategoryMode())
+                            {
+                                // enable search
+                                Dom.setStyle(this.pickerId + '-searchContainer', 'display', 'block');
+
+                                this.widgets.searchButton = new YAHOO.widget.Button(this.pickerId + '-searchButton');
+                                this.widgets.searchButton.on('click', this.onSearch, this.widgets.searchButton, this);
+
+                                Dom.get(this.pickerId + '-searchButton').name = '-';
+
+                                zInput = Dom.get(this.pickerId + '-searchText');
+                                new YAHOO.util.KeyListener(zInput, 
+                                {
+                                    keys: 13
+                                }, 
+                                {
+                                    fn: this.onSearch,
+                                    scope: this,
+                                    correctScope: true
+                                }, 'keydown').enable();
+                                
+                                if (this.options.multiTieredClassification)
+                                {
+                                    // delegation to superclass will enables folderUp/navigator
+                                    Acosix.CategoryAwareObjectFinder.superclass._createNavigationControls.apply(this, arguments);
+                                }
+                                else
+                                {
+                                    Dom.setStyle(this.pickerId + '-folderUpContainer', 'display', 'none');
+                                    Dom.setStyle(this.pickerId + '-navigatorContainer', 'display', 'none');
+                                }
+                            }
+                            else
+                            {
+                                Acosix.CategoryAwareObjectFinder.superclass._createNavigationControls.apply(this, arguments);
+                            }
+                        },
+                        
+                        _inCategoryMode: function Acosix_utility_CategoryAwareObjectFinder__inCategoryMode()
+                        {
+                            return (this.options.itemFamily === 'category');
+                        },
+
+                        _fireRefreshEvent: function Acosix_utility_CategoryAwareObjectFinder__fireRefreshEvent()
+                        {
+                            var searchTerm;
+                            if (this._inCategoryMode())
+                            {
+                                searchTerm = Dom.get(this.pickerId + '-searchText').value;
+                                if (searchTerm)
+                                {
+                                    if (searchTerm.length >= this.options.minSearchTermLength)
+                                    {
+                                        YAHOO.Bubbling.fire('refreshItemList',
+                                        {
+                                            eventGroup: this,
+                                            searchTerm: searchTerm
+                                        });
+                                    }
+                                    else
+                                    {
+                                        Dom.get(this.pickerId + '-searchText').focus();
+                                    }
+                                }
+                                else
+                                {
+                                    YAHOO.Bubbling.fire('refreshItemList',
+                                    {
+                                        eventGroup: this
+                                    });
+                                }
+                            }
+                            else
+                            {
+                                Acosix.CategoryAwareObjectFinder.superclass._fireRefreshEvent.apply(this, arguments);
+                            }
+                        },
+                        
+                        onParentChanged: function Acosix_utility_CategoryAwareObjectFinder_onParentChanged(layer, args)
+                        {
+                            if ($hasEventInterest(this, args) && this._inCategoryMode())
+                            {
+                                Dom.get(this.pickerId + '-searchText').value = '';
+                            }
+                            Acosix.CategoryAwareObjectFinder.superclass.onParentChanged.call(this, layer, args);
+                        },
+
+                        onSearch: function Acosix_utility_CategoryAwareObjectFinder_onSearch()
+                        {
+                            var searchTerm = YAHOO.lang.trim(Dom.get(this.pickerId + '-searchText').value);
+
+                            // special case - revert to normal listing
+                            if (this._inCategoryMode() && searchTerm.length === 0)
+                            {
+                                YAHOO.Bubbling.fire('refreshItemList',
+                                {
+                                    eventGroup: this
+                                });
+                            }
+                            else
+                            {
+                                Acosix.CategoryAwareObjectFinder.superclass.onSearch.apply(this, arguments);
+                            }
+                        },
 
                         onRenderCurrentValue : function Acosix_utility_CategoryAwareObjectFinder_onRenderCurrentValue(layer, args)
                         {
