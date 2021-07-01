@@ -206,8 +206,6 @@ public class InvertedAssociationFieldFilter<ItemType> extends AbstractFilter<Ite
             final String dataKeyName = FormFieldConstants.ASSOC_DATA_PREFIX + name.replaceFirst(":", FormFieldConstants.DATA_KEY_SEPARATOR);
             fieldDef.setDataKeyName(dataKeyName);
 
-            form.addFieldDefinition(fieldDef);
-
             if (item instanceof NodeRef)
             {
                 final NodeRef realItem = (NodeRef) item;
@@ -219,6 +217,9 @@ public class InvertedAssociationFieldFilter<ItemType> extends AbstractFilter<Ite
                                 n) == AccessStatus.ALLOWED)
                         .collect(Collectors.toList());
                 form.addData(dataKeyName, value);
+
+                // move out of if-block when persistence is supported
+                form.addFieldDefinition(fieldDef);
             }
         }
     }

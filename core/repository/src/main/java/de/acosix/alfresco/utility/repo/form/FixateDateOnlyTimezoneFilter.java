@@ -45,7 +45,6 @@ import org.alfresco.repo.forms.processor.node.FormFieldConstants;
 import org.alfresco.service.cmr.dictionary.DataTypeDefinition;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.dictionary.PropertyDefinition;
-import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.ISO8601DateFormat;
@@ -63,7 +62,7 @@ import org.springframework.beans.factory.InitializingBean;
  *
  * @author Axel Faust
  */
-public class FixateDateOnlyTimezoneFilter extends AbstractFilter<Object, NodeRef> implements InitializingBean
+public class FixateDateOnlyTimezoneFilter extends AbstractFilter<Object, Object> implements InitializingBean
 {
 
     private static final ZoneId UTC = ZoneId.of("UTC");
@@ -277,7 +276,7 @@ public class FixateDateOnlyTimezoneFilter extends AbstractFilter<Object, NodeRef
      * {@inheritDoc}
      */
     @Override
-    public void afterPersist(final Object item, final FormData data, final NodeRef persistedObject)
+    public void afterPersist(final Object item, final FormData data, final Object persistedObject)
     {
         // NO-OP
     }
