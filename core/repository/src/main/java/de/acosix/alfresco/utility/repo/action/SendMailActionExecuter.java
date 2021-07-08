@@ -1085,6 +1085,7 @@ public class SendMailActionExecuter extends ActionExecuterAbstractBase implement
         try
         {
             this.mailService.send(message);
+            LOGGER.debug("Successfully delivered mail to configured mail server");
         }
         catch (final MailException e)
         {
