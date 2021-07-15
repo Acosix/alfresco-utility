@@ -82,7 +82,7 @@ public class FolderEmailMessageHandler extends AbstractEmailMessageHandler
 
     /**
      * @param overwriteDuplicates
-     *            the overwriteDuplicates to set
+     *     the overwriteDuplicates to set
      */
     public void setOverwriteDuplicates(final boolean overwriteDuplicates)
     {
@@ -91,7 +91,7 @@ public class FolderEmailMessageHandler extends AbstractEmailMessageHandler
 
     /**
      * @param extractAttachments
-     *            the extractAttachments to set
+     *     the extractAttachments to set
      */
     public void setExtractAttachments(final boolean extractAttachments)
     {
@@ -100,7 +100,7 @@ public class FolderEmailMessageHandler extends AbstractEmailMessageHandler
 
     /**
      * @param extractAttachmentsAsDirectChildren
-     *            the extractAttachmentsAsDirectChildren to set
+     *     the extractAttachmentsAsDirectChildren to set
      */
     public void setExtractAttachmentsAsDirectChildren(final boolean extractAttachmentsAsDirectChildren)
     {
@@ -109,9 +109,9 @@ public class FolderEmailMessageHandler extends AbstractEmailMessageHandler
 
     /**
      * @param copyEmailMetadataToAttachments
-     *            the copyEmailMetadataToAttachments to set
+     *     the copyEmailMetadataToAttachments to set
      */
-    public void setCopyEmailMetadataToAttachments(boolean copyEmailMetadataToAttachments)
+    public void setCopyEmailMetadataToAttachments(final boolean copyEmailMetadataToAttachments)
     {
         this.copyEmailMetadataToAttachments = copyEmailMetadataToAttachments;
     }
@@ -150,11 +150,11 @@ public class FolderEmailMessageHandler extends AbstractEmailMessageHandler
      * Add content to Alfresco repository
      *
      * @param folderNode
-     *            Addressed node
+     *     Addressed node
      * @param message
-     *            Mail message
+     *     Mail message
      * @throws IOException
-     *             Exception can be thrown while saving a content into Alfresco repository.
+     *     Exception can be thrown while saving a content into Alfresco repository.
      */
     protected void addToFolder(final NodeRef folderNode, final EmailMessage message) throws IOException
     {
@@ -196,7 +196,7 @@ public class FolderEmailMessageHandler extends AbstractEmailMessageHandler
 
         final Action extracterAction = this.actionService.createAction(ContentMetadataExtracter.EXECUTOR_NAME);
         this.actionService.executeAction(extracterAction, contentNode, true,
-                !effectiveExtractAttachments || !copyEmailMetadataToAttachments);
+                !effectiveExtractAttachments || !this.copyEmailMetadataToAttachments);
 
         if (effectiveExtractAttachments)
         {
@@ -238,13 +238,13 @@ public class FolderEmailMessageHandler extends AbstractEmailMessageHandler
             }
             else
             {
-                final InputStream contentIs = message.getBody().getContent();
+                final InputStream contentIs = body.getContent();
                 String mimetype = this.mimetypeService.guessMimetype(message.getSubject());
                 if (mimetype.equals(MimetypeMap.MIMETYPE_BINARY))
                 {
                     mimetype = MimetypeMap.MIMETYPE_TEXT_PLAIN;
                 }
-                final String encoding = message.getBody().getEncoding();
+                final String encoding = body.getEncoding();
 
                 this.writeContent(contentNode, contentIs, mimetype, encoding);
             }
@@ -257,7 +257,7 @@ public class FolderEmailMessageHandler extends AbstractEmailMessageHandler
         final QName childAssocType = extractAttachmentsAsDirectChildren ? EmailModel.ASSOC_ATTACHMENTS : ContentModel.ASSOC_CONTAINS;
         final NodeRef attachmentParent = extractAttachmentsAsDirectChildren ? mailNodeRef : folderRef;
 
-        Map<QName, Serializable> mailProperties = nodeService.getProperties(mailNodeRef);
+        final Map<QName, Serializable> mailProperties = this.nodeService.getProperties(mailNodeRef);
 
         for (final EmailMessagePart attachment : message.getAttachments())
         {
@@ -265,7 +265,7 @@ public class FolderEmailMessageHandler extends AbstractEmailMessageHandler
         }
     }
 
-    protected void writeAttachment(final NodeRef mailNodeRef, Map<QName, Serializable> mailProperties, final QName childAssocType,
+    protected void writeAttachment(final NodeRef mailNodeRef, final Map<QName, Serializable> mailProperties, final QName childAssocType,
             final QName mailNodeRefChildAssocType, final NodeRef attachmentParent, final EmailMessagePart attachment)
     {
         final String fileName = attachment.getFileName();

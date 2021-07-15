@@ -16,7 +16,9 @@
 package de.acosix.alfresco.utility.repo.email.server.handler;
 
 import java.io.BufferedInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
@@ -65,7 +67,7 @@ public abstract class AbstractEmailMessageHandler implements InitializingBean, E
      * via the {@link ImprovedFileNameValidator#getValidFileName(String) default valid file name determination operation}.
      *
      * @param subject
-     *            the subject to encode
+     *     the subject to encode
      * @return the encoded subject
      */
     protected static String encodeSubject(final String subject)
@@ -73,7 +75,7 @@ public abstract class AbstractEmailMessageHandler implements InitializingBean, E
         ParameterCheck.mandatoryString("subject", subject);
 
         final StringBuilder encodedSubjectBuilder = new StringBuilder(subject.trim());
-        CHARS_TO_ENCODE_IN_SUBJECT.forEach((character) -> {
+        CHARS_TO_ENCODE_IN_SUBJECT.forEach(character -> {
             int idx = encodedSubjectBuilder.indexOf(character);
             String replacement = null;
             while (idx != -1)
@@ -145,7 +147,7 @@ public abstract class AbstractEmailMessageHandler implements InitializingBean, E
 
     /**
      * @param dictionaryService
-     *            the dictionaryService to set
+     *     the dictionaryService to set
      */
     public void setDictionaryService(final DictionaryService dictionaryService)
     {
@@ -154,7 +156,7 @@ public abstract class AbstractEmailMessageHandler implements InitializingBean, E
 
     /**
      * @param nodeService
-     *            the nodeService to set
+     *     the nodeService to set
      */
     public void setNodeService(final NodeService nodeService)
     {
@@ -163,7 +165,7 @@ public abstract class AbstractEmailMessageHandler implements InitializingBean, E
 
     /**
      * @param contentService
-     *            the contentService to set
+     *     the contentService to set
      */
     public void setContentService(final ContentService contentService)
     {
@@ -172,7 +174,7 @@ public abstract class AbstractEmailMessageHandler implements InitializingBean, E
 
     /**
      * @param mimetypeService
-     *            the mimetypeService to set
+     *     the mimetypeService to set
      */
     public void setMimetypeService(final MimetypeService mimetypeService)
     {
@@ -181,7 +183,7 @@ public abstract class AbstractEmailMessageHandler implements InitializingBean, E
 
     /**
      * @param actionService
-     *            the actionService to set
+     *     the actionService to set
      */
     public void setActionService(final ActionService actionService)
     {
@@ -190,7 +192,7 @@ public abstract class AbstractEmailMessageHandler implements InitializingBean, E
 
     /**
      * @param emailService
-     *            the emailService to set
+     *     the emailService to set
      */
     public void setEmailService(final EmailService emailService)
     {
@@ -199,7 +201,7 @@ public abstract class AbstractEmailMessageHandler implements InitializingBean, E
 
     /**
      * @param nodeType
-     *            the nodeType to set
+     *     the nodeType to set
      */
     public void setNodeType(final String nodeType)
     {
@@ -208,7 +210,7 @@ public abstract class AbstractEmailMessageHandler implements InitializingBean, E
 
     /**
      * @param enabled
-     *            the enabled to set
+     *     the enabled to set
      */
     public void setEnabled(final boolean enabled)
     {
@@ -217,7 +219,7 @@ public abstract class AbstractEmailMessageHandler implements InitializingBean, E
 
     /**
      * @param maxAttemptsAtUniqueName
-     *            the maxAttemptsAtUniqueName to set
+     *     the maxAttemptsAtUniqueName to set
      */
     public void setMaxAttemptsAtUniqueName(final int maxAttemptsAtUniqueName)
     {
@@ -311,6 +313,19 @@ public abstract class AbstractEmailMessageHandler implements InitializingBean, E
         final ContentWriter writer = this.contentService.getWriter(nodeRef, ContentModel.PROP_CONTENT, true);
         writer.setMimetype(mimetype);
         writer.setEncoding(encoding);
-        writer.putContent(bis);
+
+        final byte[] buf = new byte[4096];
+        int bytesRead = -1;
+        try (final OutputStream os = writer.getContentOutputStream())
+        {
+            while ((bytesRead = content.read(buf)) != -1)
+            {
+                os.write(buf, 0, bytesRead);
+            }
+        }
+        catch (final IOException ioex)
+        {
+            throw new AlfrescoRuntimeException("Failed to write content to writer", ioex);
+        }
     }
 }
