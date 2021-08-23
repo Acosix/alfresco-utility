@@ -96,7 +96,7 @@ public class ContentStoreDeletedCleanerJob implements GenericJob
                 }
                 catch (final IOException ex)
                 {
-                    LOGGER.error("Error during clean store for deleted content", ex);
+                    LOGGER.error("Error during cleanup of store for deleted content", ex);
                 }
             }
 
