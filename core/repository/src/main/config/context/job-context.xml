@@ -33,7 +33,7 @@
         <!-- system.cronJob.startDelayMilliseconds is only available in 6.0+, so we need the default value to be 5.x compatible -->
         <property name="startDelay" value="${system.cronJob.startDelayMilliseconds:60000}" />
         <property name="jobDetail">
-            <bean id="${configModuleId}-ConsolidateActiveUsersAuditJob"
+            <bean id="${configModuleId}-ContentStoreDeletedCleanerJob"
                 class="${javaPackageName}.job.GenericJobDetailsFactoryBean">
                 <property name="jobClass" value="${javaPackageName}.job.ContentStoreDeletedCleanerJob" />
                 <property name="jobDataAsMap">
