@@ -76,4 +76,7 @@
         <property name="nodeService" ref="NodeService" />
     </bean>
 
+    <bean id="${moduleId}.groupNodeLocator" class="${javaPackageName}.locator.GroupNodeLocator" parent="baseNodeLocator">
+        <property name="authorityDAO" ref="authorityDAO" />
+    </bean>
 </beans>
