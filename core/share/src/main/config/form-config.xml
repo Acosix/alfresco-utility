@@ -3,6 +3,7 @@
     <config>
         <forms>
             <dependencies>
+                <js src="/acosix/components/object-finder/authority-object-finder.js" />
                 <js src="/acosix/components/object-finder/category-aware-object-finder.js" />
             </dependencies>
         </forms>
