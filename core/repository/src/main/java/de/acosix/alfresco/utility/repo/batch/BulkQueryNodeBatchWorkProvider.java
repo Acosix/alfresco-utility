@@ -24,6 +24,7 @@ import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.cmr.search.LimitBy;
+import org.alfresco.service.cmr.search.QueryConsistency;
 import org.alfresco.service.cmr.search.ResultSet;
 import org.alfresco.service.cmr.search.SearchParameters;
 import org.alfresco.service.cmr.search.SearchService;
@@ -49,6 +50,8 @@ public class BulkQueryNodeBatchWorkProvider implements BatchProcessWorkProvider<
 
     protected String query;
 
+    protected QueryConsistency queryConsistency;
+
     protected volatile boolean queried = false;
 
     /**
@@ -65,7 +68,7 @@ public class BulkQueryNodeBatchWorkProvider implements BatchProcessWorkProvider<
 
     /**
      * @param searchService
-     *            the searchService to set
+     *     the searchService to set
      */
     public void setSearchService(final SearchService searchService)
     {
@@ -74,7 +77,7 @@ public class BulkQueryNodeBatchWorkProvider implements BatchProcessWorkProvider<
 
     /**
      * @param language
-     *            the language to set
+     *     the language to set
      */
     public void setLanguage(final String language)
     {
@@ -83,11 +86,20 @@ public class BulkQueryNodeBatchWorkProvider implements BatchProcessWorkProvider<
 
     /**
      * @param query
-     *            the query to set
+     *     the query to set
      */
     public void setQuery(final String query)
     {
         this.query = query;
+    }
+
+    /**
+     * @param queryConsistency
+     *     the queryConsistency to set
+     */
+    public void setQueryConsistency(final QueryConsistency queryConsistency)
+    {
+        this.queryConsistency = queryConsistency;
     }
 
     /**
@@ -121,6 +133,7 @@ public class BulkQueryNodeBatchWorkProvider implements BatchProcessWorkProvider<
                 sp.addStore(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
                 sp.setLanguage(this.language);
                 sp.setQuery(this.query);
+                sp.setQueryConsistency(this.queryConsistency);
                 sp.setMaxItems(Integer.MAX_VALUE);
                 sp.setMaxPermissionChecks(Integer.MAX_VALUE);
                 sp.setMaxPermissionCheckTimeMillis(Long.MAX_VALUE);
