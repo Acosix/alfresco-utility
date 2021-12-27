@@ -133,7 +133,10 @@ public class BulkQueryNodeBatchWorkProvider implements BatchProcessWorkProvider<
                 sp.addStore(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
                 sp.setLanguage(this.language);
                 sp.setQuery(this.query);
-                sp.setQueryConsistency(this.queryConsistency);
+                if (this.queryConsistency != null)
+                {
+                    sp.setQueryConsistency(this.queryConsistency);
+                }
                 sp.setMaxItems(Integer.MAX_VALUE);
                 sp.setMaxPermissionChecks(Integer.MAX_VALUE);
                 sp.setMaxPermissionCheckTimeMillis(Long.MAX_VALUE);
