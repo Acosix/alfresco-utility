@@ -7,9 +7,7 @@
         implementation
     </description>
 
-    <url>/acosix/api/utility/node/slingshot/{store_type}/{store_id}/{id}?a={attach?}</url>
     <url>/acosix/api/utility/node/slingshot/{store_type}/{store_id}/{id}/content{property}?a={attach?}</url>
-    <url>/acosix/api/utility/node/slingshot/{store_type}/{store_id}/{id}/{filename}?a={attach?}</url>
     <url>/acosix/api/utility/node/slingshot/{store_type}/{store_id}/{id}/content{property}/{filename}?a={attach?}</url>
 
     <format default="">argument</format>
