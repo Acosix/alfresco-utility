@@ -21,23 +21,24 @@ import java.net.URL;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
 
+import org.alfresco.config.JndiPropertiesFactoryBean;
 import org.alfresco.error.AlfrescoRuntimeException;
+import org.alfresco.repo.management.subsystems.AbstractPropertyBackedBean.DefaultResolver;
 import org.alfresco.repo.management.subsystems.PropertyBackedBeanState;
 import org.alfresco.util.ParameterCheck;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
+import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.ApplicationEventMulticaster;
@@ -51,47 +52,14 @@ import org.springframework.util.PropertiesPersister;
 /**
  * @author Axel Faust
  */
-public class SubsystemWithClassLoaderState implements PropertyBackedBeanState
+public class SubsystemWithClassLoaderState implements PropertyBackedBeanState, SubsystemConstants
 {
-
-    public static final String BEAN_NAME_MONITOR = "monitor";
-
-    public static final String BEAN_NAME_SUBSYSTEM_PROPERTIES = "subsystem-properties";
-
-    public static final String PROPERTY_CATEGORY = "$category";
-
-    public static final String PROPERTY_TYPE = "$type";
-
-    public static final String PROPERTY_ID = "$id";
-
-    public static final String PROPERTY_INSTANCE_PATH = "$instancePath";
-
-    public static final Collection<String> NOT_UPDATEABLE_PROPERTIES = Collections
-            .unmodifiableSet(new HashSet<>(Arrays.asList(PROPERTY_CATEGORY, PROPERTY_TYPE, PROPERTY_ID, PROPERTY_INSTANCE_PATH)));
-
-    public static final String BASE_SUBSYSTEM_CONTEXT = "classpath:alfresco/module/acosix-utility/default-subsystem-context.xml";
-
-    public static final String CLASSPATH_WILDCARD_PROTOCOL = "classpath*:";
-
-    public static final String CLASSPATH_ALFRESCO_SUBSYSTEMS = CLASSPATH_WILDCARD_PROTOCOL + "alfresco/subsystems/";
-
-    public static final String CLASSPATH_ALFRESCO_EXTENSION_SUBSYSTEMS = CLASSPATH_WILDCARD_PROTOCOL + "alfresco/extension/subsystems/";
-
-    public static final String PROPERTIES_FILE_PATTERN = "*.properties";
-
-    public static final String CONTEXT_FILE_PATTERN = "*-context.xml";
-
-    public static final String CLASSES_FOLDER_NAME = "classes";
-
-    public static final String JAR_FILE_LOOKUP_PATTERN = "lib/*.jar";
-
-    public static final String CONTEXT_ENTERPRISE_FILE_PATTERN = "*-enterprise-context.xml";
-
-    protected static final char CLASSPATH_DELIMITER = '/';
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SubsystemWithClassLoaderState.class);
 
     protected final ApplicationContext parentContext;
+
+    protected final DefaultResolver defaultResolver;
 
     protected final Properties globalProperties;
 
@@ -115,9 +83,9 @@ public class SubsystemWithClassLoaderState implements PropertyBackedBeanState
 
     protected transient Object monitor;
 
-    public SubsystemWithClassLoaderState(final ApplicationContext parentContext, final Properties globalProperties,
-            final PropertiesPersister propertiesPersister, final String category, final String type, final String id,
-            final String instancePath)
+    public SubsystemWithClassLoaderState(final ApplicationContext parentContext, final DefaultResolver defaultResolver,
+            final Properties globalProperties, final PropertiesPersister propertiesPersister, final String category, final String type,
+            final String id, final String instancePath)
     {
         ParameterCheck.mandatory("parentContext", parentContext);
         ParameterCheck.mandatory("globalProperties", globalProperties);
@@ -129,6 +97,7 @@ public class SubsystemWithClassLoaderState implements PropertyBackedBeanState
         ParameterCheck.mandatoryString("instancePath", instancePath);
 
         this.parentContext = parentContext;
+        this.defaultResolver = defaultResolver;
         this.globalProperties = globalProperties;
         this.propertiesPersister = propertiesPersister;
 
@@ -296,7 +265,7 @@ public class SubsystemWithClassLoaderState implements PropertyBackedBeanState
      * Gets the application context.
      *
      * @param start
-     *            indicates whether state should be started
+     *     indicates whether state should be started
      *
      * @return the application context or <code>null</code> if state was not already started and start == false
      */
@@ -327,7 +296,7 @@ public class SubsystemWithClassLoaderState implements PropertyBackedBeanState
         final Set<String> propertyNames = new TreeSet<>();
 
         propertyNames.addAll(((Map) this.fixedConfigProperties).keySet());
-        propertyNames.addAll(NOT_UPDATEABLE_PROPERTIES);
+        propertyNames.addAll(NON_UPDATEABLE_PROPERTIES);
         propertyNames.addAll(((Map) this.runtimeProperties).keySet());
 
         return propertyNames;
@@ -376,7 +345,7 @@ public class SubsystemWithClassLoaderState implements PropertyBackedBeanState
     public void setProperty(final String name, final String value)
     {
         ParameterCheck.mandatoryString("name", name);
-        if (NOT_UPDATEABLE_PROPERTIES.contains(name))
+        if (NON_UPDATEABLE_PROPERTIES.contains(name))
         {
             throw new IllegalStateException("Illegal write to property \"" + name + "\"");
         }
@@ -392,7 +361,7 @@ public class SubsystemWithClassLoaderState implements PropertyBackedBeanState
     public void removeProperty(final String name)
     {
         ParameterCheck.mandatoryString("name", name);
-        if (NOT_UPDATEABLE_PROPERTIES.contains(name))
+        if (NON_UPDATEABLE_PROPERTIES.contains(name))
         {
             throw new IllegalStateException("Illegal write to property \"" + name + "\"");
         }
@@ -405,27 +374,61 @@ public class SubsystemWithClassLoaderState implements PropertyBackedBeanState
     {
         try
         {
-            // step #1: load base configuration of subsystem from classpath
+            // #1: load static base properties
             PropertiesFactoryBean factory = new PropertiesFactoryBean();
             factory.setPropertiesPersister(this.propertiesPersister);
             final Resource[] baseClasspathResources = this.parentContext.getResources(CLASSPATH_ALFRESCO_SUBSYSTEMS + this.category
                     + CLASSPATH_DELIMITER + this.type + CLASSPATH_DELIMITER + PROPERTIES_FILE_PATTERN);
             factory.setLocations(baseClasspathResources);
             factory.afterPropertiesSet();
-            final Properties baseClasspathProperties = factory.getObject();
+            final Properties properties = factory.getObject();
 
-            // step #2: load extension configuration of subsystem from classpath
-            factory = new PropertiesFactoryBean();
+            // #2: map in any system + global property names matching defined patterns
+            // this deals with dynamically defined properties without any predefines in the subsystem default
+            final String propertyNamePatterns = properties.getProperty(SUBSYSTEM_PROPERTY_NAME_PATTERNS);
+            if (propertyNamePatterns != null && !propertyNamePatterns.trim().isEmpty())
+            {
+                properties.remove(SUBSYSTEM_PROPERTY_NAME_PATTERNS);
+
+                final Set<String> systemAndDefaultPropertyNames = new HashSet<>(this.globalProperties.stringPropertyNames());
+                systemAndDefaultPropertyNames.addAll(System.getProperties().stringPropertyNames());
+
+                final String[] patterns = propertyNamePatterns.trim().split(",");
+                for (final String pattern : patterns)
+                {
+                    final Pattern rpattern = Pattern.compile(pattern);
+                    systemAndDefaultPropertyNames.stream().filter(pn -> rpattern.matcher(pn).matches()).forEach(pn -> {
+                        if (properties.getProperty(pn) == null)
+                        {
+                            properties.setProperty(pn, "");
+                        }
+                    });
+                }
+            }
+
+            // #3: check and resolve defaults from global properties
+            for (final String name : properties.stringPropertyNames())
+            {
+                String value = this.globalProperties.getProperty(name);
+                if (value != null)
+                {
+                    value = this.defaultResolver.resolveValue(value);
+                }
+                if (value != null)
+                {
+                    properties.setProperty(name, value);
+                }
+            }
+
+            // #4: aggregate with static overrides from extensions + system properties
+            factory = new JndiPropertiesFactoryBean();
+            ((JndiPropertiesFactoryBean) factory).setSystemPropertiesMode(PropertyPlaceholderConfigurer.SYSTEM_PROPERTIES_MODE_OVERRIDE);
+            factory.setProperties(properties);
+            factory.setPropertiesPersister(this.propertiesPersister);
             final Resource[] extensionClasspathResources = this.parentContext
                     .getResources(CLASSPATH_ALFRESCO_EXTENSION_SUBSYSTEMS + this.category + CLASSPATH_DELIMITER + this.type
                             + CLASSPATH_DELIMITER + this.id + CLASSPATH_DELIMITER + PROPERTIES_FILE_PATTERN);
             factory.setLocations(extensionClasspathResources);
-            factory.afterPropertiesSet();
-            final Properties extensionClasspathProperties = factory.getObject();
-
-            // step #3: create the fixed configuration properties as aggregate of base + global + extension
-            factory = new PropertiesFactoryBean();
-            factory.setPropertiesArray(new Properties[] { baseClasspathProperties, this.globalProperties, extensionClasspathProperties });
             factory.afterPropertiesSet();
             this.fixedConfigProperties = factory.getObject();
         }
@@ -443,7 +446,7 @@ public class SubsystemWithClassLoaderState implements PropertyBackedBeanState
         {
             // build effective properties
             final PropertiesFactoryBean factory = new PropertiesFactoryBean();
-            factory.setPropertiesArray(new Properties[] { this.fixedConfigProperties, this.runtimeProperties });
+            factory.setPropertiesArray(this.fixedConfigProperties, this.runtimeProperties);
             factory.afterPropertiesSet();
             final Properties subsystemProperties = factory.getObject();
             if (subsystemProperties != null)
@@ -493,20 +496,17 @@ public class SubsystemWithClassLoaderState implements PropertyBackedBeanState
         {
             final Resource[] simpleLookupResources = this.parentContext
                     .getResources(classpathBase + CLASSPATH_DELIMITER + CLASSES_FOLDER_NAME);
-            if (simpleLookupResources != null)
+            for (final Resource resource : simpleLookupResources)
             {
-                for (final Resource resource : simpleLookupResources)
+                try
                 {
-                    try
-                    {
-                        final File file = resource.getFile();
-                        urls.add(file.toURI().toURL());
-                    }
-                    catch (final IOException fileEx)
-                    {
-                        LOGGER.debug("Failed to resolve resource {} to file for '{}' subsystem, ID: {}", resource.getDescription(),
-                                this.category, this.id);
-                    }
+                    final File file = resource.getFile();
+                    urls.add(file.toURI().toURL());
+                }
+                catch (final IOException fileEx)
+                {
+                    LOGGER.debug("Failed to resolve resource {} to file for '{}' subsystem, ID: {}", resource.getDescription(),
+                            this.category, this.id);
                 }
             }
         }

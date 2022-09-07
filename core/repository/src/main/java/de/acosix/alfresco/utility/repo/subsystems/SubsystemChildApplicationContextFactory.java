@@ -17,8 +17,11 @@ package de.acosix.alfresco.utility.repo.subsystems;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.repo.management.subsystems.ChildApplicationContextFactory;
@@ -36,7 +39,8 @@ import org.springframework.core.io.Resource;
  *
  * @author Axel Faust
  */
-public class SubsystemChildApplicationContextFactory extends ChildApplicationContextFactory implements SingleInstanceSubsystemHandler
+public class SubsystemChildApplicationContextFactory extends ChildApplicationContextFactory
+        implements SingleInstanceSubsystemHandler, SubsystemConstants
 {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SubsystemChildApplicationContextFactory.class);
@@ -87,9 +91,8 @@ public class SubsystemChildApplicationContextFactory extends ChildApplicationCon
             final String category = this.getCategory();
             final String type = this.getTypeName();
 
-            final String defaultPropertiesPattern = SubsystemWithClassLoaderState.CLASSPATH_ALFRESCO_SUBSYSTEMS + category
-                    + SubsystemWithClassLoaderState.CLASSPATH_DELIMITER + type + +SubsystemWithClassLoaderState.CLASSPATH_DELIMITER
-                    + SubsystemWithClassLoaderState.PROPERTIES_FILE_PATTERN;
+            final String defaultPropertiesPattern = CLASSPATH_ALFRESCO_SUBSYSTEMS + category + CLASSPATH_DELIMITER + type
+                    + CLASSPATH_DELIMITER + PROPERTIES_FILE_PATTERN;
             final Resource[] resources = this.getParent().getResources(defaultPropertiesPattern);
             LOGGER.debug("Resolved default properties files for {}: {}", this, Arrays.asList(resources));
             return resources;
@@ -114,9 +117,8 @@ public class SubsystemChildApplicationContextFactory extends ChildApplicationCon
             final String type = this.getTypeName();
             final String id = idList.get(idList.size() - 1);
 
-            final String extensionPropertiesPattern = SubsystemWithClassLoaderState.CLASSPATH_ALFRESCO_EXTENSION_SUBSYSTEMS + category
-                    + SubsystemWithClassLoaderState.CLASSPATH_DELIMITER + type + SubsystemWithClassLoaderState.CLASSPATH_DELIMITER + id
-                    + SubsystemWithClassLoaderState.CLASSPATH_DELIMITER + SubsystemWithClassLoaderState.PROPERTIES_FILE_PATTERN;
+            final String extensionPropertiesPattern = CLASSPATH_ALFRESCO_EXTENSION_SUBSYSTEMS + category + CLASSPATH_DELIMITER + type
+                    + CLASSPATH_DELIMITER + id + CLASSPATH_DELIMITER + PROPERTIES_FILE_PATTERN;
             final Resource[] resources = this.getParent().getResources(extensionPropertiesPattern);
             LOGGER.debug("Resolved extension properties files for {}: {}", this, Arrays.asList(resources));
             return resources;
@@ -197,6 +199,40 @@ public class SubsystemChildApplicationContextFactory extends ChildApplicationCon
     protected PropertyBackedBeanState createInitialState() throws IOException
     {
         return new SubsystemApplicationContextState(true);
+    }
+
+    /**
+     *
+     * {@inheritDoc}
+     */
+    @Override
+    protected void applyDefaultOverrides(final PropertyBackedBeanState state) throws IOException
+    {
+        final String propertyNamePatterns = state.getProperty(SUBSYSTEM_PROPERTY_NAME_PATTERNS);
+        if (propertyNamePatterns != null && !propertyNamePatterns.trim().isEmpty())
+        {
+            state.removeProperty(SUBSYSTEM_PROPERTY_NAME_PATTERNS);
+
+            // map in any system + global properties matching defined patterns
+            // this deals with dynamically defined properties without any predefines in the subsystem default
+            final Set<String> systemAndDefaultPropertyNames = new HashSet<>(this.getPropertyDefaults().stringPropertyNames());
+            systemAndDefaultPropertyNames.addAll(this.getEncryptedPropertyDefaults().stringPropertyNames());
+            systemAndDefaultPropertyNames.addAll(System.getProperties().stringPropertyNames());
+
+            final String[] patterns = propertyNamePatterns.trim().split(",");
+            for (final String pattern : patterns)
+            {
+                final Pattern rpattern = Pattern.compile(pattern);
+                systemAndDefaultPropertyNames.stream().filter(pn -> rpattern.matcher(pn).matches()).forEach(pn -> {
+                    if (state.getProperty(pn) == null)
+                    {
+                        state.setProperty(pn, "");
+                    }
+                });
+            }
+        }
+
+        super.applyDefaultOverrides(state);
     }
 
     /**

@@ -37,10 +37,10 @@ import org.springframework.util.PropertiesPersister;
  * @author Axel Faust
  */
 public class SubsystemWithClassLoaderFactory extends AbstractPropertyBackedBean
-        implements SingleInstanceSubsystemHandler, PropertyBackedBeanWithMonitor
+        implements SingleInstanceSubsystemHandler, PropertyBackedBeanWithMonitor, SubsystemConstants
 {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SubsystemChildApplicationContextFactory.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SubsystemWithClassLoaderFactory.class);
 
     protected String typeName;
 
@@ -53,7 +53,7 @@ public class SubsystemWithClassLoaderFactory extends AbstractPropertyBackedBean
      * Sets the type name.
      *
      * @param typeName
-     *            the typeName to set
+     *     the typeName to set
      */
     public void setTypeName(final String typeName)
     {
@@ -70,7 +70,7 @@ public class SubsystemWithClassLoaderFactory extends AbstractPropertyBackedBean
 
     /**
      * @param persister
-     *            the persister to set
+     *     the persister to set
      */
     public void setPersister(final PropertiesPersister persister)
     {
@@ -118,7 +118,7 @@ public class SubsystemWithClassLoaderFactory extends AbstractPropertyBackedBean
     @Override
     public boolean isUpdateable(final String name)
     {
-        final boolean isUpdateable = !SubsystemWithClassLoaderState.NOT_UPDATEABLE_PROPERTIES.contains(name);
+        final boolean isUpdateable = !NON_UPDATEABLE_PROPERTIES.contains(name);
         return isUpdateable;
     }
 
@@ -134,16 +134,16 @@ public class SubsystemWithClassLoaderFactory extends AbstractPropertyBackedBean
         String result;
         switch (name)
         {
-            case SubsystemWithClassLoaderState.PROPERTY_CATEGORY:
+            case PROPERTY_CATEGORY:
                 result = "Read-only subsystem category";
                 break;
-            case SubsystemWithClassLoaderState.PROPERTY_TYPE:
+            case PROPERTY_TYPE:
                 result = "Read-only subsystem type name";
                 break;
-            case SubsystemWithClassLoaderState.PROPERTY_ID:
+            case PROPERTY_ID:
                 result = "Read-only subsystem instance id";
                 break;
-            case SubsystemWithClassLoaderState.PROPERTY_INSTANCE_PATH:
+            case PROPERTY_INSTANCE_PATH:
                 result = "Read-only instance path";
                 break;
             default:
@@ -217,12 +217,12 @@ public class SubsystemWithClassLoaderFactory extends AbstractPropertyBackedBean
         try
         {
             final StringBuilder propertiesLocationBuilder = new StringBuilder();
-            propertiesLocationBuilder.append("classpath*:alfresco");
-            propertiesLocationBuilder.append("/subsystems/");
+            propertiesLocationBuilder.append(CLASSPATH_ALFRESCO_SUBSYSTEMS);
             propertiesLocationBuilder.append(this.getCategory());
-            propertiesLocationBuilder.append('/');
+            propertiesLocationBuilder.append(CLASSPATH_DELIMITER);
             propertiesLocationBuilder.append(this.getTypeName());
-            propertiesLocationBuilder.append("/*.properties");
+            propertiesLocationBuilder.append(CLASSPATH_DELIMITER);
+            propertiesLocationBuilder.append(PROPERTIES_FILE_PATTERN);
 
             final String defaultPropertiesPattern = propertiesLocationBuilder.toString();
             final Resource[] resources = this.getParent().getResources(defaultPropertiesPattern);
@@ -247,15 +247,14 @@ public class SubsystemWithClassLoaderFactory extends AbstractPropertyBackedBean
             final List<String> idList = this.getId();
 
             final StringBuilder propertiesLocationBuilder = new StringBuilder();
-            propertiesLocationBuilder.append("classpath*:alfresco");
-            propertiesLocationBuilder.append("/extension");
-            propertiesLocationBuilder.append("/subsystems/");
+            propertiesLocationBuilder.append(CLASSPATH_ALFRESCO_EXTENSION_SUBSYSTEMS);
             propertiesLocationBuilder.append(this.getCategory());
-            propertiesLocationBuilder.append('/');
+            propertiesLocationBuilder.append(CLASSPATH_DELIMITER);
             propertiesLocationBuilder.append(this.getTypeName());
-            propertiesLocationBuilder.append("/");
+            propertiesLocationBuilder.append(CLASSPATH_DELIMITER);
             propertiesLocationBuilder.append(idList.get(idList.size() - 1));
-            propertiesLocationBuilder.append("/*.properties");
+            propertiesLocationBuilder.append(CLASSPATH_DELIMITER);
+            propertiesLocationBuilder.append(PROPERTIES_FILE_PATTERN);
 
             final String extensionPropertiesPattern = propertiesLocationBuilder.toString();
             final Resource[] resources = this.getParent().getResources(extensionPropertiesPattern);
