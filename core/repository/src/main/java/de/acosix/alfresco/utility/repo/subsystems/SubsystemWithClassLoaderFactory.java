@@ -17,8 +17,11 @@ package de.acosix.alfresco.utility.repo.subsystems;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.repo.management.subsystems.AbstractPropertyBackedBean;

@@ -31,7 +31,6 @@ import java.util.regex.Pattern;
 
 import org.alfresco.config.JndiPropertiesFactoryBean;
 import org.alfresco.error.AlfrescoRuntimeException;
-import org.alfresco.repo.management.subsystems.AbstractPropertyBackedBean.DefaultResolver;
 import org.alfresco.repo.management.subsystems.PropertyBackedBeanState;
 import org.alfresco.util.ParameterCheck;
 import org.slf4j.Logger;
@@ -48,6 +47,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.io.Resource;
 import org.springframework.util.PropertiesPersister;
+import org.springframework.util.PropertyPlaceholderHelper;
 
 /**
  * @author Axel Faust
@@ -58,8 +58,6 @@ public class SubsystemWithClassLoaderState implements PropertyBackedBeanState, S
     private static final Logger LOGGER = LoggerFactory.getLogger(SubsystemWithClassLoaderState.class);
 
     protected final ApplicationContext parentContext;
-
-    protected final DefaultResolver defaultResolver;
 
     protected final Properties globalProperties;
 
@@ -83,9 +81,9 @@ public class SubsystemWithClassLoaderState implements PropertyBackedBeanState, S
 
     protected transient Object monitor;
 
-    public SubsystemWithClassLoaderState(final ApplicationContext parentContext, final DefaultResolver defaultResolver,
-            final Properties globalProperties, final PropertiesPersister propertiesPersister, final String category, final String type,
-            final String id, final String instancePath)
+    public SubsystemWithClassLoaderState(final ApplicationContext parentContext, final Properties globalProperties,
+            final PropertiesPersister propertiesPersister, final String category, final String type, final String id,
+            final String instancePath)
     {
         ParameterCheck.mandatory("parentContext", parentContext);
         ParameterCheck.mandatory("globalProperties", globalProperties);
@@ -97,7 +95,6 @@ public class SubsystemWithClassLoaderState implements PropertyBackedBeanState, S
         ParameterCheck.mandatoryString("instancePath", instancePath);
 
         this.parentContext = parentContext;
-        this.defaultResolver = defaultResolver;
         this.globalProperties = globalProperties;
         this.propertiesPersister = propertiesPersister;
 
@@ -128,6 +125,7 @@ public class SubsystemWithClassLoaderState implements PropertyBackedBeanState, S
                 // support re-load of classpath configurations (this specifically aims for extension configuration)
                 this.loadFixedConfigProperties();
 
+                // TODO Support composites same as Alfresco subsystems do
                 this.applicationContext = new ClassPathXmlApplicationContext(new String[] { BASE_SUBSYSTEM_CONTEXT }, false,
                         this.parentContext)
                 {
@@ -163,7 +161,20 @@ public class SubsystemWithClassLoaderState implements PropertyBackedBeanState, S
                     {
                         super.prepareBeanFactory(beanFactory);
 
-                        SubsystemWithClassLoaderState.this.populateSubsystemBeanFactory(beanFactory);
+                        final Properties subsystemProperties = SubsystemWithClassLoaderState.this.populateSubsystemBeanFactory(beanFactory);
+
+                        final PropertyPlaceholderConfigurer configurer = new PropertyPlaceholderConfigurer();
+                        if (subsystemProperties != null)
+                        {
+                            configurer.setPropertiesArray(SubsystemWithClassLoaderState.this.globalProperties, subsystemProperties);
+                        }
+                        else
+                        {
+                            configurer.setProperties(SubsystemWithClassLoaderState.this.globalProperties);
+                        }
+                        configurer.setIgnoreUnresolvablePlaceholders(true);
+                        configurer.setSearchSystemEnvironment(false);
+                        this.addBeanFactoryPostProcessor(configurer);
                     }
                 };
 
@@ -383,47 +394,47 @@ public class SubsystemWithClassLoaderState implements PropertyBackedBeanState, S
             factory.afterPropertiesSet();
             final Properties properties = factory.getObject();
 
-            // #2: map in any system + global property names matching defined patterns
-            // this deals with dynamically defined properties without any predefines in the subsystem default
-            final String propertyNamePatterns = properties.getProperty(SUBSYSTEM_PROPERTY_NAME_PATTERNS);
-            if (propertyNamePatterns != null && !propertyNamePatterns.trim().isEmpty())
+            if (properties != null)
             {
-                properties.remove(SUBSYSTEM_PROPERTY_NAME_PATTERNS);
-
-                final Set<String> systemAndDefaultPropertyNames = new HashSet<>(this.globalProperties.stringPropertyNames());
-                systemAndDefaultPropertyNames.addAll(System.getProperties().stringPropertyNames());
-
-                final String[] patterns = propertyNamePatterns.trim().split(",");
-                for (final String pattern : patterns)
+                // #2: map in any system + global property names matching defined patterns
+                // this deals with dynamically defined properties without any predefines in the subsystem default
+                final String propertyNamePatterns = properties.getProperty(SUBSYSTEM_PROPERTY_NAME_PATTERNS);
+                if (propertyNamePatterns != null && !propertyNamePatterns.trim().isEmpty())
                 {
-                    final Pattern rpattern = Pattern.compile(pattern);
-                    systemAndDefaultPropertyNames.stream().filter(pn -> rpattern.matcher(pn).matches()).forEach(pn -> {
-                        if (properties.getProperty(pn) == null)
-                        {
-                            properties.setProperty(pn, "");
-                        }
-                    });
+                    properties.remove(SUBSYSTEM_PROPERTY_NAME_PATTERNS);
+
+                    final Set<String> systemAndDefaultPropertyNames = new HashSet<>(this.globalProperties.stringPropertyNames());
+                    systemAndDefaultPropertyNames.addAll(System.getProperties().stringPropertyNames());
+
+                    final String[] patterns = propertyNamePatterns.trim().split(",");
+                    for (final String pattern : patterns)
+                    {
+                        final Pattern rpattern = Pattern.compile(pattern);
+                        systemAndDefaultPropertyNames.stream().filter(np -> !properties.containsKey(np))
+                                .filter(pn -> rpattern.matcher(pn).matches()).forEach(pn -> properties.setProperty(pn, ""));
+                    }
                 }
-            }
 
-            // #3: check and resolve defaults from global properties
-            for (final String name : properties.stringPropertyNames())
-            {
-                String value = this.globalProperties.getProperty(name);
-                if (value != null)
+                // #3: check and resolve defaults from global properties
+                final PropertyPlaceholderHelper resolver = new PropertyPlaceholderHelper("${", "}", ":", true);
+                for (final String name : properties.stringPropertyNames())
                 {
-                    value = this.defaultResolver.resolveValue(value);
-                }
-                if (value != null)
-                {
-                    properties.setProperty(name, value);
+                    String value = this.globalProperties.getProperty(name);
+                    if (value != null)
+                    {
+                        value = resolver.replacePlaceholders(value, this.globalProperties);
+                        properties.setProperty(name, value);
+                    }
                 }
             }
 
             // #4: aggregate with static overrides from extensions + system properties
             factory = new JndiPropertiesFactoryBean();
             ((JndiPropertiesFactoryBean) factory).setSystemPropertiesMode(PropertyPlaceholderConfigurer.SYSTEM_PROPERTIES_MODE_OVERRIDE);
-            factory.setProperties(properties);
+            if (properties != null)
+            {
+                factory.setProperties(properties);
+            }
             factory.setPropertiesPersister(this.propertiesPersister);
             final Resource[] extensionClasspathResources = this.parentContext
                     .getResources(CLASSPATH_ALFRESCO_EXTENSION_SUBSYSTEMS + this.category + CLASSPATH_DELIMITER + this.type
@@ -440,7 +451,7 @@ public class SubsystemWithClassLoaderState implements PropertyBackedBeanState, S
         }
     }
 
-    protected void populateSubsystemBeanFactory(final ConfigurableListableBeanFactory beanFactory)
+    protected Properties populateSubsystemBeanFactory(final ConfigurableListableBeanFactory beanFactory)
     {
         try
         {
@@ -453,6 +464,7 @@ public class SubsystemWithClassLoaderState implements PropertyBackedBeanState, S
             {
                 beanFactory.registerSingleton(BEAN_NAME_SUBSYSTEM_PROPERTIES, subsystemProperties);
             }
+            return subsystemProperties;
         }
         catch (final IOException e)
         {

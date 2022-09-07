@@ -48,9 +48,10 @@ public class SubsystemWithClassLoaderFactoryTest
 
             final Properties effectiveProperties = factory.getSubsystemEffectiveProperties();
 
-            Assert.assertEquals("Global value does not match", "extension-value1", effectiveProperties.get("subsystem.manager.prop1"));
+            Assert.assertEquals("Extension value does not match", "extension-value1", effectiveProperties.get("subsystem.manager.prop1"));
             Assert.assertEquals("Default value does not match", "value2", effectiveProperties.get("subsystem.manager.prop2"));
-            Assert.assertEquals("Extension value does not match", "global-value3", effectiveProperties.get("subsystem.manager.prop3"));
+            Assert.assertEquals("Global value does not match", "global-value3", effectiveProperties.get("subsystem.manager.prop3"));
+            Assert.assertNull("Prop 4 is set", effectiveProperties.get("subsystem.manager.prop4"));
         }
     }
 
