@@ -25,6 +25,7 @@
         <property name="interfaces">
             <list>
                 <value>org.alfresco.repo.action.executer.ActionExecuter</value>
+                <value>org.alfresco.repo.action.executer.LoggingAwareExecuter</value>
             </list>
         </property>
     </bean>

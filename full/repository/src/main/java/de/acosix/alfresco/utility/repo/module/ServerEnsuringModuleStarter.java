@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - 2021 Acosix GmbH
+ * Copyright 2016 - 2022 Acosix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package de.acosix.alfresco.utility.repo.module;
 
 import org.alfresco.repo.domain.node.NodeDAO;
 import org.alfresco.repo.module.ModuleStarter;
+import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.service.transaction.TransactionService;
 import org.alfresco.util.PropertyCheck;
 import org.slf4j.Logger;
@@ -69,7 +70,9 @@ public class ServerEnsuringModuleStarter extends ModuleStarter
     {
         PropertyCheck.mandatory(this, "nodeDAO", this.nodeDAO);
         PropertyCheck.mandatory(this, "transactionService", this.transactionService);
-        this.transactionService.getRetryingTransactionHelper().doInTransaction(() -> {
+        final RetryingTransactionHelper transactionHelper = this.transactionService.getRetryingTransactionHelper();
+        transactionHelper.setForceWritable(true);
+        transactionHelper.doInTransaction(() -> {
             final Long currentTransactionId = this.nodeDAO.getCurrentTransactionId(true);
             LOGGER.debug("Created empty transaction {} to ensure alf_server is initialised for current server", currentTransactionId);
             return null;

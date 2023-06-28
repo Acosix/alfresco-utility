@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - 2021 Acosix GmbH
+ * Copyright 2016 - 2022 Acosix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -29,9 +31,14 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
+import javax.mail.Part;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeUtility;
 
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.model.ContentModel;
@@ -67,6 +74,8 @@ public class FolderEmailMessageHandler extends AbstractEmailMessageHandler
     protected static final String ERR_MAIL_READ_ERROR = "email.server.err.mail_read_error";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FolderEmailMessageHandler.class);
+
+    private static final Pattern ENCODING_EXTRACTOR = Pattern.compile("charset\\s*=[\\s\"]*([^\";\\s]*)");
 
     private static final Set<QName> KNOWN_EMAIL_PROPERTIES = Collections
             .unmodifiableSet(new HashSet<>(Arrays.asList(ContentModel.PROP_SENTDATE, ContentModel.PROP_ORIGINATOR,
@@ -252,27 +261,62 @@ public class FolderEmailMessageHandler extends AbstractEmailMessageHandler
     }
 
     protected void extractAttachments(final NodeRef folderRef, final NodeRef mailNodeRef, final EmailMessage message,
-            final boolean extractAttachmentsAsDirectChildren)
+            final boolean extractAttachmentsAsDirectChildren) throws IOException
     {
         final QName childAssocType = extractAttachmentsAsDirectChildren ? EmailModel.ASSOC_ATTACHMENTS : ContentModel.ASSOC_CONTAINS;
         final NodeRef attachmentParent = extractAttachmentsAsDirectChildren ? mailNodeRef : folderRef;
 
         final Map<QName, Serializable> mailProperties = this.nodeService.getProperties(mailNodeRef);
 
-        for (final EmailMessagePart attachment : message.getAttachments())
+        if (message instanceof ImprovedEmailMessage)
         {
-            this.writeAttachment(mailNodeRef, mailProperties, childAssocType, EmailModel.ASSOC_ATTACHMENTS, attachmentParent, attachment);
+            final Collection<Part> attachments = new ArrayList<>();
+            this.collectRelevantAttachments(((ImprovedEmailMessage) message).getMimeMessage(), attachments);
+            for (final Part attachment : attachments)
+            {
+                this.writeAttachment(mailNodeRef, mailProperties, childAssocType, EmailModel.ASSOC_ATTACHMENTS, attachmentParent,
+                        attachment);
+            }
+        }
+        else
+        {
+            for (final EmailMessagePart attachment : message.getAttachments())
+            {
+                if (this.isRelevantAttachment(message.getSubject(), attachment))
+                {
+                    this.writeAttachment(mailNodeRef, mailProperties, childAssocType, EmailModel.ASSOC_ATTACHMENTS, attachmentParent,
+                            attachment);
+                }
+            }
         }
     }
 
     protected void writeAttachment(final NodeRef mailNodeRef, final Map<QName, Serializable> mailProperties, final QName childAssocType,
-            final QName mailNodeRefChildAssocType, final NodeRef attachmentParent, final EmailMessagePart attachment)
+            final QName mailNodeRefChildAssocType, final NodeRef attachmentParent, final EmailMessagePart attachment) throws IOException
     {
         final String fileName = attachment.getFileName();
-        final InputStream attachmentStream = attachment.getContent();
 
-        final String mimetype = this.mimetypeService.guessMimetype(fileName);
-        final String encoding = attachment.getEncoding();
+        final String contentType = attachment.getContentType();
+        String mimetype = contentType;
+        if (mimetype.indexOf(';') != -1)
+        {
+            mimetype = mimetype.substring(0, mimetype.indexOf(';'));
+        }
+        final Matcher encodingMatcher = ENCODING_EXTRACTOR.matcher(contentType);
+        String encoding = null;
+        if (encodingMatcher.find())
+        {
+            encoding = encodingMatcher.group(1);
+        }
+        else
+        {
+            encoding = attachment.getEncoding();
+        }
+
+        if (MimetypeMap.MIMETYPE_BINARY.equals(mimetype))
+        {
+            mimetype = this.mimetypeService.guessMimetype(fileName);
+        }
 
         final Map<QName, Serializable> properties = new HashMap<>();
 
@@ -297,9 +341,134 @@ public class FolderEmailMessageHandler extends AbstractEmailMessageHandler
                     this.nodeService.getPrimaryParent(attachmentNodeRef).getQName());
         }
 
-        this.writeContent(attachmentNodeRef, attachmentStream, mimetype, encoding);
+        try (final InputStream attachmentStream = attachment.getContent())
+        {
+            this.writeContent(attachmentNodeRef, attachmentStream, mimetype, encoding);
+        }
 
         final Action extracterAction = this.actionService.createAction(ContentMetadataExtracter.EXECUTOR_NAME);
         this.actionService.executeAction(extracterAction, attachmentNodeRef, true, true);
+    }
+
+    protected void writeAttachment(final NodeRef mailNodeRef, final Map<QName, Serializable> mailProperties, final QName childAssocType,
+            final QName mailNodeRefChildAssocType, final NodeRef attachmentParent, final Part attachment) throws IOException
+    {
+        try
+        {
+            String fileName = attachment.getFileName();
+            if (fileName != null)
+            {
+                fileName = MimeUtility.decodeText(fileName);
+            }
+            else
+            {
+                throw new EmailMessageException("Cannot handle attachment without a file name");
+            }
+
+            final String contentType = attachment.getContentType();
+            String mimetype = contentType;
+            if (mimetype.indexOf(';') != -1)
+            {
+                mimetype = mimetype.substring(0, mimetype.indexOf(';'));
+            }
+            final Matcher encodingMatcher = ENCODING_EXTRACTOR.matcher(contentType);
+            String encoding = null;
+            if (encodingMatcher.find())
+            {
+                encoding = encodingMatcher.group(1);
+            }
+
+            if (MimetypeMap.MIMETYPE_BINARY.equals(mimetype))
+            {
+                mimetype = this.mimetypeService.guessMimetype(fileName);
+            }
+
+            final Map<QName, Serializable> properties = new HashMap<>();
+
+            if (this.copyEmailMetadataToAttachments)
+            {
+                mailProperties.forEach((key, value) -> {
+                    if (ImapModel.IMAP_MODEL_1_0_URI.equals(key.getNamespaceURI()) && KNOWN_EMAIL_PROPERTIES.contains(key))
+                    {
+                        properties.put(key, value);
+                    }
+                });
+            }
+
+            final NodeRef attachmentNodeRef = this.getOrCreateContentNode(attachmentParent, fileName, childAssocType, false, properties);
+
+            this.nodeService.addAspect(mailNodeRef, ContentModel.ASPECT_ATTACHABLE, Collections.<QName, Serializable> emptyMap());
+            this.nodeService.createAssociation(mailNodeRef, attachmentNodeRef, ContentModel.ASSOC_ATTACHMENTS);
+
+            if (!childAssocType.equals(mailNodeRefChildAssocType))
+            {
+                this.nodeService.addChild(mailNodeRef, attachmentNodeRef, mailNodeRefChildAssocType,
+                        this.nodeService.getPrimaryParent(attachmentNodeRef).getQName());
+            }
+
+            try (final InputStream attachmentStream = attachment.getInputStream())
+            {
+                this.writeContent(attachmentNodeRef, attachmentStream, mimetype, encoding);
+            }
+
+            final Action extracterAction = this.actionService.createAction(ContentMetadataExtracter.EXECUTOR_NAME);
+            this.actionService.executeAction(extracterAction, attachmentNodeRef, true, true);
+        }
+        catch (final MessagingException mex)
+        {
+            LOGGER.error("Error processing mail attachment part", mex);
+            throw new AlfrescoRuntimeException("Failed to store mail attachment", mex);
+        }
+    }
+
+    protected void collectRelevantAttachments(final Part messagePart, final Collection<Part> attachmentParts) throws IOException
+    {
+        try
+        {
+            String mimetype = messagePart.getContentType();
+            if (mimetype.contains(";"))
+            {
+                mimetype = mimetype.substring(0, mimetype.indexOf(';'));
+            }
+            final String disposition = messagePart.getDisposition();
+
+            if (messagePart.isMimeType("multipart/*"))
+            {
+                final Multipart mp = (Multipart) messagePart.getContent();
+                final int count = mp.getCount();
+
+                for (int i = 0; i < count; i++)
+                {
+                    this.collectRelevantAttachments(mp.getBodyPart(i), attachmentParts);
+                }
+            }
+            else if (Part.ATTACHMENT.equalsIgnoreCase(disposition) && messagePart.getFileName() != null)
+            {
+                attachmentParts.add(messagePart);
+            }
+        }
+        catch (final MessagingException mex)
+        {
+            LOGGER.error("Error processing mail message parts", mex);
+            throw new AlfrescoRuntimeException("Error evaulating message parts for attachments", mex);
+        }
+    }
+
+    protected boolean isRelevantAttachment(final String subject, final EmailMessagePart attachment)
+    {
+        // alternative parts don't have a file name, but Alfresco implicitly sets it equal to the subject
+        final String fileName = attachment.getFileName();
+
+        boolean isAttachment = fileName != null;
+        // check for Alfresco special cases of fileName == subject + extension / fileName == subject
+        // see SubethaEmailMessage.getPartFileName for logic that we need to guard against here
+        if (isAttachment
+                && ((fileName.matches(".+\\.(txt|html|xml|gif)$") && fileName.substring(0, fileName.lastIndexOf('.')).equals(subject))
+                        || fileName.equals(subject)))
+        {
+            isAttachment = false;
+        }
+
+        return isAttachment;
     }
 }

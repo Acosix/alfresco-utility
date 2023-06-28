@@ -47,7 +47,7 @@ import org.springframework.core.io.support.PropertiesLoaderSupport;
  * {@link #setSubsystemChildApplicationContextFactory(ChildApplicationContextFactory) subsystem child application context factory}
  * responsible for managing the subsystem.
  *
- * This class does not incorporate any properties set at runtime via the {@link PropertyBackedBean} API.
+ * This class does not incorporate any properties set at runtime via the {@link PropertyBackedBean} API or via system properties.
  *
  * @author Axel Faust
  */
@@ -140,7 +140,7 @@ public class SubsystemPropertiesFactoryBean extends PropertiesLoaderSupport
 
     /**
      * @param subsystemChildApplicationContextManager
-     *            the subsystemChildApplicationContextManager to set
+     *     the subsystemChildApplicationContextManager to set
      */
     public void setSubsystemChildApplicationContextManager(final ChildApplicationContextManager subsystemChildApplicationContextManager)
     {
@@ -149,7 +149,7 @@ public class SubsystemPropertiesFactoryBean extends PropertiesLoaderSupport
 
     /**
      * @param subsystemChildApplicationContextFactory
-     *            the subsystemChildApplicationContextFactory to set
+     *     the subsystemChildApplicationContextFactory to set
      */
     public void setSubsystemChildApplicationContextFactory(final ChildApplicationContextFactory subsystemChildApplicationContextFactory)
     {
@@ -158,7 +158,7 @@ public class SubsystemPropertiesFactoryBean extends PropertiesLoaderSupport
 
     /**
      * @param extensionProperties
-     *            the extensionProperties to set
+     *     the extensionProperties to set
      */
     public void setExtensionProperties(final boolean extensionProperties)
     {
