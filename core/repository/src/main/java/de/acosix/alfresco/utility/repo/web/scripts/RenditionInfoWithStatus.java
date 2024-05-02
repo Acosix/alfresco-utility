@@ -93,7 +93,7 @@ public class RenditionInfoWithStatus extends ContentInfoWithStatus implements In
         {
             if (contentPart.length() < 2)
             {
-                throw new WebScriptException(HttpServletResponse.SC_BAD_REQUEST, "Content property malformed");
+                throw new WebScriptException(Status.STATUS_BAD_REQUEST, "Content property malformed");
             }
             final String propertyName = contentPart.substring(1);
             if (propertyName.length() > 0)

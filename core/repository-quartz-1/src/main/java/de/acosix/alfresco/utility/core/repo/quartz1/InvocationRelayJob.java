@@ -17,13 +17,14 @@ package de.acosix.alfresco.utility.core.repo.quartz1;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import de.acosix.alfresco.utility.repo.job.GenericJob;
 
 /**
  * Instances of this job class merely serve the purpose of relaying a job execution to an alternative class instance whose API has been
@@ -52,20 +53,11 @@ public class InvocationRelayJob implements Job
         {
             try
             {
-                relay = ((Class<?>) relayClassCandidate).newInstance();
+                relay = ((Class<?>) relayClassCandidate).getDeclaredConstructor().newInstance();
             }
-            catch (InstantiationException | IllegalAccessException ignore)
+            catch (InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException ignore)
             {
                 LOGGER.debug("Class {} cannot be instantiated using Class.newInstance()", relayClassCandidate);
-            }
-
-            try
-            {
-                execute = ((Class<?>) relayClassCandidate).getMethod("execute", Object.class);
-            }
-            catch (final NoSuchMethodException ignore)
-            {
-                LOGGER.debug("Class {} does not provide an execute(Object) method", relayClassCandidate);
             }
         }
         else
@@ -73,19 +65,12 @@ public class InvocationRelayJob implements Job
             LOGGER.debug("Value {} for {} is not a class", relayClassCandidate, RELAY_CLASS);
         }
 
-        if (relay == null || execute == null || Modifier.isStatic(execute.getModifiers()))
+        if (!(relay instanceof GenericJob))
         {
             throw new IllegalStateException("Invalid relay class value: " + relayClassCandidate);
         }
 
-        try
-        {
-            execute.invoke(relay, context);
-        }
-        catch (InvocationTargetException | IllegalAccessException ex)
-        {
-            throw new RuntimeException("Error invoking relay job class instance", ex);
-        }
+        ((GenericJob) relay).execute(context);
     }
 
 }

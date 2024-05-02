@@ -19,8 +19,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletResponse;
-
 import org.alfresco.repo.web.scripts.content.ContentInfo;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.namespace.NamespaceService;
@@ -113,7 +111,7 @@ public class ContentInfoWithStatus extends ContentInfo implements InitializingBe
         {
             if (contentPart.length() < 2)
             {
-                throw new WebScriptException(HttpServletResponse.SC_BAD_REQUEST, "Content property malformed");
+                throw new WebScriptException(Status.STATUS_BAD_REQUEST, "Content property malformed");
             }
             final String propertyName = contentPart.substring(1);
             if (propertyName.length() > 0)
