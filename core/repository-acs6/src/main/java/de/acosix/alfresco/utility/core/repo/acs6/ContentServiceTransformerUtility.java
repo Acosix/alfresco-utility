@@ -18,18 +18,20 @@ package de.acosix.alfresco.utility.core.repo.acs6;
 import java.lang.reflect.Method;
 
 import org.alfresco.repo.content.transform.ContentTransformer;
+import org.alfresco.service.cmr.repository.ContentReader;
 import org.alfresco.service.cmr.repository.ContentService;
+import org.alfresco.service.cmr.repository.ContentWriter;
 import org.alfresco.service.cmr.repository.TransformationOptions;
 import org.springframework.context.ApplicationContext;
 
 /**
  * @author Axel Faust
  */
-public class ContentServiceTransformerCheck
+public class ContentServiceTransformerUtility
 {
 
     /**
-     * Checks whether the necessary APIs are available to invoke this check utility. Note that the caller is still required to handle any
+     * Checks whether the necessary APIs are available to invoke this utility. Note that the caller is still required to handle any
      * {@link NoClassDefFoundError classloading errors} to be safe.
      *
      * @return {@code true} if the API is available, {@code false} otherwise
@@ -62,6 +64,25 @@ public class ContentServiceTransformerCheck
      *
      * @param applicationContext
      *     the application context from which to resolve service instances
+     * @param sourceMimetype
+     *     the source content mimetype
+     * @param targetMimetype
+     *     the target mimetype
+     * @return {@code true} if a transformer is available
+     */
+    public static boolean hasTransformer(final ApplicationContext applicationContext, final String sourceMimetype,
+            final String targetMimetype)
+    {
+        final ContentService contentService = applicationContext.getBean("ContentService", ContentService.class);
+        final ContentTransformer transformer = contentService.getTransformer(sourceMimetype, targetMimetype);
+        return transformer != null;
+    }
+
+    /**
+     * Checks whether a transformer exists for a particular transformation.
+     *
+     * @param applicationContext
+     *     the application context from which to resolve service instances
      * @param contentUrl
      *     the source content URL
      * @param sourceMimetype
@@ -81,5 +102,39 @@ public class ContentServiceTransformerCheck
         final ContentTransformer transformer = contentService.getTransformer(contentUrl, sourceMimetype, size, targetMimetype,
                 transformationOptions);
         return transformer != null;
+    }
+
+    /**
+     * Checks whether some content is transformable.
+     *
+     * @param applicationContext
+     *     the application context from which to resolve service instances
+     * @param reader
+     *     the reader to the source content
+     * @param writer
+     *     the writer to the target content
+     * @return {@code true} if the content is transformable, {@code false} otherwise
+     */
+    public static boolean isTransformable(final ApplicationContext applicationContext, final ContentReader reader,
+            final ContentWriter writer)
+    {
+        final ContentService contentService = applicationContext.getBean("ContentService", ContentService.class);
+        return contentService.isTransformable(reader, writer);
+    }
+
+    /**
+     * Transforms content.
+     *
+     * @param applicationContext
+     *     the application context from which to resolve service instances
+     * @param reader
+     *     the reader to the source content
+     * @param writer
+     *     the writer to the target content
+     */
+    public static void transform(final ApplicationContext applicationContext, final ContentReader reader, final ContentWriter writer)
+    {
+        final ContentService contentService = applicationContext.getBean("ContentService", ContentService.class);
+        contentService.transform(reader, writer);
     }
 }

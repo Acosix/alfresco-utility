@@ -43,7 +43,7 @@ public class ThumbnailServiceRenditionUtility
         boolean ctcAvailable = false;
         try
         {
-            ctcAvailable = ContentServiceTransformerCheck.isAvailable();
+            ctcAvailable = ContentServiceTransformerUtility.isAvailable();
         }
         catch (final Exception ignore)
         {
@@ -145,7 +145,7 @@ public class ThumbnailServiceRenditionUtility
                 final ContentReader reader = contentService.getReader(nodeRef, effectivePropertyQName);
                 if (reader != null && reader.exists())
                 {
-                    possible = ContentServiceTransformerCheck.hasTransformer(applicationContext, reader.getContentUrl(),
+                    possible = ContentServiceTransformerUtility.hasTransformer(applicationContext, reader.getContentUrl(),
                             reader.getMimetype(), reader.getSize(), details.getMimetype(), details.getTransformationOptions());
                 }
             }
