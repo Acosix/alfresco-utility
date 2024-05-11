@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- 
- Copyright 2016 - 2021 Acosix GmbH
+ Copyright 2016 - 2024 Acosix GmbH
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@
             <includes>
                 <include>de.acosix.alfresco.utility:${common.artifactId}:*</include>
                 <include>de.acosix.alfresco.utility:de.acosix.alfresco.utility.core.repo.common:*</include>
+                <include>de.acosix.alfresco.utility:de.acosix.alfresco.utility.core.repo.acs6:*</include>
                 <include>de.acosix.alfresco.utility:de.acosix.alfresco.utility.core.repo.javax:*</include>
                 <include>de.acosix.alfresco.utility:de.acosix.alfresco.utility.core.repo.jakarta:*</include>
                 <include>de.acosix.alfresco.utility:de.acosix.alfresco.utility.core.repo.quartz1:*</include>
