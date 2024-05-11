@@ -14,7 +14,8 @@
  See the License for the specific language governing permissions and
  limitations under the License.
  -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
@@ -24,8 +25,9 @@
         <version>1.4.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>de.acosix.alfresco.utility.core.repo.jakarta</artifactId>
-    <name>Acosix Alfresco Utility - Core Repository Jakarta Library</name>
+    <artifactId>de.acosix.alfresco.utility.core.repo.acs6</artifactId>
+    <name>Acosix Alfresco Utility - Core Repository ACS 6.x (and 5.x)
+        Compatiblity Library</name>
 
     <properties>
     </properties>
@@ -38,25 +40,18 @@
                 <version>${project.version}</version>
             </dependency>
 
+            <!-- explicitly use versions found in ACS 6.1.2 -->
+            <!-- (best fit for backwards compatibility as these are last compiled with Java 8 -->
             <dependency>
-                <groupId>jakarta.servlet</groupId>
-                <artifactId>jakarta.servlet-api</artifactId>
-                <version>5.0.0</version>
-                <scope>provided</scope>
-            </dependency>
-
-            <!-- earliest with jakarta.mail-api support -->
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-context-support</artifactId>
-                <version>6.0.0</version>
+                <groupId>org.alfresco</groupId>
+                <artifactId>alfresco-remote-api</artifactId>
+                <version>7.35</version>
             </dependency>
 
             <dependency>
-                <groupId>jakarta.mail</groupId>
-                <artifactId>jakarta.mail-api</artifactId>
-                <version>2.0.1</version>
-                <scope>provided</scope>
+                <groupId>org.alfresco</groupId>
+                <artifactId>alfresco-repository</artifactId>
+                <version>7.43</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -71,21 +66,6 @@
         <dependency>
             <groupId>de.acosix.alfresco.utility</groupId>
             <artifactId>de.acosix.alfresco.utility.core.repo.common</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>jakarta.servlet</groupId>
-            <artifactId>jakarta.servlet-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>jakarta.mail</groupId>
-            <artifactId>jakarta.mail-api</artifactId>
         </dependency>
 
     </dependencies>
@@ -137,14 +117,6 @@
 
             <plugin>
                 <artifactId>maven-toolchains-plugin</artifactId>
-                <configuration>
-                    <toolchains>
-                        <jdk>
-                            <!-- force use of 1.17 JDK to link to new Spring etc. -->
-                            <version>1.17</version>
-                        </jdk>
-                    </toolchains>
-                </configuration>
             </plugin>
 
             <plugin>

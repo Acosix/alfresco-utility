@@ -16,7 +16,6 @@
 package de.acosix.alfresco.utility.core.repo.quartz1;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -47,7 +46,6 @@ public class InvocationRelayJob implements Job
     {
         final Object relayClassCandidate = context.getMergedJobDataMap().get(RELAY_CLASS);
         Object relay = null;
-        Method execute = null;
 
         if (relayClassCandidate instanceof Class<?>)
         {

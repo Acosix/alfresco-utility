@@ -18,60 +18,62 @@ package de.acosix.alfresco.utility.repo.web.scripts;
 import java.io.IOException;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletResponse;
-
 import org.alfresco.model.ContentModel;
-import org.alfresco.repo.content.transform.ContentTransformer;
-import org.alfresco.repo.thumbnail.ThumbnailDefinition;
-import org.alfresco.repo.thumbnail.ThumbnailRegistry;
-import org.alfresco.service.cmr.repository.ContentReader;
-import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.service.cmr.thumbnail.ThumbnailService;
 import org.alfresco.service.namespace.QName;
-import org.alfresco.util.PropertyCheck;
-import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.extensions.webscripts.Status;
 import org.springframework.extensions.webscripts.WebScriptException;
 import org.springframework.extensions.webscripts.WebScriptRequest;
 import org.springframework.extensions.webscripts.WebScriptResponse;
 
+import de.acosix.alfresco.utility.core.repo.acs6.RenditionService2RenditionUtility;
+import de.acosix.alfresco.utility.core.repo.acs6.ThumbnailServiceRenditionUtility;
+
 /**
  * @author Axel Faust
  */
-public class RenditionInfoWithStatus extends ContentInfoWithStatus implements InitializingBean
+public class RenditionInfoWithStatus extends ContentInfoWithStatus implements ApplicationContextAware
 {
 
-    protected ContentService contentService;
+    private static final boolean THUMBNAIL_SERVICE_RENDITION_UTILITY_AVAILABLE;
 
-    protected ThumbnailService thumbnailService;
+    private static final boolean RENDITION_SERVICE_RENDITION_UTILITY_AVAILABLE;
+    static
+    {
+        boolean tsruAvailable = false;
+        boolean rsruAvailable = false;
+        try
+        {
+            tsruAvailable = ThumbnailServiceRenditionUtility.isAvailable();
+        }
+        catch (final Exception ignore)
+        {
+            // ignored
+        }
+        try
+        {
+            rsruAvailable = RenditionService2RenditionUtility.isAvailable();
+        }
+        catch (final Exception ignore)
+        {
+            // ignored
+        }
+        THUMBNAIL_SERVICE_RENDITION_UTILITY_AVAILABLE = tsruAvailable;
+        RENDITION_SERVICE_RENDITION_UTILITY_AVAILABLE = rsruAvailable;
+    }
+
+    protected ApplicationContext applicationContext;
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void afterPropertiesSet()
+    public void setApplicationContext(final ApplicationContext applicationContext) throws BeansException
     {
-        PropertyCheck.mandatory(this, "contentService", this.contentService);
-        PropertyCheck.mandatory(this, "thumbnailService", this.thumbnailService);
-    }
-
-    /**
-     * @param contentService
-     *            the contentService to set
-     */
-    public void setContentService(final ContentService contentService)
-    {
-        this.contentService = contentService;
-    }
-
-    /**
-     * @param thumbnailService
-     *            the thumbnailService to set
-     */
-    public void setThumbnailService(final ThumbnailService thumbnailService)
-    {
-        this.thumbnailService = thumbnailService;
+        this.applicationContext = applicationContext;
     }
 
     // Note: Base class ContentInfo has a bug wherein streamContentImpl is not called, instead regular stream logic is performed
@@ -102,42 +104,46 @@ public class RenditionInfoWithStatus extends ContentInfoWithStatus implements In
             }
         }
 
-        final NodeRef thumbnailNodeRef = this.thumbnailService.getThumbnailByName(nodeRef, effectivePropertyQName, renditionName);
+        boolean renditionStreamed = false;
 
-        if (thumbnailNodeRef == null)
+        if (RENDITION_SERVICE_RENDITION_UTILITY_AVAILABLE)
         {
-            final ThumbnailRegistry registry = this.thumbnailService.getThumbnailRegistry();
-            final ThumbnailDefinition details = registry.getThumbnailDefinition(renditionName);
-            if (details == null)
+            renditionStreamed = RenditionService2RenditionUtility.streamRenditionIfAvailable(this.applicationContext, nodeRef,
+                    effectivePropertyQName, renditionName, this.delegate, req, res, attach, attachFileName, model);
+        }
+
+        if (!renditionStreamed && THUMBNAIL_SERVICE_RENDITION_UTILITY_AVAILABLE)
+        {
+            renditionStreamed = ThumbnailServiceRenditionUtility.streamThumbnailIfAvailable(this.applicationContext, nodeRef,
+                    effectivePropertyQName, renditionName, this.delegate, req, res, attach, attachFileName, model);
+        }
+
+        if (!renditionStreamed)
+        {
+            boolean renditionAvailable = false;
+
+            if (RENDITION_SERVICE_RENDITION_UTILITY_AVAILABLE)
             {
-                throw new WebScriptException(Status.STATUS_NOT_FOUND,
-                        "The rendition variant " + renditionName + " has not been defined in the system");
+                renditionAvailable = RenditionService2RenditionUtility.isRenditionPossible(this.applicationContext, nodeRef,
+                        effectivePropertyQName, renditionName);
             }
 
-            final ContentReader reader = this.contentService.getReader(nodeRef, ContentModel.PROP_CONTENT);
-            if (reader != null && reader.exists())
+            if (!renditionAvailable && THUMBNAIL_SERVICE_RENDITION_UTILITY_AVAILABLE)
             {
-                final ContentTransformer transformer = this.contentService.getTransformer(reader.getContentUrl(), reader.getMimetype(),
-                        reader.getSize(), details.getMimetype(), details.getTransformationOptions());
-                if (transformer != null)
-                {
-                    // thumbnail is valid in principle, currently does not exist, and maybe re-created
-                    // tell client to reset cached content
-                    res.setStatus(Status.STATUS_RESET_CONTENT);
-                }
-                else
-                {
-                    res.setStatus(Status.STATUS_NOT_FOUND);
-                }
+                renditionAvailable = ThumbnailServiceRenditionUtility.isThumbnailPossible(this.applicationContext, nodeRef,
+                        effectivePropertyQName, renditionName);
+            }
+
+            if (renditionAvailable)
+            {
+                // rendition is valid in principle, currently does not exist, and maybe re-created
+                // tell client to reset cached content
+                res.setStatus(Status.STATUS_RESET_CONTENT);
             }
             else
             {
                 res.setStatus(Status.STATUS_NOT_FOUND);
             }
-        }
-        else
-        {
-            this.delegate.streamContent(req, res, thumbnailNodeRef, ContentModel.PROP_CONTENT, attach, attachFileName, model);
         }
     }
 }

@@ -38,6 +38,7 @@
     <modules>
         <module>common</module>
         <module>repository-common</module>
+        <module>repository-acs6</module>
         <module>repository-javax</module>
         <module>repository-jakarta</module>
         <module>repository-quartz-1</module>

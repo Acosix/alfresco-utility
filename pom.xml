@@ -21,12 +21,12 @@
     <parent>
         <groupId>de.acosix.alfresco.maven</groupId>
         <artifactId>de.acosix.alfresco.maven.project.parent-6.1.2</artifactId>
-        <version>1.4.1</version>
+        <version>1.5.0-SNAPSHOT</version>
     </parent>
 
     <groupId>de.acosix.alfresco.utility</groupId>
     <artifactId>de.acosix.alfresco.utility.parent</artifactId>
-    <version>1.3.3-SNAPSHOT</version>
+    <version>1.4.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Acosix Alfresco Utility - Parent</name>
@@ -69,10 +69,6 @@
         <configModuleId>acosix-utility</configModuleId>
 
         <common.artifactId>de.acosix.alfresco.utility.common</common.artifactId>
-
-        <!-- due to internal API change between 3.1.1 und 3.1.2 the AMP unarchiver we use for aggregating core into full AMP behaves differently -->
-        <!-- it's also quite hard to write an unarchiver that works with <= 3.1.1 and >= 3.1.2 -->
-        <maven.dependency.version>3.1.1</maven.dependency.version>
     </properties>
 
     <repositories>

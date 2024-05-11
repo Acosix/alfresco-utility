@@ -16,7 +16,6 @@
 package de.acosix.alfresco.utility.core.repo.quartz2;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -47,7 +46,6 @@ public class InvocationRelayJob implements Job
     {
         final Object relayClassCandidate = context.getMergedJobDataMap().get(RELAY_CLASS);
         Object relay = null;
-        Method execute = null;
 
         if (relayClassCandidate instanceof Class<?>)
         {
@@ -58,15 +56,6 @@ public class InvocationRelayJob implements Job
             catch (InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException ignore)
             {
                 LOGGER.debug("Class {} cannot be instantiated using Class.newInstance()", relayClassCandidate);
-            }
-
-            try
-            {
-                execute = ((Class<?>) relayClassCandidate).getMethod("execute", Object.class);
-            }
-            catch (final NoSuchMethodException ignore)
-            {
-                LOGGER.debug("Class {} does not provide an execute(Object) method", relayClassCandidate);
             }
         }
         else

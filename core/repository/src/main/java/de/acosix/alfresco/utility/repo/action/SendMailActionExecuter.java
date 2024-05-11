@@ -490,7 +490,7 @@ public class SendMailActionExecuter extends ActionExecuterAbstractBase implement
         addressHandler.setTo(addresseesAndLocale.stream().map(Pair::getFirst).collect(Collectors.toList()));
         addressHandler.setCc(ccAddressees);
         addressHandler.setBcc(bccAddressees);
-        addressHandler.setFrom(replyTo);
+        addressHandler.setFrom(HELPER.toEmailAddress(replyTo));
 
         this.handleAttachments(true, action, emailMessage);
         this.handleAttachments(false, action, emailMessage);
@@ -714,7 +714,7 @@ public class SendMailActionExecuter extends ActionExecuterAbstractBase implement
         }
         effectiveHeaders.put("Content-Language", effectiveLocale.toString().replace('_', '-'));
 
-        return HELPER.buildEmail(subject, text, html, effectiveHeaders);
+        return HELPER.buildEmail(subject, text, html, effectiveHeaders, this.mailService);
     }
 
     protected String prepareSubject(final Locale effectiveLocale, final Action action)
