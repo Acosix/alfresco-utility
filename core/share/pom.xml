@@ -38,6 +38,18 @@
                 <artifactId>spring-surf</artifactId>
                 <version>${surf.share.api.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>de.acosix.alfresco.utility</groupId>
+                <artifactId>de.acosix.alfresco.utility.core.share.javax</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>de.acosix.alfresco.utility</groupId>
+                <artifactId>de.acosix.alfresco.utility.core.share.jakarta</artifactId>
+                <version>${project.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -45,6 +57,16 @@
         <dependency>
             <groupId>de.acosix.alfresco.utility</groupId>
             <artifactId>${common.artifactId}</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>de.acosix.alfresco.utility</groupId>
+            <artifactId>de.acosix.alfresco.utility.core.share.javax</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>de.acosix.alfresco.utility</groupId>
+            <artifactId>de.acosix.alfresco.utility.core.share.jakarta</artifactId>
         </dependency>
 
         <dependency>
@@ -56,11 +78,6 @@
         <dependency>
             <groupId>${surf.groupId}</groupId>
             <artifactId>spring-surf</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
         </dependency>
 
         <!-- we used to include this in the AMP in previous versions, but newer ACS versions now contain this in Share so we need to avoid the conflict -->

@@ -24,6 +24,9 @@ import java.util.function.Supplier;
 import org.alfresco.service.cmr.action.ActionServiceException;
 import org.springframework.mail.javamail.JavaMailSender;
 
+import de.acosix.alfresco.utility.repo.email.EmailAddress;
+import de.acosix.alfresco.utility.repo.email.EmailMessage;
+
 /**
  * Instances of this interface implement API bridging helper functionality for handling the sending of emails.
  * 

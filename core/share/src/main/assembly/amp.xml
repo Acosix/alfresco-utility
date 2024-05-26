@@ -46,6 +46,8 @@
             <outputDirectory>lib</outputDirectory>
             <includes>
                 <include>de.acosix.alfresco.utility:${common.artifactId}:*</include>
+                <include>de.acosix.alfresco.utility:de.acosix.alfresco.utility.core.share.javax:*</include>
+                <include>de.acosix.alfresco.utility:de.acosix.alfresco.utility.core.share.jakarta:*</include>
                 <!-- a shame that this is still missing in Share -->
                 <include>org.slf4j:jcl-over-slf4j:*</include>
                 <!-- ideally we'd also include an empty commons-logging JAR to ensure only one impl is available -->

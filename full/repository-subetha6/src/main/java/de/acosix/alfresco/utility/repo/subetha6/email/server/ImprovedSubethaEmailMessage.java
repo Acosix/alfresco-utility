@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.acosix.alfresco.utility.repo.email.server;
+package de.acosix.alfresco.utility.repo.subetha6.email.server;
 
 import java.io.InputStream;
 
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.internet.MimeMessage;
-
 import org.alfresco.email.server.impl.subetha.SubethaEmailMessage;
 import org.alfresco.service.cmr.email.EmailMessageException;
+
+import de.acosix.alfresco.utility.repo.email.EmailMessage;
+import de.acosix.alfresco.utility.repo.email.server.ImprovedEmailMessage;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Session;
+import jakarta.mail.internet.MimeMessage;
 
 /**
  * @author Axel Faust
@@ -69,8 +71,8 @@ public class ImprovedSubethaEmailMessage extends SubethaEmailMessage implements 
      * {@inheritDoc}
      */
     @Override
-    public MimeMessage getMimeMessage()
+    public EmailMessage getMimeMessage()
     {
-        return this.mimeMessage;
+        return new EmailMessage(this.mimeMessage);
     }
 }

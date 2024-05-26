@@ -28,12 +28,30 @@
         <property name="replacementClassName" value="${javaPackageName}.connector.MutableSlingshotRemoteClient" />
     </bean>
 
-    <bean id="${moduleId}-webscripts.connector.provider-sessionAwareWebScriptsConnectorProviderPatch"
+    <bean id="${moduleId}-webscripts.connector.provider-javaxSessionAwareWebScriptsConnectorProviderPatch"
         class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
         <property name="enabled" value="true" />
         <property name="targetBeanName" value="webscripts.connector.provider" />
         <property name="originalClassName" value="org.springframework.extensions.webscripts.connector.ConnectorProviderImpl" />
-        <property name="replacementClassName" value="${javaPackageName}.connector.SessionAwareConnectorProviderImpl" />
+        <property name="replacementClassName" value="de.acosix.alfresco.utility.core.share.javax.connector.SessionAwareConnectorProviderImpl" />
+        <property name="condition">
+            <bean class="${common.artifactId}.spring.ClassDefinedCondition">
+                <property name="className" value="javax.servlet.http.HttpServletRequest" />
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="${moduleId}-webscripts.connector.provider-jakartaSessionAwareWebScriptsConnectorProviderPatch"
+        class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
+        <property name="enabled" value="true" />
+        <property name="targetBeanName" value="webscripts.connector.provider" />
+        <property name="originalClassName" value="org.springframework.extensions.webscripts.connector.ConnectorProviderImpl" />
+        <property name="replacementClassName" value="de.acosix.alfresco.utility.core.share.jakarta.connector.SessionAwareConnectorProviderImpl" />
+        <property name="condition">
+            <bean class="${common.artifactId}.spring.ClassDefinedCondition">
+                <property name="className" value="jakarta.servlet.http.HttpServletRequest" />
+            </bean>
+        </property>
     </bean>
 
     <bean id="${moduleId}-webframework.connector.provider-sessionAwareWebScriptsConnectorProviderPatch"

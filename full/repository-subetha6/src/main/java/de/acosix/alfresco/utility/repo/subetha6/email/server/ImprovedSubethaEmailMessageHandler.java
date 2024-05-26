@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.acosix.alfresco.utility.repo.email.server;
+package de.acosix.alfresco.utility.repo.subetha6.email.server;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
-
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
 
 import org.alfresco.service.cmr.email.EmailDelivery;
 import org.alfresco.service.cmr.email.EmailMessage;
@@ -35,8 +33,10 @@ import org.subethamail.smtp.AuthenticationHandler;
 import org.subethamail.smtp.MessageContext;
 import org.subethamail.smtp.MessageHandler;
 import org.subethamail.smtp.RejectException;
-import org.subethamail.smtp.TooMuchDataException;
-import org.subethamail.smtp.io.DeferredFileOutputStream;
+import org.subethamail.smtp.internal.io.DeferredFileOutputStream;
+
+import jakarta.mail.internet.AddressException;
+import jakarta.mail.internet.InternetAddress;
 
 /**
  * @author Axel Faust
@@ -111,8 +111,8 @@ public class ImprovedSubethaEmailMessageHandler implements MessageHandler
     @Override
     public void recipient(final String recipient) throws RejectException
     {
-        final AuthenticationHandler auth = this.messageContext.getAuthenticationHandler();
-        this.deliveries.add(new EmailDelivery(recipient, this.from, auth != null ? (String) auth.getIdentity() : null));
+        final Optional<AuthenticationHandler> auth = this.messageContext.getAuthenticationHandler();
+        this.deliveries.add(new EmailDelivery(recipient, this.from, (String) auth.map(AuthenticationHandler::getIdentity).orElse(null)));
     }
 
     /**
@@ -120,7 +120,7 @@ public class ImprovedSubethaEmailMessageHandler implements MessageHandler
      * {@inheritDoc}
      */
     @Override
-    public void data(final InputStream data) throws TooMuchDataException, IOException, RejectException
+    public String data(final InputStream data) throws IOException, RejectException
     {
         if (this.deliveries.size() == 1)
         {
@@ -151,11 +151,13 @@ public class ImprovedSubethaEmailMessageHandler implements MessageHandler
                 {
                     dfos.close();
                 }
-                catch (final Exception e)
+                catch (final Exception ignore)
                 {
                 }
             }
         }
+
+        return null;
     }
 
     protected void processDelivery(final EmailDelivery delivery, final InputStream data) throws RejectException

@@ -44,6 +44,8 @@
         <module>repository-quartz-1</module>
         <module>repository-quartz-2</module>
         <module>repository</module>
+        <module>share-javax</module>
+        <module>share-jakarta</module>
         <module>share</module>
     </modules>
 </project>

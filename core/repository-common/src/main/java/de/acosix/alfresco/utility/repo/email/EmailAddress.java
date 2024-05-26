@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.acosix.alfresco.utility.repo.action;
+package de.acosix.alfresco.utility.repo.email;
 
 /**
  * Wrapper aspect to encapsulate an {@code InternetAddress} instance.

@@ -41,7 +41,7 @@
             </dependency>
 
             <!-- explicitly use versions found in ACS 6.1.2 -->
-            <!-- (best fit for backwards compatibility as these are last compiled with Java 8 -->
+            <!-- (best fit for backwards compatibility as these are last compiled with Java 8) -->
             <dependency>
                 <groupId>org.alfresco</groupId>
                 <artifactId>alfresco-remote-api</artifactId>

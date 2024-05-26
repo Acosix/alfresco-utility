@@ -75,6 +75,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 
 import de.acosix.alfresco.utility.repo.action.SendEmailActionExecuterHelper.AddressHandler;
 import de.acosix.alfresco.utility.repo.action.SendEmailActionExecuterHelper.AttachmentHandler;
+import de.acosix.alfresco.utility.repo.email.EmailAddress;
+import de.acosix.alfresco.utility.repo.email.EmailMessage;
 
 /**
  * This action implementation is an alternative to the default Alfresco {@link MailActionExecuter mail action}. Its aim is to have

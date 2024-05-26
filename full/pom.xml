@@ -50,6 +50,9 @@
     </dependencyManagement>
 
     <modules>
+        <module>repository-common</module>
+        <module>repository-subetha3</module>
+        <module>repository-subetha6</module>
         <module>repository</module>
         <module>share</module>
     </modules>

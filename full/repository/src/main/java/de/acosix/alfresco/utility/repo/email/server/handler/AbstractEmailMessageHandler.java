@@ -46,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
+import de.acosix.alfresco.utility.repo.email.server.EmailMessageHelper;
 import de.acosix.alfresco.utility.repo.email.server.ImprovedEmailService;
 import de.acosix.alfresco.utility.repo.util.ImprovedFileNameValidator;
 
@@ -54,6 +55,22 @@ import de.acosix.alfresco.utility.repo.util.ImprovedFileNameValidator;
  */
 public abstract class AbstractEmailMessageHandler implements InitializingBean, EmailMessageHandler
 {
+
+    protected static final EmailMessageHelper MESSAGE_HELPER;
+    static
+    {
+        EmailMessageHelper messageHelper = null;
+        try
+        {
+            Class.forName("jakarta.mail.internet.MimeMessage");
+            messageHelper = new de.acosix.alfresco.utility.repo.subetha6.email.server.EmailMessageHelperImpl();
+        }
+        catch (final ClassNotFoundException e)
+        {
+            messageHelper = new de.acosix.alfresco.utility.repo.subetha3.email.server.EmailMessageHelperImpl();
+        }
+        MESSAGE_HELPER = messageHelper;
+    }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractEmailMessageHandler.class);
 

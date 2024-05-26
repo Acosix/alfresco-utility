@@ -97,7 +97,6 @@ public class ImprovedEmailServiceImpl extends EmailServiceImpl implements Initia
     @Override
     public void setEmailMessageHandlerMap(final Map<String, EmailMessageHandler> emailMessageHandlerMap)
     {
-
         ParameterCheck.mandatory("emailMessageHandlerMap", emailMessageHandlerMap);
         this.messageHandlers.clear();
         this.messageHandlers.putAll(emailMessageHandlerMap);

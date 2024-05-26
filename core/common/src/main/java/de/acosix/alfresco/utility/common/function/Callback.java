@@ -13,23 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.acosix.alfresco.utility.repo.email.server;
-
-import javax.mail.internet.MimeMessage;
-
-import org.alfresco.service.cmr.email.EmailMessage;
+package de.acosix.alfresco.utility.common.function;
 
 /**
+ * Instances of this interface represent simple no parameter / no return value callbacks.
+ *
  * @author Axel Faust
  */
-public interface ImprovedEmailMessage extends EmailMessage
+@FunctionalInterface
+public interface Callback<T extends Throwable>
 {
 
     /**
-     * Retrieves the entire, original RFC 822 message object
-     *
-     * @return the full RFC 822 message object
+     * Execute the callback.
      */
-    MimeMessage getMimeMessage();
-
+    void execute() throws T;
 }

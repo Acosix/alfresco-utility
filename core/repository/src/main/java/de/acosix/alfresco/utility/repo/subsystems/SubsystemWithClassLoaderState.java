@@ -52,6 +52,7 @@ import org.springframework.util.PropertyPlaceholderHelper;
 /**
  * @author Axel Faust
  */
+@SuppressWarnings({ "deprecation", "removal" })
 public class SubsystemWithClassLoaderState implements PropertyBackedBeanState, SubsystemConstants
 {
 

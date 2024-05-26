@@ -18,13 +18,11 @@ package de.acosix.alfresco.utility.share.connector;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-
-import org.alfresco.web.site.servlet.MTAuthenticationFilter;
 import org.alfresco.web.site.servlet.SlingshotAlfrescoConnector;
-import org.springframework.extensions.surf.ServletUtil;
 import org.springframework.extensions.webscripts.connector.AlfrescoAuthenticator;
 import org.springframework.extensions.webscripts.connector.ConnectorSession;
+
+import de.acosix.alfresco.utility.share.servlet.ServletHelper;
 
 /**
  * Instances of this class provide ad-hoc authentication / handshake capabilities for Alfresco Share and Content Services deployment
@@ -78,23 +76,12 @@ public class FlexibleAlfrescoAuthenticator extends AlfrescoAuthenticator
         final String userHeader = connectorSession.getParameter(SlingshotAlfrescoConnector.CS_PARAM_USER_HEADER);
         if (userHeader != null)
         {
-            HttpServletRequest req = ServletUtil.getRequest();
-            if (req == null)
+            String user = ServletHelper.INSTANCE.getRequestHeader(userHeader);
+            if (user == null)
             {
-                req = MTAuthenticationFilter.getCurrentServletRequest();
+                user = ServletHelper.INSTANCE.getRemoteUser();
             }
-            if (req != null)
-            {
-                String user = req.getHeader(userHeader);
-                if (user == null)
-                {
-                    user = req.getRemoteUser();
-                }
-                if (user != null)
-                {
-                    authenticated = true;
-                }
-            }
+            authenticated = user != null;
         }
         return authenticated;
     }

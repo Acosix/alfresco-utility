@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.acosix.alfresco.utility.repo.email.server;
+package de.acosix.alfresco.utility.repo.subetha6.email.server;
 
 import org.alfresco.email.server.EmailServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.subethamail.smtp.AuthenticationHandlerFactory;
+import org.subethamail.smtp.MessageContext;
 import org.subethamail.smtp.auth.EasyAuthenticationHandlerFactory;
 import org.subethamail.smtp.auth.LoginFailedException;
 import org.subethamail.smtp.server.SMTPServer;
+import org.subethamail.smtp.server.SMTPServer.Builder;
 
 /**
  * @author Axel Faust
@@ -45,22 +47,18 @@ public class ImprovedSubethaEmailServer extends EmailServer
     @Override
     public void startup()
     {
-        this.serverImpl = new SMTPServer((messageContext) -> new ImprovedSubethaEmailMessageHandler(messageContext, this.getEmailService(), this::filterSender));
-
-        // MER - May need to override SMTPServer.createSSLSocket to specify non default keystore.
-        this.serverImpl.setPort(this.getPort());
-        this.serverImpl.setHostName(this.getDomain());
-        this.serverImpl.setMaxConnections(this.getMaxConnections());
-
-        this.serverImpl.setHideTLS(this.isHideTLS());
-        this.serverImpl.setEnableTLS(this.isEnableTLS());
-        this.serverImpl.setRequireTLS(this.isRequireTLS());
+        final Builder serverBuilder = SMTPServer.port(this.getPort()).hostName(this.getDomain()).maxConnections(this.getMaxConnections())
+                .hideTLS(this.isHideTLS()).enableTLS(this.isEnableTLS()).requireTLS(this.isRequireTLS())
+                .messageHandlerFactory(messageContext -> new ImprovedSubethaEmailMessageHandler(messageContext, this.getEmailService(),
+                        this::filterSender));
 
         if (this.isAuthenticate())
         {
             final AuthenticationHandlerFactory authenticationHandler = new EasyAuthenticationHandlerFactory(this::login);
-            this.serverImpl.setAuthenticationHandlerFactory(authenticationHandler);
+            serverBuilder.authenticationHandlerFactory(authenticationHandler);
         }
+
+        this.serverImpl = serverBuilder.build();
 
         this.serverImpl.start();
         LOGGER.info("Inbound SMTP Email Server has started successfully, on hostName:{} port:{}", this.getDomain(), this.getPort());
@@ -77,7 +75,7 @@ public class ImprovedSubethaEmailServer extends EmailServer
         LOGGER.info("Inbound SMTP Email Server has stopped successfully");
     }
 
-    protected void login(final String userName, final String password) throws LoginFailedException
+    protected void login(final String userName, final String password, final MessageContext context) throws LoginFailedException
     {
         if (!ImprovedSubethaEmailServer.this.authenticateUserNamePassword(userName, password.toCharArray()))
         {

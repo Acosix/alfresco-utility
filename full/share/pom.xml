@@ -59,11 +59,6 @@
         </dependency>
 
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>de.inetsoftware</groupId>
             <artifactId>jlessc</artifactId>
             <version>1.8</version>

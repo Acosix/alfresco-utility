@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.acosix.alfresco.utility.share.connector;
+package de.acosix.alfresco.utility.core.share.javax.connector;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;

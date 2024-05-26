@@ -28,6 +28,10 @@
     <name>Acosix Alfresco Utility - Core Repository javax Library</name>
 
     <properties>
+        <!-- explicitly use versions found in ACS 6.1.2 -->
+        <!-- (best fit for backwards compatibility as these are last compiled
+        with Java 8) -->
+        <alfresco.remote-api.version>7.35</alfresco.remote-api.version>
     </properties>
 
     <dependencyManagement>

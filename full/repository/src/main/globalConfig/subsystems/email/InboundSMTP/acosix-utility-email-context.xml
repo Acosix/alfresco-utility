@@ -24,12 +24,30 @@
         <property name="subsystemChildApplicationContextFactory" ref="InboundSMTP" />
     </bean>
 
-    <bean id="${moduleId}.emailServerPatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
+    <bean id="${moduleId}.subetha3EmailServerPatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
         <property name="propertiesSource" ref="${moduleId}-subsystem-properties" />
         <property name="enabledPropertyKey" value="${configModuleId}.email.server.enhancements.enabled" />
         <property name="targetBeanName" value="emailServer" />
         <property name="originalClassName" value="org.alfresco.email.server.impl.subetha.SubethaEmailServer" />
-        <property name="replacementClassName" value="${javaPackageName}.email.server.ImprovedSubethaEmailServer" />
+        <property name="replacementClassName" value="de.acosix.alfresco.utility.repo.subetha3.email.server.ImprovedSubethaEmailServer" />
+        <property name="condition">
+            <bean class="${common.artifactId}.spring.ClassDefinedCondition">
+                <property name="className" value="javax.mail.internet.MimeMessage" />
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="${moduleId}.subetha6EmailServerPatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
+        <property name="propertiesSource" ref="${moduleId}-subsystem-properties" />
+        <property name="enabledPropertyKey" value="${configModuleId}.email.server.enhancements.enabled" />
+        <property name="targetBeanName" value="emailServer" />
+        <property name="originalClassName" value="org.alfresco.email.server.impl.subetha.SubethaEmailServer" />
+        <property name="replacementClassName" value="de.acosix.alfresco.utility.repo.subetha6.email.server.ImprovedSubethaEmailServer" />
+        <property name="condition">
+            <bean class="${common.artifactId}.spring.ClassDefinedCondition">
+                <property name="className" value="jakarta.mail.internet.MimeMessage" />
+            </bean>
+        </property>
     </bean>
 
     <bean id="${moduleId}.emailServicePatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">

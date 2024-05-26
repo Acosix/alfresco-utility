@@ -34,9 +34,9 @@ import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 
-import de.acosix.alfresco.utility.repo.action.EmailAddress;
-import de.acosix.alfresco.utility.repo.action.EmailMessage;
 import de.acosix.alfresco.utility.repo.action.SendEmailActionExecuterHelper;
+import de.acosix.alfresco.utility.repo.email.EmailAddress;
+import de.acosix.alfresco.utility.repo.email.EmailMessage;
 import jakarta.mail.Address;
 import jakarta.mail.Message.RecipientType;
 import jakarta.mail.MessagingException;

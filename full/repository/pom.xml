@@ -31,6 +31,30 @@
         <javaPackageName>de.acosix.alfresco.utility.repo</javaPackageName>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+
+            <dependency>
+                <groupId>de.acosix.alfresco.utility</groupId>
+                <artifactId>de.acosix.alfresco.utility.repo.common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>de.acosix.alfresco.utility</groupId>
+                <artifactId>de.acosix.alfresco.utility.repo.subetha3</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>de.acosix.alfresco.utility</groupId>
+                <artifactId>de.acosix.alfresco.utility.repo.subetha6</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>org.alfresco</groupId>
@@ -43,8 +67,28 @@
         </dependency>
 
         <dependency>
+            <groupId>de.acosix.alfresco.utility</groupId>
+            <artifactId>de.acosix.alfresco.utility.repo.common</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>de.acosix.alfresco.utility</groupId>
+            <artifactId>de.acosix.alfresco.utility.repo.subetha3</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>de.acosix.alfresco.utility</groupId>
+            <artifactId>de.acosix.alfresco.utility.repo.subetha6</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
         </dependency>
     </dependencies>
 
