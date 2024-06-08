@@ -31,7 +31,7 @@
         <property name="originalClassName" value="org.alfresco.email.server.impl.subetha.SubethaEmailServer" />
         <property name="replacementClassName" value="de.acosix.alfresco.utility.repo.subetha3.email.server.ImprovedSubethaEmailServer" />
         <property name="condition">
-            <bean class="${common.artifactId}.spring.ClassDefinedCondition">
+            <bean class="${common.artifactId}.spring.condition.ClassDefinedCondition">
                 <property name="className" value="javax.mail.internet.MimeMessage" />
             </bean>
         </property>
@@ -44,7 +44,7 @@
         <property name="originalClassName" value="org.alfresco.email.server.impl.subetha.SubethaEmailServer" />
         <property name="replacementClassName" value="de.acosix.alfresco.utility.repo.subetha6.email.server.ImprovedSubethaEmailServer" />
         <property name="condition">
-            <bean class="${common.artifactId}.spring.ClassDefinedCondition">
+            <bean class="${common.artifactId}.spring.condition.ClassDefinedCondition">
                 <property name="className" value="jakarta.mail.internet.MimeMessage" />
             </bean>
         </property>
