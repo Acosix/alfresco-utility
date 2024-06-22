@@ -20,11 +20,20 @@
  */
 package de.acosix.alfresco.utility.share.config;
 
-import java.lang.reflect.Method;
-import java.net.URL;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
+import org.alfresco.util.ParameterCheck;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.properties.PropertiesConfiguration;
+import org.apache.logging.log4j.core.config.properties.PropertiesConfigurationBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -45,13 +54,13 @@ import org.springframework.core.io.support.ResourcePatternResolver;
  * webapp. Within the module's source tree, suppose you create:
  *
  * <pre>
- *      config/alfresco/module/{module.id}/log4j.properties
+ *      config/alfresco/module/{module.id}/log4j2.properties
  * </pre>
  *
  * At deployment time, this log4j.properties file will be placed in:
  *
  * <pre>
- *      WEB-INF/classes/alfresco/module/{module.id}/log4j.properties
+ *      WEB-INF/classes/alfresco/module/{module.id}/log4j2.properties
  * </pre>
  *
  * Where {module.id} is whatever value is set within the AMP's module.properties file. For details, see: <a
@@ -60,25 +69,27 @@ import org.springframework.core.io.support.ResourcePatternResolver;
  * For example, if {module.id} is "org.alfresco.module.someModule", then within your source code you'll have:
  *
  * <pre>
- * config/alfresco/module/org.alfresco.module.someModule/log4j.properties
+ * config/alfresco/module/org.alfresco.module.someModule/log4j2.properties
  * </pre>
  *
  * This would be deployed to:
  *
  * <pre>
- * WEB-INF/classes/alfresco/module/org.alfresco.module.someModule/log4j.properties
+ * WEB-INF/classes/alfresco/module/org.alfresco.module.someModule/log4j2.properties
  * </pre>
  *
  *
  * This class is a near-verbatim copy from the
- * <a href="http://dev.alfresco.com/resource/docs/java/org/alfresco/repo/admin/Log4JHierarchyInit.html">Repository-tier class</a>.
+ * <a href=
+ * "https://github.com/Alfresco/alfresco-community-repo/blob/master/repository/src/main/java/org/alfresco/repo/admin/Log4JHierarchyInit.java">Repository-tier
+ * class</a>.
  *
  * @author Axel Faust
  */
-public class Log4jHierarchyInit implements InitializingBean, ApplicationContextAware, BeanFactoryPostProcessor
+public class Log4j2HierarchyInit implements InitializingBean, ApplicationContextAware, BeanFactoryPostProcessor
 {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Log4jHierarchyInit.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Log4j2HierarchyInit.class);
 
     protected final List<String> extraLog4jUrls = new ArrayList<>();
 
@@ -100,14 +111,12 @@ public class Log4jHierarchyInit implements InitializingBean, ApplicationContextA
      * prefix. For details, see: {@link PathMatchingResourcePatternResolver}.
      *
      * @param urls
-     *            the URLs to Log4J configuration files
+     *     the URLs to Log4J configuration files
      */
     public void setExtraLog4jUrls(final List<String> urls)
     {
-        for (final String url : urls)
-        {
-            this.extraLog4jUrls.add(url);
-        }
+        ParameterCheck.mandatory("urls", urls);
+        this.extraLog4jUrls.addAll(urls);
     }
 
     /**
@@ -133,28 +142,43 @@ public class Log4jHierarchyInit implements InitializingBean, ApplicationContextA
     {
         try
         {
-            // Get the PropertyConfigurator
-            final Class<?> clazz = Class.forName("org.apache.log4j.PropertyConfigurator");
-            final Method method = clazz.getMethod("configure", URL.class);
-            // Import using this method
+            final Properties mainProperties = new Properties();
+
+            this.importMainLogSettings(mainProperties);
             for (final String url : this.extraLog4jUrls)
             {
-                this.importLogSettings(method, url);
+                this.importLogSettings(url, mainProperties);
             }
-        }
-        catch (final ClassNotFoundException e)
-        {
-            // Log4J not present
-            return;
-        }
-        catch (final NoSuchMethodException e)
-        {
-            throw new RuntimeException("Unable to find method 'configure' on class 'org.apache.log4j.PropertyConfigurator'");
-        }
 
+            final PropertiesConfiguration propertiesConfiguration = new PropertiesConfigurationBuilder().setConfigurationSource(null)
+                    .setRootProperties(mainProperties).setLoggerContext((LoggerContext) LogManager.getContext(false)).build();
+
+            propertiesConfiguration.initialize();
+            ((LoggerContext) LogManager.getContext(false)).reconfigure(propertiesConfiguration);
+        }
+        catch (final Throwable t)
+        {
+            LOGGER.debug("Failed to add extra Logger configuration", t);
+        }
     }
 
-    protected void importLogSettings(final Method method, final String springUrl)
+    private void importMainLogSettings(final Properties mainProperties) throws IOException
+    {
+        final File file = ((LoggerContext) LogManager.getContext()).getConfiguration().getConfigurationSource().getFile();
+        if (file != null)
+        {
+            try (FileInputStream fis = new FileInputStream(file))
+            {
+                mainProperties.load(fis);
+            }
+            catch (final FileNotFoundException e)
+            {
+                LOGGER.debug("Failed to find initial configuration", e);
+            }
+        }
+    }
+
+    private void importLogSettings(final String springUrl, final Properties mainProperties)
     {
         Resource[] resources = null;
 
@@ -164,23 +188,23 @@ public class Log4jHierarchyInit implements InitializingBean, ApplicationContextA
         }
         catch (final Exception e)
         {
-            LOGGER.warn("Failed to find additional Logger configuration: {}", springUrl);
+            LOGGER.warn("Failed to find additional Logger configuration {}", springUrl);
+            return;
         }
 
-        if (resources != null)
+        // Read each resource
+        for (final Resource resource : resources)
         {
-            // Read each resource
-            for (final Resource resource : resources)
+            try
             {
-                try
-                {
-                    final URL url = resource.getURL();
-                    method.invoke(null, url);
-                }
-                catch (final Throwable e)
-                {
-                    LOGGER.debug("Failed to add extra Logger configuration: \n   URL:   {}\n   Error: {}", springUrl, e);
-                }
+                final InputStream inputStream = resource.getInputStream();
+                final Properties properties = new Properties();
+                properties.load(inputStream);
+                mainProperties.putAll(properties);
+            }
+            catch (final Throwable e)
+            {
+                LOGGER.debug("Failed to add extra Logger configuration", e);
             }
         }
     }

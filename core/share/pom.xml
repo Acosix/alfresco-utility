@@ -92,6 +92,14 @@
             <!-- normally this is for test, but here for inclusion in AMP -->
             <scope>compile</scope>
         </dependency>
+
+        <!-- included to compile ACS 7.4 compatible Log4j2HierarchyInit -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.19.0</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
