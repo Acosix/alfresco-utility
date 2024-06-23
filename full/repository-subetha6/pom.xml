@@ -20,8 +20,8 @@
 
     <parent>
         <groupId>de.acosix.alfresco.utility</groupId>
-        <artifactId>de.acosix.alfresco.utility.parent</artifactId>
-        <version>1.4.0-SNAPSHOT</version>
+        <artifactId>de.acosix.alfresco.utility.full.parent</artifactId>
+        <version>1.4.0</version>
     </parent>
 
     <artifactId>de.acosix.alfresco.utility.repo.subetha6</artifactId>
