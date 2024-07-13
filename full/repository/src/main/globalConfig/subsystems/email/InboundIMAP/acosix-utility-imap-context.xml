@@ -1,0 +1,80 @@
+<!-- 
+ Copyright 2016 - 2024 Acosix GmbH
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+ http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+ -->
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+           http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+    <bean id="${moduleId}-subsystem-properties"
+        class="de.acosix.alfresco.utility.repo.subsystems.SubsystemEffectivePropertiesFactoryBean">
+        <property name="subsystemChildApplicationContextFactory" ref="InboundIMAP" />
+        <property name="systemPropertyPrefixes">
+            <list>
+                <value>${configModuleId}.email.imap.config.</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="${moduleId}-effective-properties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+        <property name="propertiesArray">
+            <list>
+                <!-- this is included because we want all global-properties accessible -->
+                <!-- Alfresco by default only exposes subset of global-properties in subsystems -->
+                <ref bean="global-properties" />
+                <ref bean="${moduleId}-subsystem-properties" />
+            </list>
+        </property>
+    </bean>
+
+    <bean class="de.acosix.alfresco.utility.repo.email.imap.SynchJobBeanRegistryPostProcessor">
+        <property name="propertiesSource" ref="${moduleId}-effective-properties" />
+        <property name="propertyPrefix" value="${configModuleId}.email.imap" />
+        <property name="accessorBeanName" value="${moduleId}-jobs" />
+        <property name="baseTriggerBeanName" value="${moduleId}-baseTrigger" />
+        <property name="baseDetailBeanName" value="${moduleId}-baseDetail" />
+    </bean>
+
+    <bean id="${moduleId}-jobs" class="de.acosix.alfresco.utility.repo.job.DisposableSchedulerAccessorBean">
+        <property name="scheduler" ref="schedulerFactory" />
+    </bean>
+
+    <bean abstract="true" id="${moduleId}-baseTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="startDelay" value="${system.cronJob.startDelayMilliseconds:60000}" />
+    </bean>
+
+    <bean abstract="true" id="${moduleId}-baseDetail" class="de.acosix.alfresco.utility.repo.job.GenericJobDetailsFactoryBean">
+        <property name="jobClass" value="de.acosix.alfresco.utility.repo.email.imap.SynchJob" />
+        <property name="jobDataAsMap">
+            <map>
+                <entry key="transactionService" value-ref="TransactionService" />
+                <entry key="jobLockService" value-ref="JobLockService" />
+                <entry key="emailService" value-ref="EmailService" />
+
+                <entry key="ssl.truststore" value-ref="ssl.trustStore" />
+                <entry key="truststorePath" value="\${${configModuleId}.email.imap.truststore.path}" />
+                <entry key="truststoreType" value="\${${configModuleId}.email.imap.truststore.type}" />
+                <entry key="truststorePassphrase" value="\${${configModuleId}.email.imap.truststore.passphrase}" />
+
+                <entry key="locale" value="\${${configModuleId}.email.imap.job.locale}}" />
+                <entry key="threadCount" value="\${${configModuleId}.email.imap.job.threadCount}" />
+                <entry key="lockTTL" value="\${${configModuleId}.email.imap.job.lock.ttl}" />
+                <entry key="lockRetryWait" value="\${${configModuleId}.email.imap.job.lock.retryWait}" />
+                <entry key="logInterval" value="\${${configModuleId}.email.imap.job.logInterval}" />
+            </map>
+        </property>
+    </bean>
+
+</beans>

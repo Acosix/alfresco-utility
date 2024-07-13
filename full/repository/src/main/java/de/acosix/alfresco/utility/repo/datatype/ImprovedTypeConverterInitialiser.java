@@ -15,20 +15,28 @@
  */
 package de.acosix.alfresco.utility.repo.datatype;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
+import org.alfresco.service.cmr.repository.datatype.TypeConversionException;
 import org.alfresco.service.cmr.repository.datatype.TypeConverter.Converter;
 import org.alfresco.service.namespace.InvalidQNameException;
 import org.alfresco.service.namespace.NamespaceException;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
+import org.alfresco.util.ISO8601DateFormat;
 import org.alfresco.util.PropertyCheck;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.extensions.surf.exception.PlatformRuntimeException;
 import org.springframework.extensions.surf.util.I18NUtil;
 
 /**
@@ -39,6 +47,9 @@ import org.springframework.extensions.surf.util.I18NUtil;
 public class ImprovedTypeConverterInitialiser implements InitializingBean
 {
 
+    // RFC 822 / RFC 1123
+    private static final String RFC822_DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss Z";
+
     protected NamespaceService namespaceService;
 
     protected boolean stringToNodeRefEnabled;
@@ -46,6 +57,8 @@ public class ImprovedTypeConverterInitialiser implements InitializingBean
     protected boolean stringToQNameEnabled;
 
     protected boolean stringToLocaleEnabled;
+
+    protected boolean stringToDateEnabled;
 
     // this could easily have been made static, but having an instance-local property makes it easier to reset + test
     private final Map<String, Locale> localeConversionCache = new HashMap<>();
@@ -74,11 +87,16 @@ public class ImprovedTypeConverterInitialiser implements InitializingBean
         {
             DefaultTypeConverter.INSTANCE.addConverter(String.class, Locale.class, this::convertStringToLocale);
         }
+
+        if (this.stringToDateEnabled)
+        {
+            DefaultTypeConverter.INSTANCE.addConverter(String.class, Date.class, this::convertStringToDate);
+        }
     }
 
     /**
      * @param namespaceService
-     *            the namespaceService to set
+     *     the namespaceService to set
      */
     public void setNamespaceService(final NamespaceService namespaceService)
     {
@@ -87,7 +105,7 @@ public class ImprovedTypeConverterInitialiser implements InitializingBean
 
     /**
      * @param stringToNodeRefEnabled
-     *            the stringToNodeRefEnabled to set
+     *     the stringToNodeRefEnabled to set
      */
     public void setStringToNodeRefEnabled(final boolean stringToNodeRefEnabled)
     {
@@ -96,7 +114,7 @@ public class ImprovedTypeConverterInitialiser implements InitializingBean
 
     /**
      * @param stringToQNameEnabled
-     *            the stringToQNameEnabled to set
+     *     the stringToQNameEnabled to set
      */
     public void setStringToQNameEnabled(final boolean stringToQNameEnabled)
     {
@@ -105,11 +123,20 @@ public class ImprovedTypeConverterInitialiser implements InitializingBean
 
     /**
      * @param stringToLocaleEnabled
-     *            the stringToLocaleEnabled to set
+     *     the stringToLocaleEnabled to set
      */
     public void setStringToLocaleEnabled(final boolean stringToLocaleEnabled)
     {
         this.stringToLocaleEnabled = stringToLocaleEnabled;
+    }
+
+    /**
+     * @param stringToDateEnabled
+     *     the stringToDateEnabled to set
+     */
+    public void setStringToDateEnabled(final boolean stringToDateEnabled)
+    {
+        this.stringToDateEnabled = stringToDateEnabled;
     }
 
     protected NodeRef convertStringToNodeRef(final String source)
@@ -168,5 +195,36 @@ public class ImprovedTypeConverterInitialiser implements InitializingBean
             }
         }
         return locale;
+    }
+
+    protected Date convertStringToDate(final String source)
+    {
+        Date date = null;
+        try
+        {
+            try
+            {
+                date = ISO8601DateFormat.parse(source);
+            }
+            catch (final AlfrescoRuntimeException e)
+            {
+                final SimpleDateFormat df = new SimpleDateFormat(RFC822_DATE_FORMAT, Locale.ENGLISH);
+                df.setTimeZone(TimeZone.getTimeZone("UTC"));
+                try
+                {
+                    date = df.parse(source);
+                }
+                catch (final ParseException pe)
+                {
+                    throw new TypeConversionException("Failed to convert date " + source + " to string", pe);
+                }
+            }
+        }
+        catch (final PlatformRuntimeException | AlfrescoRuntimeException e)
+        {
+            throw new TypeConversionException("Failed to convert date " + source + " to string", e);
+        }
+
+        return date;
     }
 }
