@@ -228,11 +228,17 @@ public class SynchJobBeanRegistryPostProcessor implements BeanDefinitionRegistry
         config.setPort(Integer.parseInt(this.getResolvedProperty(prefix, ".port", "143", true)));
 
         config.setUser(this.getResolvedProperty(prefix, ".user", null, true));
-        config.setPassword(this.getResolvedProperty(prefix, ".password", null, true));
+        // optional in case of XOAUTH2
+        config.setPassword(this.getResolvedProperty(prefix, ".password", null, false));
         config.setAuthMechanisms(this.getResolvedProperty(prefix, ".auth.mechanisms", null, false));
         config.setSaslMechanisms(this.getResolvedProperty(prefix, ".sasl.mechanisms", null, false));
         config.setSaslAuthorizationId(this.getResolvedProperty(prefix, ".sasl.authorizationId", null, false));
         config.setSaslRealm(this.getResolvedProperty(prefix, ".sasl.realm", null, false));
+
+        config.setOauthTokenUrl(this.getResolvedProperty(prefix, ".oauth.url", null, false));
+        config.setOauthClientId(this.getResolvedProperty(prefix, ".oauth.client", null, false));
+        config.setOauthClientSecret(this.getResolvedProperty(prefix, ".oauth.secret", null, false));
+        config.setOauthScope(this.getResolvedProperty(prefix, ".oauth.scope", null, false));
 
         config.setStartTlsEnabled(Boolean.parseBoolean(this.getResolvedProperty(prefix, ".starttls.enabled", "true", false)));
         config.setStartTlsRequired(Boolean.parseBoolean(this.getResolvedProperty(prefix, ".starttls.required", "false", false)));
@@ -248,8 +254,7 @@ public class SynchJobBeanRegistryPostProcessor implements BeanDefinitionRegistry
 
         config.setDebug(Boolean.parseBoolean(this.getResolvedProperty(prefix, ".debug", "false", false)));
 
-        config.setProcessFilterByFlagEnabled(
-                Boolean.parseBoolean(this.getResolvedProperty(prefix, ".filter.flag.enabled", "true", false)));
+        config.setProcessFilterByFlagEnabled(Boolean.parseBoolean(this.getResolvedProperty(prefix, ".filter.flag.enabled", "true", false)));
         config.setProcessFilterByFlagBits(Integer.parseInt(this.getResolvedProperty(prefix, ".filter.flag.bits.set", "0", false)));
         config.setProcessFilterByUnsetFlagBits(Integer.parseInt(this.getResolvedProperty(prefix, ".filter.flag.bits.unset", "8", false)));
         config.setProcessFilterByFlagName(this.getResolvedProperty(prefix, ".filter.flag.name.set", null, false));

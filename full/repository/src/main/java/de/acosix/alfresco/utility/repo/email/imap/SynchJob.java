@@ -115,35 +115,31 @@ public class SynchJob implements GenericJob, BatchProcessWorkProvider<SynchWork>
         final String truststorePassphrase = JobUtilities.getJobDataValue(jobExecutionContext, "truststorePassphrase", String.class, false);
 
         SocketFactory socketFactory = null;
-        if ("imaps".equalsIgnoreCase(this.imapConfig.getProtocol()) || this.imapConfig.isStartTlsEnabled()
-                || this.imapConfig.isStartTlsRequired())
+        synchronized (AlfrescoSSLSocketFactory.class)
         {
-            synchronized (AlfrescoSSLSocketFactory.class)
+            if (truststorePath != null && !truststorePath.isEmpty() && truststoreType != null && !truststoreType.isEmpty())
             {
-                if (truststorePath != null && !truststorePath.isEmpty() && truststoreType != null && !truststoreType.isEmpty())
+                final KeyStore trustStore = this.initTrustStore(truststorePath, truststoreType, truststorePassphrase);
+                AlfrescoSSLSocketFactory.initTrustedSSLSocketFactory(trustStore);
+            }
+            else
+            {
+                try
                 {
-                    final KeyStore trustStore = this.initTrustStore(truststorePath, truststoreType, truststorePassphrase);
+                    final KeyStore trustStore = KeyStore.getInstance("JKS");
+                    for (final String alias : sslTruststore.getKeyAliases())
+                    {
+                        final Key key = sslTruststore.getKey(alias);
+                        trustStore.setKeyEntry(alias, key, null, null);
+                    }
                     AlfrescoSSLSocketFactory.initTrustedSSLSocketFactory(trustStore);
                 }
-                else
+                catch (final KeyStoreException e)
                 {
-                    try
-                    {
-                        final KeyStore trustStore = KeyStore.getInstance("JKS");
-                        for (final String alias : sslTruststore.getKeyAliases())
-                        {
-                            final Key key = sslTruststore.getKey(alias);
-                            trustStore.setKeyEntry(alias, key, null, null);
-                        }
-                        AlfrescoSSLSocketFactory.initTrustedSSLSocketFactory(trustStore);
-                    }
-                    catch (final KeyStoreException e)
-                    {
-                        throw new AlfrescoRuntimeException("Failed to initialise truststore", e);
-                    }
+                    throw new AlfrescoRuntimeException("Failed to initialise truststore", e);
                 }
-                socketFactory = AlfrescoSSLSocketFactory.getDefault();
             }
+            socketFactory = AlfrescoSSLSocketFactory.getDefault();
         }
 
         final String threadCountStr = JobUtilities.getJobDataValue(jobExecutionContext, "threadCount", String.class, false);

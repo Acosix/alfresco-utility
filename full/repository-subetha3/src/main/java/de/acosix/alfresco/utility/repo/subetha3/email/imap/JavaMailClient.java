@@ -39,14 +39,13 @@ import javax.mail.search.AndTerm;
 import javax.mail.search.FlagTerm;
 import javax.mail.search.SearchTerm;
 import javax.net.SocketFactory;
-import javax.net.ssl.SSLSocketFactory;
 
-import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.service.cmr.email.EmailMessageException;
 import org.alfresco.util.ParameterCheck;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.acosix.alfresco.utility.repo.email.imap.BaseClient;
 import de.acosix.alfresco.utility.repo.email.imap.Client;
 import de.acosix.alfresco.utility.repo.email.imap.Config;
 import de.acosix.alfresco.utility.repo.email.imap.ImapEmailMessage;
@@ -58,7 +57,7 @@ import de.acosix.alfresco.utility.repo.subetha3.email.server.ImprovedSubethaEmai
  *
  * @author Axel Faust
  */
-public class JavaMailClient implements Client
+public class JavaMailClient extends BaseClient
 {
 
     // bits not exposed anywhere in javax.mail.Flags
@@ -91,61 +90,24 @@ public class JavaMailClient implements Client
      */
     public static Client open(final Config imapConfig, final int connections, final SocketFactory socketFactory)
     {
-        final Properties props = new Properties();
-
-        final String protocol = imapConfig.getProtocol();
-
-        if (protocol == null || !protocol.toLowerCase(Locale.ENGLISH).matches("^imaps?$"))
-        {
-            throw new AlfrescoRuntimeException("Undefined/unsupported protocol: " + protocol);
-        }
-
-        final String prefix = "mail." + protocol.toLowerCase(Locale.ENGLISH);
-
-        props.put(prefix + ".user", imapConfig.getUser());
-        props.put(prefix + ".host", imapConfig.getHost());
-        props.put(prefix + ".port", imapConfig.getPort());
-
-        if (socketFactory != null)
-        {
-            props.put(prefix + ".socketFactory", socketFactory);
-            if (socketFactory instanceof SSLSocketFactory)
-            {
-                props.put(prefix + ".ssl.socketFactory", socketFactory);
-            }
-        }
-        props.put(prefix + ".ssl.checkserveridentity", "true");
-
-        props.put(prefix + ".connectionpoolsize", Math.max(1, connections));
-
-        props.put(prefix + ".starttls.enable", String.valueOf(imapConfig.isStartTlsEnabled()));
-        props.put(prefix + ".starttls.required", String.valueOf(imapConfig.isStartTlsRequired()));
-
-        props.put(prefix + ".connectiontimeout", imapConfig.getConnectionTimeout());
-        props.put(prefix + ".timeout", imapConfig.getReadTimeout());
-        props.put(prefix + ".writetimeout", imapConfig.getWriteTimeout());
-
-        props.put(prefix + ".compress.enable", imapConfig.isCompressionEnabled());
-        props.put(prefix + ".compress.level", imapConfig.getCompressionLevel());
-        props.put(prefix + ".compress.strategy", imapConfig.getCompressionStrategy());
-
-        props.put(prefix + ".auth.mechanisms", imapConfig.getAuthMechanisms());
-
-        final String saslMechanisms = imapConfig.getSaslMechanisms();
-        if (saslMechanisms != null && !saslMechanisms.isEmpty())
-        {
-            props.put(prefix + ".sasl.enable", "true");
-            props.put(prefix + ".sasl.authorizationid", imapConfig.getSaslAuthorizationId());
-            props.put(prefix + ".sasl.mechanisms", saslMechanisms);
-            props.put(prefix + ".sasl.realm", imapConfig.getSaslRealm());
-        }
+        final Properties props = prepareParameters(imapConfig, connections, socketFactory);
+        final String protocol = imapConfig.getProtocol().toLowerCase(Locale.ENGLISH);
 
         final Session instance = Session.getInstance(props);
         instance.setDebug(imapConfig.isDebug());
         try
         {
-            final Store store = instance.getStore(protocol.toLowerCase(Locale.ENGLISH));
-            store.connect(imapConfig.getUser(), imapConfig.getPassword());
+            final Store store = instance.getStore(protocol);
+
+            if (usesOAuth(imapConfig) && hasRequiredOAuthParameters(imapConfig))
+            {
+                final String accessToken = obtainOAuthAccessToken(imapConfig, socketFactory);
+                store.connect(imapConfig.getUser(), accessToken);
+            }
+            else
+            {
+                store.connect(imapConfig.getUser(), imapConfig.getPassword());
+            }
             return new JavaMailClient(store);
         }
         catch (final MessagingException e)

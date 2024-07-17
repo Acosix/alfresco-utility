@@ -57,6 +57,14 @@ public class Config
 
     private String saslRealm;
 
+    private String oauthTokenUrl;
+
+    private String oauthClientId;
+
+    private String oauthClientSecret;
+
+    private String oauthScope;
+
     private boolean startTlsEnabled = true;
 
     private boolean startTlsRequired = false;
@@ -358,6 +366,90 @@ public class Config
     public void setSaslRealm(final String saslRealm)
     {
         this.saslRealm = saslRealm;
+    }
+
+    /**
+     * Retrieves the OAuth Token URL to use when obtaining a client credentials access token.
+     *
+     * @return the oauthTokenUrl
+     */
+    public String getOauthTokenUrl()
+    {
+        return this.oauthTokenUrl;
+    }
+
+    /**
+     * Sets the OAuth Token URL to use when obtaining a client credentials access token.
+     *
+     * @param oauthTokenUrl
+     *     the oauthTokenUrl to set
+     */
+    public void setOauthTokenUrl(final String oauthTokenUrl)
+    {
+        this.oauthTokenUrl = oauthTokenUrl;
+    }
+
+    /**
+     * Retrieves the client ID to use when obtaining an OAuth access token.
+     *
+     * @return the oauthClientId
+     */
+    public String getOauthClientId()
+    {
+        return this.oauthClientId;
+    }
+
+    /**
+     * Sets the client ID to use when obtaining an OAuth access token.
+     *
+     * @param oauthClientId
+     *     the oauthClientId to set
+     */
+    public void setOauthClientId(final String oauthClientId)
+    {
+        this.oauthClientId = oauthClientId;
+    }
+
+    /**
+     * Retrieves the client secret to use when obtaining an OAuth access token.
+     *
+     * @return the oauthClientSecret
+     */
+    public String getOauthClientSecret()
+    {
+        return this.oauthClientSecret;
+    }
+
+    /**
+     * Sets the client secret to use when obtaining an OAuth access token.
+     *
+     * @param oauthClientSecret
+     *     the oauthClientSecret to set
+     */
+    public void setOauthClientSecret(final String oauthClientSecret)
+    {
+        this.oauthClientSecret = oauthClientSecret;
+    }
+
+    /**
+     * Retrieves the scope(s) to request when obtaining an OAuth access token.
+     *
+     * @return the oauthScope
+     */
+    public String getOauthScope()
+    {
+        return this.oauthScope;
+    }
+
+    /**
+     * Sets the scope(s) to request when obtaining an OAuth access token.
+     *
+     * @param oauthScope
+     *     the oauthScope to set
+     */
+    public void setOauthScope(final String oauthScope)
+    {
+        this.oauthScope = oauthScope;
     }
 
     /**
