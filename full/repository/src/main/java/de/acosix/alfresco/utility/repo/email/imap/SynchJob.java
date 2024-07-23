@@ -296,7 +296,7 @@ public class SynchJob implements GenericJob, BatchProcessWorkProvider<SynchWork>
     public void beforeProcess() throws Throwable
     {
         AuthenticationUtil.pushAuthentication();
-        AuthenticationUtil.clearCurrentSecurityContext();
+        AuthenticationUtil.setRunAsUserSystem();
         this.originalLocale.set(I18NUtil.getLocaleOrNull());
         I18NUtil.setLocale(this.importLocale);
     }
@@ -320,7 +320,20 @@ public class SynchJob implements GenericJob, BatchProcessWorkProvider<SynchWork>
             final ImprovedEmailMessage message = this.imapClient.toImprovedEmailMessage(emailMessage);
             try
             {
-                this.emailService.importMessage(delivery, message);
+                // necessary to allow permissions for user mapped via from-address to take effect
+                // and user to be marked as creator
+                AuthenticationUtil.pushAuthentication();
+                AuthenticationUtil.clearCurrentSecurityContext();
+                try
+                {
+                    this.emailService.importMessage(delivery, message);
+                }
+                finally
+                {
+                    // restoration required to allow TRANSACTION_COMMIT policies to work without permission issues
+                    // specifically ImapContentPolicy
+                    AuthenticationUtil.popAuthentication();
+                }
 
                 TransactionSupportUtil.bindListener(new TransactionListenerAdapter()
                 {

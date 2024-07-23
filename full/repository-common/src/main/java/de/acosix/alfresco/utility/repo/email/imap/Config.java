@@ -280,7 +280,6 @@ public class Config
      */
     public void setPassword(final String password)
     {
-        ParameterCheck.mandatoryString("password", password);
         this.password = password;
     }
 

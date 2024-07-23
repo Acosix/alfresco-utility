@@ -358,6 +358,7 @@ public class JakartaMailClient extends BaseClient
         }
         catch (final MessagingException e)
         {
+            LOGGER.warn("Failed to resolve folder", e);
             throw new EmailMessageException("Failed to resolve folder " + folderPath);
         }
 
