@@ -68,7 +68,7 @@
                 <entry key="truststoreType" value="\${${configModuleId}.email.imap.truststore.type}" />
                 <entry key="truststorePassphrase" value="\${${configModuleId}.email.imap.truststore.passphrase}" />
 
-                <entry key="locale" value="\${${configModuleId}.email.imap.job.locale}}" />
+                <entry key="locale" value="\${${configModuleId}.email.imap.job.locale}" />
                 <entry key="threadCount" value="\${${configModuleId}.email.imap.job.threadCount}" />
                 <entry key="lockTTL" value="\${${configModuleId}.email.imap.job.lock.ttl}" />
                 <entry key="lockRetryWait" value="\${${configModuleId}.email.imap.job.lock.retryWait}" />
