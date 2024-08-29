@@ -51,7 +51,7 @@ public class ContentServiceTransformerUtility
                 }
             }
         }
-        catch (final Exception ignore)
+        catch (final ClassNotFoundException | SecurityException ignore)
         {
             // ignored
         }
