@@ -257,20 +257,33 @@ public class SynchJobBeanRegistryPostProcessor implements BeanDefinitionRegistry
         config.setProcessFilterByFlagEnabled(Boolean.parseBoolean(this.getResolvedProperty(prefix, ".filter.flag.enabled", "true", false)));
         config.setProcessFilterByFlagBits(Integer.parseInt(this.getResolvedProperty(prefix, ".filter.flag.bits.set", "0", false)));
         config.setProcessFilterByUnsetFlagBits(Integer.parseInt(this.getResolvedProperty(prefix, ".filter.flag.bits.unset", "8", false)));
-        config.setProcessFilterByFlagName(this.getResolvedProperty(prefix, ".filter.flag.name.set", null, false));
-        config.setProcessFilterByUnsetFlagName(this.getResolvedProperty(prefix, ".filter.flag.name.unset", null, false));
+        // fallback to previous single-value flag name
+        config.setProcessFilterByFlagNames(this.getResolvedProperty(prefix, ".filter.flag.names.set",
+                this.getResolvedProperty(prefix, ".filter.flag.name.set", null, false), false));
+        config.setProcessFilterByUnsetFlagNames(this.getResolvedProperty(prefix, ".filter.flag.names.unset",
+                this.getResolvedProperty(prefix, ".filter.flag.name.unset", null, false), false));
+        config.setProcessFilterByAllowedFromAddresses(this.getResolvedProperty(prefix, ".senders.allowed",
+                this.getResolvedProperty("email.server.allowed.senders", ".*", false), false));
+        config.setProcessFilterByBlockedFromAddresses(this.getResolvedProperty(prefix, ".senders.blocked",
+                this.getResolvedProperty("email.server.blocked.senders", null, false), false));
 
         config.setFlagProcessedEnabled(Boolean.parseBoolean(this.getResolvedProperty(prefix, ".processed.flag.enabled", "true", false)));
         config.setFlagProcessedWithBits(Integer.parseInt(this.getResolvedProperty(prefix, ".processed.flag.bits.set", "8", false)));
         config.setFlagProcessedWithUnsetBits(Integer.parseInt(this.getResolvedProperty(prefix, ".processed.flag.bits.unset", "0", false)));
-        config.setFlagProcessedWithName(this.getResolvedProperty(prefix, ".processed.flag.name.set", null, false));
-        config.setFlagProcessedWithUnsetName(this.getResolvedProperty(prefix, ".processed.flag.name.unset", null, false));
+        // fallback to previous single-value flag name
+        config.setFlagProcessedWithNames(this.getResolvedProperty(prefix, ".processed.flag.names.set",
+                this.getResolvedProperty(prefix, ".processed.flag.name.set", null, false), false));
+        config.setFlagProcessedWithUnsetNames(this.getResolvedProperty(prefix, ".processed.flags.names.unset",
+                this.getResolvedProperty(prefix, ".processed.flags.name.unset", null, false), false));
 
         config.setFlagRejectedEnabled(Boolean.parseBoolean(this.getResolvedProperty(prefix, ".rejected.flag.enabled", "false", false)));
         config.setFlagRejectedWithBits(Integer.parseInt(this.getResolvedProperty(prefix, ".rejected.flag.bits.set", "0", false)));
         config.setFlagRejectedWithUnsetBits(Integer.parseInt(this.getResolvedProperty(prefix, ".rejected.flag.bits.unset", "0", false)));
-        config.setFlagRejectedWithName(this.getResolvedProperty(prefix, ".rejected.flag.name.set", null, false));
-        config.setFlagRejectedWithUnsetName(this.getResolvedProperty(prefix, ".rejected.flag.name.unset", null, false));
+        // fallback to previous single-value flag name
+        config.setFlagRejectedWithNames(this.getResolvedProperty(prefix, ".rejected.flag.names.set",
+                this.getResolvedProperty(prefix, ".rejected.flag.name.set", null, false), false));
+        config.setFlagRejectedWithUnsetNames(this.getResolvedProperty(prefix, ".rejected.flag.names.unset",
+                this.getResolvedProperty(prefix, ".rejected.flag.name.unset", null, false), false));
 
         this.readFoldersConfig(prefix, config);
 

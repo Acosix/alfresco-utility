@@ -492,7 +492,10 @@ public class SendMailActionExecuter extends ActionExecuterAbstractBase implement
         addressHandler.setTo(addresseesAndLocale.stream().map(Pair::getFirst).collect(Collectors.toList()));
         addressHandler.setCc(ccAddressees);
         addressHandler.setBcc(bccAddressees);
-        addressHandler.setFrom(HELPER.toEmailAddress(replyTo));
+        if (replyTo != null && !replyTo.isEmpty())
+        {
+            addressHandler.setReplyTo(HELPER.toEmailAddress(replyTo));
+        }
 
         this.handleAttachments(true, action, emailMessage);
         this.handleAttachments(false, action, emailMessage);

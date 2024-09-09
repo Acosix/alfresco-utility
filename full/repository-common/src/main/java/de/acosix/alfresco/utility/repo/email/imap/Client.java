@@ -17,6 +17,7 @@ package de.acosix.alfresco.utility.repo.email.imap;
 
 import java.io.Closeable;
 import java.util.List;
+import java.util.Set;
 
 import org.alfresco.service.cmr.email.EmailMessage;
 import org.alfresco.service.cmr.email.EmailService;
@@ -45,17 +46,11 @@ public interface Client extends Closeable
      *
      * @param folderPath
      *     the path in which to count messages
-     * @param filterFlagSetBits
-     *     the bit-mask of explicitly set system flags by which to filter
-     * @param filterFlagUnsetBits
-     *     the bit-mask of explicitly unset system flags by which to filter
-     * @param filterFlagName
-     *     the name of a custom flag by which to filter
-     * @param filterFlagUnsetName
-     *     the name of an explicitly unset custom flag by which to filter
+     * @param messageFilter
+     *     the filter to apply on messages
      * @return the number of matching messages
      */
-    int countMessages(String folderPath, int filterFlagSetBits, int filterFlagUnsetBits, String filterFlagName, String filterFlagUnsetName);
+    int countMessages(String folderPath, MessageFilter messageFilter);
 
     /**
      * Lists the messages stored in a specific folder.
@@ -71,18 +66,11 @@ public interface Client extends Closeable
      *
      * @param folderPath
      *     the path from which to retrieve messages
-     * @param filterFlagSetBits
-     *     the bit-mask of explicitly set system flags by which to filter
-     * @param filterFlagUnsetBits
-     *     the bit-mask of explicitly unset system flags by which to filter
-     * @param filterFlagName
-     *     the name of a custom flag by which to filter
-     * @param filterFlagUnsetName
-     *     the name of an explicitly unset custom flag by which to filter
+     * @param messageFilter
+     *     the filter to apply on messages
      * @return the matching messages
      */
-    List<ImapEmailMessage> listMessages(String folderPath, int filterFlagSetBits, int filterFlagUnsetBits, String filterFlagName,
-            String filterFlagUnsetName);
+    List<ImapEmailMessage> listMessages(String folderPath, MessageFilter messageFilter);
 
     /**
      * Flags a message with a specific set of flags. Any flags set will be additions to flags already set on the message.
@@ -93,12 +81,12 @@ public interface Client extends Closeable
      *     the bit-mask of system flags to set
      * @param flagUnsetBits
      *     the bit-mask of system flags to unset
-     * @param flagName
-     *     the name of a custom flag to set
-     * @param flagUnsetName
-     *     the name of a custom flag to unset
+     * @param flagNames
+     *     the names of custom flags to set
+     * @param flagUnsetNames
+     *     the names of custom flags to unset
      */
-    void flagMessage(ImapEmailMessage message, int flagBits, int flagUnsetBits, String flagName, String flagUnsetName);
+    void flagMessage(ImapEmailMessage message, int flagBits, int flagUnsetBits, Set<String> flagNames, Set<String> flagUnsetNames);
 
     /**
      * Moves a message to a specific target folder.

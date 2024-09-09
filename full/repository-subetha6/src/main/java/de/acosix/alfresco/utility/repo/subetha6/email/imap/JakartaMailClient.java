@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.net.SocketFactory;
@@ -37,6 +38,7 @@ import de.acosix.alfresco.utility.repo.email.imap.BaseClient;
 import de.acosix.alfresco.utility.repo.email.imap.Client;
 import de.acosix.alfresco.utility.repo.email.imap.Config;
 import de.acosix.alfresco.utility.repo.email.imap.ImapEmailMessage;
+import de.acosix.alfresco.utility.repo.email.imap.MessageFilter;
 import de.acosix.alfresco.utility.repo.email.server.ImprovedEmailMessage;
 import de.acosix.alfresco.utility.repo.subetha6.email.server.ImprovedSubethaEmailMessage;
 import jakarta.mail.Address;
@@ -50,6 +52,7 @@ import jakarta.mail.Store;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.search.AndTerm;
 import jakarta.mail.search.FlagTerm;
+import jakarta.mail.search.NotTerm;
 import jakarta.mail.search.SearchTerm;
 
 /**
@@ -187,14 +190,14 @@ public class JakartaMailClient extends BaseClient
      * {@inheritDoc}
      */
     @Override
-    public int countMessages(final String folderPath, final int filterFlagBits, final int filterFlagUnsetBits, final String filterFlagName,
-            final String filterFlagUnsetName)
+    public int countMessages(final String folderPath, final MessageFilter messageFilter)
     {
         ParameterCheck.mandatoryString("folderPath", folderPath);
+        ParameterCheck.mandatory("messageFilter", messageFilter);
 
         final Folder folder = this.openFoldersByPath.computeIfAbsent(folderPath, this::openFolder);
 
-        final SearchTerm searchTerm = this.buildSearchTerm(filterFlagBits, filterFlagUnsetBits, filterFlagName, filterFlagUnsetName);
+        final SearchTerm searchTerm = this.buildSearchTerm(messageFilter);
 
         try
         {
@@ -234,14 +237,14 @@ public class JakartaMailClient extends BaseClient
      * {@inheritDoc}
      */
     @Override
-    public List<ImapEmailMessage> listMessages(final String folderPath, final int filterFlagBits, final int filterFlagUnsetBits,
-            final String filterFlagName, final String filterFlagUnsetName)
+    public List<ImapEmailMessage> listMessages(final String folderPath, final MessageFilter messageFilter)
     {
         ParameterCheck.mandatoryString("folderPath", folderPath);
+        ParameterCheck.mandatory("messageFilter", messageFilter);
 
         final Folder folder = this.openFoldersByPath.computeIfAbsent(folderPath, this::openFolder);
 
-        final SearchTerm searchTerm = this.buildSearchTerm(filterFlagBits, filterFlagUnsetBits, filterFlagName, filterFlagUnsetName);
+        final SearchTerm searchTerm = this.buildSearchTerm(messageFilter);
 
         try
         {
@@ -259,8 +262,8 @@ public class JakartaMailClient extends BaseClient
      * {@inheritDoc}
      */
     @Override
-    public void flagMessage(final ImapEmailMessage message, final int flagBits, final int flagUnsetBits, final String flagName,
-            final String flagUnsetName)
+    public void flagMessage(final ImapEmailMessage message, final int flagBits, final int flagUnsetBits, final Set<String> flagNames,
+            final Set<String> flagUnsetNames)
     {
         ParameterCheck.mandatory("message", message);
 
@@ -275,9 +278,9 @@ public class JakartaMailClient extends BaseClient
             throw new EmailMessageException("Some system flags to unset are not valid/supported");
         }
 
-        if (flagBits != 0 || flagName != null)
+        if (flagBits != 0 || (flagNames != null && !flagNames.isEmpty()))
         {
-            final Flags flags = this.buildFlags(flagBits, flagName);
+            final Flags flags = this.buildFlags(flagBits, flagNames);
             try
             {
                 baseMessage.setFlags(flags, true);
@@ -289,9 +292,9 @@ public class JakartaMailClient extends BaseClient
             }
         }
 
-        if (flagUnsetBits != 0 || flagUnsetName != null)
+        if (flagUnsetBits != 0 || (flagUnsetNames != null && !flagUnsetNames.isEmpty()))
         {
-            final Flags flags = this.buildFlags(flagUnsetBits, flagUnsetName);
+            final Flags flags = this.buildFlags(flagUnsetBits, flagUnsetNames);
             try
             {
                 baseMessage.setFlags(flags, false);
@@ -365,15 +368,27 @@ public class JakartaMailClient extends BaseClient
         return folder;
     }
 
-    private SearchTerm buildSearchTerm(final int filterFlagBits, final int filterUnsetFlagBits, final String filterFlagName,
-            final String filterUnsetFlagName)
+    private SearchTerm buildSearchTerm(final MessageFilter messageFilter)
     {
-        final Flags flags = this.buildFlags(filterFlagBits, filterFlagName);
-        final Flags unsetFlags = this.buildFlags(filterUnsetFlagBits, filterUnsetFlagName);
-        return new AndTerm(new FlagTerm(flags, true), new FlagTerm(unsetFlags, false));
+        final Flags flags = this.buildFlags(messageFilter.getFlagSetBits(), messageFilter.getFlagSetNames());
+        final Flags unsetFlags = this.buildFlags(messageFilter.getFlagUnsetBits(), messageFilter.getFlagUnsetNames());
+        SearchTerm searchTerm = new AndTerm(new FlagTerm(flags, true), new FlagTerm(unsetFlags, false));
+
+        final Set<String> allowedFromAddressPatterns = messageFilter.getAllowedFromAddressPatterns();
+        final Set<String> blockedFromAddressPatterns = messageFilter.getBlockedFromAddressPatterns();
+        if (allowedFromAddressPatterns != null && !allowedFromAddressPatterns.isEmpty())
+        {
+            searchTerm = new AndTerm(searchTerm, new FromAddressesTerm(allowedFromAddressPatterns));
+        }
+        if (blockedFromAddressPatterns != null && !blockedFromAddressPatterns.isEmpty())
+        {
+            searchTerm = new AndTerm(searchTerm, new NotTerm(new FromAddressesTerm(blockedFromAddressPatterns)));
+        }
+
+        return searchTerm;
     }
 
-    private Flags buildFlags(final int flagBits, final String flagName)
+    private Flags buildFlags(final int flagBits, final Set<String> flagNames)
     {
         final Flags flags = new Flags();
 
@@ -393,10 +408,13 @@ public class JakartaMailClient extends BaseClient
         {
             flags.add(Flag.SEEN);
         }
-        if (flagName != null)
+        if (flagNames != null && flagNames.isEmpty())
         {
             flags.add(Flag.USER);
-            flags.add(flagName);
+            for (final String flagName : flagNames)
+            {
+                flags.add(flagName);
+            }
         }
         return flags;
     }

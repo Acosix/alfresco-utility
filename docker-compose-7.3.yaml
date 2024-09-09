@@ -19,6 +19,7 @@ services:
         - alfresco_data:/usr/local/tomcat/alf_data
       environment:
          JAVA_OPTS: >-
+           -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:8888
            -Ddb.driver=org.postgresql.Driver
            -Ddb.username=alfresco
            -Ddb.password=alfresco
@@ -53,6 +54,7 @@ services:
            -XX:+ScavengeBeforeFullGC -XX:+DisableExplicitGC -XX:+AlwaysPreTouch
       ports:
         - 8080:8080
+        - 8888:8888
         - 10025:25
 
    share:

@@ -23,12 +23,15 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.net.SocketFactory;
@@ -80,6 +83,8 @@ public class SynchJob implements GenericJob, BatchProcessWorkProvider<SynchWork>
     private String configName;
 
     private Config imapConfig;
+
+    private MessageFilter messageFilter;
 
     private LockReleasedCheck lockReleasedCheck;
 
@@ -144,6 +149,8 @@ public class SynchJob implements GenericJob, BatchProcessWorkProvider<SynchWork>
 
         final String threadCountStr = JobUtilities.getJobDataValue(jobExecutionContext, "threadCount", String.class, false);
         final int threadCount = threadCountStr != null ? Math.max(1, Integer.parseInt(threadCountStr)) : 4;
+
+        this.prepareFilter();
 
         try
         {
@@ -254,13 +261,9 @@ public class SynchJob implements GenericJob, BatchProcessWorkProvider<SynchWork>
 
             final List<ImapEmailMessage> messages;
 
-            final boolean filter = this.imapConfig.isProcessFilterByFlagEnabled();
-
-            if (filter)
+            if (this.messageFilter != null)
             {
-                messages = this.imapClient.listMessages(path, this.imapConfig.getProcessFilterByFlagBits(),
-                        this.imapConfig.getProcessFilterByUnsetFlagBits(), this.imapConfig.getProcessFilterByFlagName(),
-                        this.imapConfig.getProcessFilterByUnsetFlagName());
+                messages = this.imapClient.listMessages(path, this.messageFilter);
             }
             else
             {
@@ -350,8 +353,8 @@ public class SynchJob implements GenericJob, BatchProcessWorkProvider<SynchWork>
                             {
                                 SynchJob.this.imapClient.flagMessage(emailMessage, SynchJob.this.imapConfig.getFlagProcessedWithBits(),
                                         SynchJob.this.imapConfig.getFlagProcessedWithUnsetBits(),
-                                        SynchJob.this.imapConfig.getFlagProcessedWithName(),
-                                        SynchJob.this.imapConfig.getFlagProcessedWithUnsetName());
+                                        getCommaSeparatedValues(SynchJob.this.imapConfig.getFlagProcessedWithNames()),
+                                        getCommaSeparatedValues(SynchJob.this.imapConfig.getFlagProcessedWithUnsetNames()));
                             }
                             final String moveProcessedPath = entry.getMoveRejectedPath();
                             if (moveProcessedPath != null)
@@ -376,8 +379,9 @@ public class SynchJob implements GenericJob, BatchProcessWorkProvider<SynchWork>
                     if (this.imapConfig.isFlagRejectedEnabled())
                     {
                         this.imapClient.flagMessage(emailMessage, this.imapConfig.getFlagRejectedWithBits(),
-                                this.imapConfig.getFlagRejectedWithUnsetBits(), this.imapConfig.getFlagRejectedWithName(),
-                                this.imapConfig.getFlagRejectedWithUnsetName());
+                                this.imapConfig.getFlagRejectedWithUnsetBits(),
+                                getCommaSeparatedValues(this.imapConfig.getFlagRejectedWithNames()),
+                                getCommaSeparatedValues(this.imapConfig.getFlagRejectedWithUnsetNames()));
                     }
                     final String moveRejectedPath = entry.getMoveRejectedPath();
                     if (moveRejectedPath != null)
@@ -418,9 +422,59 @@ public class SynchJob implements GenericJob, BatchProcessWorkProvider<SynchWork>
         this.originalLocale.remove();
     }
 
+    private void prepareFilter()
+    {
+        if (this.imapConfig.isProcessFilterByFlagEnabled())
+        {
+            this.messageFilter = new MessageFilter();
+            this.messageFilter.setFlagSetBits(this.imapConfig.getProcessFilterByFlagBits());
+            this.messageFilter.setFlagUnsetBits(this.imapConfig.getProcessFilterByUnsetFlagBits());
+            String flagNames = this.imapConfig.getProcessFilterByFlagNames();
+            if (flagNames != null && !flagNames.isEmpty())
+            {
+                for (final String flagName : getCommaSeparatedValues(flagNames))
+                {
+                    this.messageFilter.addFlagSetName(flagName);
+                }
+            }
+            flagNames = this.imapConfig.getProcessFilterByUnsetFlagNames();
+            if (flagNames != null && !flagNames.isEmpty())
+            {
+                for (final String flagName : getCommaSeparatedValues(flagNames))
+                {
+                    this.messageFilter.addFlagUnsetName(flagName);
+                }
+            }
+        }
+
+        String senders = this.imapConfig.getProcessFilterByAllowedFromAddresses();
+        if (senders != null && !senders.isEmpty())
+        {
+            if (this.messageFilter == null)
+            {
+                this.messageFilter = new MessageFilter();
+            }
+            for (final String sender : senders.split(","))
+            {
+                this.messageFilter.addAllowedFromAddressPattern(sender);
+            }
+        }
+        senders = this.imapConfig.getProcessFilterByBlockedFromAddresses();
+        if (senders != null && !senders.isEmpty())
+        {
+            if (this.messageFilter == null)
+            {
+                this.messageFilter = new MessageFilter();
+            }
+            for (final String sender : senders.split(","))
+            {
+                this.messageFilter.addBlockedFromAddressPattern(sender);
+            }
+        }
+    }
+
     private void estimateTotalWorkSize()
     {
-        final boolean filter = this.imapConfig.isProcessFilterByFlagEnabled();
         final Map<String, String> pathByFolder = this.imapConfig.getPathByFolder();
         final Collection<String> folders = this.imapConfig.getFolders();
 
@@ -428,11 +482,9 @@ public class SynchJob implements GenericJob, BatchProcessWorkProvider<SynchWork>
         for (final String folder : folders)
         {
             final String path = pathByFolder.get(folder);
-            if (filter)
+            if (this.messageFilter != null)
             {
-                workSize += this.imapClient.countMessages(path, this.imapConfig.getProcessFilterByFlagBits(),
-                        this.imapConfig.getProcessFilterByUnsetFlagBits(), this.imapConfig.getProcessFilterByFlagName(),
-                        this.imapConfig.getProcessFilterByUnsetFlagName());
+                workSize += this.imapClient.countMessages(path, this.messageFilter);
             }
             else
             {
@@ -474,5 +526,15 @@ public class SynchJob implements GenericJob, BatchProcessWorkProvider<SynchWork>
             throw new AlfrescoRuntimeException("The certificates cannot be loaded from truststore.", ce);
         }
         return ks;
+    }
+
+    private static Set<String> getCommaSeparatedValues(final String baseValue)
+    {
+        final Set<String> values = new HashSet<>();
+        if (baseValue != null && !baseValue.isEmpty())
+        {
+            values.addAll(Arrays.asList(baseValue.split(",")));
+        }
+        return values;
     }
 }

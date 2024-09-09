@@ -93,9 +93,13 @@ public class Config
 
     private int processFilterByUnsetFlagBits;
 
-    private String processFilterByFlagName;
+    private String processFilterByFlagNames;
 
-    private String processFilterByUnsetFlagName;
+    private String processFilterByUnsetFlagNames;
+
+    private String processFilterByAllowedFromAddresses;
+
+    private String processFilterByBlockedFromAddresses;
 
     private boolean flagProcessedEnabled = false;
 
@@ -103,9 +107,9 @@ public class Config
 
     private int flagProcessedWithUnsetBits;
 
-    private String flagProcessedWithName;
+    private String flagProcessedWithNames;
 
-    private String flagProcessedWithUnsetName;
+    private String flagProcessedWithUnsetNames;
 
     private boolean flagRejectedEnabled = false;
 
@@ -113,9 +117,9 @@ public class Config
 
     private int flagRejectedWithUnsetBits;
 
-    private String flagRejectedWithName;
+    private String flagRejectedWithNames;
 
-    private String flagRejectedWithUnsetName;
+    private String flagRejectedWithUnsetNames;
 
     private final Set<String> folders = new LinkedHashSet<>();
 
@@ -748,45 +752,87 @@ public class Config
     }
 
     /**
-     * Retrieves the user flag name by which to filter emails.
+     * Retrieves the configured, comma-separated user flag name by which to filter emails.
      *
-     * @return the processFilterByFlagName
+     * @return the processFilterByFlagNames
      */
-    public String getProcessFilterByFlagName()
+    public String getProcessFilterByFlagNames()
     {
-        return this.processFilterByFlagName;
+        return this.processFilterByFlagNames;
     }
 
     /**
-     * Sets the user flag name by which to filter emails.
+     * Sets the configured, comma-separated user flag names by which to filter emails.
      *
-     * @param processFilterByFlagName
-     *     the processFilterByFlagName to set
+     * @param processFilterByFlagNames
+     *     the processFilterByFlagNames to set
      */
-    public void setProcessFilterByFlagName(final String processFilterByFlagName)
+    public void setProcessFilterByFlagNames(final String processFilterByFlagNames)
     {
-        this.processFilterByFlagName = processFilterByFlagName;
+        this.processFilterByFlagNames = processFilterByFlagNames;
     }
 
     /**
-     * Retrieves the unset user flag name by which to filter emails.
+     * Retrieves the configured, comma-separated unset user flag names by which to filter emails.
      *
-     * @return the processFilterByUnsetFlagName
+     * @return the processFilterByUnsetFlagNames
      */
-    public String getProcessFilterByUnsetFlagName()
+    public String getProcessFilterByUnsetFlagNames()
     {
-        return this.processFilterByUnsetFlagName;
+        return this.processFilterByUnsetFlagNames;
     }
 
     /**
-     * Sets the unset user flag name by which to filter emails.
+     * Sets the configured, comma-separated unset user flag names by which to filter emails.
      *
-     * @param processFilterByUnsetFlagName
-     *     the processFilterByUnsetFlagName to set
+     * @param processFilterByUnsetFlagNames
+     *     the processFilterByUnsetFlagNames to set
      */
-    public void setProcessFilterByUnsetFlagName(final String processFilterByUnsetFlagName)
+    public void setProcessFilterByUnsetFlagNames(final String processFilterByUnsetFlagNames)
     {
-        this.processFilterByUnsetFlagName = processFilterByUnsetFlagName;
+        this.processFilterByUnsetFlagNames = processFilterByUnsetFlagNames;
+    }
+
+    /**
+     * Retrieves the configured, comma-separated allowed from addresses by which to filter emails.
+     *
+     * @return the processFilterByAllowedFromAddresses
+     */
+    public String getProcessFilterByAllowedFromAddresses()
+    {
+        return this.processFilterByAllowedFromAddresses;
+    }
+
+    /**
+     * Sets the configured, comma-separated allowed from addresses by which to filter emails.
+     *
+     * @param processFilterByAllowedFromAddresses
+     *     the processFilterByAllowedFromAddresses to set
+     */
+    public void setProcessFilterByAllowedFromAddresses(final String processFilterByAllowedFromAddresses)
+    {
+        this.processFilterByAllowedFromAddresses = processFilterByAllowedFromAddresses;
+    }
+
+    /**
+     * Retrieves the configured, comma-separated blocked from addresses by which to filter emails.
+     *
+     * @return the processFilterByBlockedFromAddresses
+     */
+    public String getProcessFilterByBlockedFromAddresses()
+    {
+        return this.processFilterByBlockedFromAddresses;
+    }
+
+    /**
+     * Sets the configured, comma-separated blocked from addresses by which to filter emails.
+     *
+     * @param processFilterByBlockedFromAddresses
+     *     the processFilterByBlockedFromAddresses to set
+     */
+    public void setProcessFilterByBlockedFromAddresses(final String processFilterByBlockedFromAddresses)
+    {
+        this.processFilterByBlockedFromAddresses = processFilterByBlockedFromAddresses;
     }
 
     /**
@@ -853,45 +899,45 @@ public class Config
     }
 
     /**
-     * Retrieves the user flag name to set when marking successfully processed emails.
+     * Retrieves the configured, comma-separated user flag names to set when marking successfully processed emails.
      *
-     * @return the flagProcessedWithName
+     * @return the flagProcessedWithNames
      */
-    public String getFlagProcessedWithName()
+    public String getFlagProcessedWithNames()
     {
-        return this.flagProcessedWithName;
+        return this.flagProcessedWithNames;
     }
 
     /**
-     * Sets the user flag name to set when marking successfully processed emails.
+     * Sets the configured, comma-separated user flag names to set when marking successfully processed emails.
      *
-     * @param flagProcessedWithName
-     *     the flagProcessedWithName to set
+     * @param flagProcessedWithNames
+     *     the flagProcessedWithNames to set
      */
-    public void setFlagProcessedWithName(final String flagProcessedWithName)
+    public void setFlagProcessedWithNames(final String flagProcessedWithNames)
     {
-        this.flagProcessedWithName = flagProcessedWithName;
+        this.flagProcessedWithNames = flagProcessedWithNames;
     }
 
     /**
-     * Retrieves the user flag name to unset when marking successfully processed emails.
+     * Retrieves the configured, comma-separated user flag names to unset when marking successfully processed emails.
      *
-     * @return the flagProcessedWithUnsetName
+     * @return the flagProcessedWithUnsetNames
      */
-    public String getFlagProcessedWithUnsetName()
+    public String getFlagProcessedWithUnsetNames()
     {
-        return this.flagProcessedWithUnsetName;
+        return this.flagProcessedWithUnsetNames;
     }
 
     /**
-     * Sets the user flag name to unset when marking successfully processed emails.
+     * Sets the configured, comma-separated user flag names to unset when marking successfully processed emails.
      *
-     * @param flagProcessedWithUnsetName
-     *     the flagProcessedWithUnsetName to set
+     * @param flagProcessedWithUnsetNames
+     *     the flagProcessedWithUnsetNames to set
      */
-    public void setFlagProcessedWithUnsetName(final String flagProcessedWithUnsetName)
+    public void setFlagProcessedWithUnsetNames(final String flagProcessedWithUnsetNames)
     {
-        this.flagProcessedWithUnsetName = flagProcessedWithUnsetName;
+        this.flagProcessedWithUnsetNames = flagProcessedWithUnsetNames;
     }
 
     /**
@@ -958,45 +1004,45 @@ public class Config
     }
 
     /**
-     * Retrieves the user flag name to set when marking rejected emails.
+     * Retrieves the configured, comma-separated user flag names to set when marking rejected emails.
      *
-     * @return the flagRejectedWithName
+     * @return the flagRejectedWithNames
      */
-    public String getFlagRejectedWithName()
+    public String getFlagRejectedWithNames()
     {
-        return this.flagRejectedWithName;
+        return this.flagRejectedWithNames;
     }
 
     /**
-     * Sets the user flag name to set when marking rejected emails.
+     * Sets the configured, comma-separated user flag names to set when marking rejected emails.
      *
-     * @param flagRejectedWithName
-     *     the flagRejectedWithName to set
+     * @param flagRejectedWithNames
+     *     the flagRejectedWithNames to set
      */
-    public void setFlagRejectedWithName(final String flagRejectedWithName)
+    public void setFlagRejectedWithNames(final String flagRejectedWithNames)
     {
-        this.flagRejectedWithName = flagRejectedWithName;
+        this.flagRejectedWithNames = flagRejectedWithNames;
     }
 
     /**
-     * Retrieves the user flag name to unset when marking rejected emails.
+     * Retrieves the configured, comma-separated user flag names to unset when marking rejected emails.
      *
-     * @return the flagRejectedWithUnsetName
+     * @return the flagRejectedWithUnsetNames
      */
-    public String getFlagRejectedWithUnsetName()
+    public String getFlagRejectedWithUnsetNames()
     {
-        return this.flagRejectedWithUnsetName;
+        return this.flagRejectedWithUnsetNames;
     }
 
     /**
-     * Sets the user flag name to unset when marking rejected emails.
+     * Sets the configured, comma-separated user flag names to unset when marking rejected emails.
      *
-     * @param flagRejectedWithUnsetName
-     *     the flagRejectedWithUnsetName to set
+     * @param flagRejectedWithUnsetNames
+     *     the flagRejectedWithUnsetNames to set
      */
-    public void setFlagRejectedWithUnsetName(final String flagRejectedWithUnsetName)
+    public void setFlagRejectedWithUnsetNames(final String flagRejectedWithUnsetNames)
     {
-        this.flagRejectedWithUnsetName = flagRejectedWithUnsetName;
+        this.flagRejectedWithUnsetNames = flagRejectedWithUnsetNames;
     }
 
     /**
