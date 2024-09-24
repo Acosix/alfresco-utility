@@ -18,6 +18,7 @@ package de.acosix.alfresco.utility.core.repo.jakarta;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -279,6 +280,8 @@ public class SendEmailActionExecutorHelperImpl implements SendEmailActionExecute
         try
         {
             final MimeMessage mimeMessage = mailSender.createMimeMessage();
+
+            mimeMessage.setSubject(subject, StandardCharsets.UTF_8.name());
 
             for (final Entry<String, String> headerEntry : headers.entrySet())
             {
