@@ -18,6 +18,7 @@ package de.acosix.alfresco.utility.core.repo.jakarta;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 
 import org.alfresco.service.cmr.action.ActionServiceException;
 import org.alfresco.util.ParameterCheck;
+import org.apache.poi.ss.formula.functions.T;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.mail.MailException;
@@ -35,6 +37,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 
 import de.acosix.alfresco.utility.repo.action.SendEmailActionExecuterHelper;
+import de.acosix.alfresco.utility.repo.action.SendEmailActionExecuterHelper.AddressHandler;
+import de.acosix.alfresco.utility.repo.action.SendEmailActionExecuterHelper.AttachmentHandler;
 import de.acosix.alfresco.utility.repo.email.EmailAddress;
 import de.acosix.alfresco.utility.repo.email.EmailMessage;
 import jakarta.mail.Address;
@@ -279,6 +283,8 @@ public class SendEmailActionExecutorHelperImpl implements SendEmailActionExecute
         try
         {
             final MimeMessage mimeMessage = mailSender.createMimeMessage();
+
+            mimeMessage.setSubject(subject, StandardCharsets.UTF_8.name());
 
             for (final Entry<String, String> headerEntry : headers.entrySet())
             {
