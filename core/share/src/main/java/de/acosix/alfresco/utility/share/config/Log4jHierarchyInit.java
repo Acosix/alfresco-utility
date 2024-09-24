@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - 2021 Acosix GmbH
+ * Copyright 2016 - 2024 Acosix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,9 +29,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
@@ -76,10 +75,10 @@ import org.springframework.core.io.support.ResourcePatternResolver;
  *
  * @author Axel Faust
  */
-public class Log4jHierarchyInit implements InitializingBean, ApplicationContextAware, BeanDefinitionRegistryPostProcessor
+public class Log4jHierarchyInit implements InitializingBean, ApplicationContextAware, BeanFactoryPostProcessor
 {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(Log4jHierarchyInit.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Log4jHierarchyInit.class);
 
     protected final List<String> extraLog4jUrls = new ArrayList<>();
 
@@ -90,15 +89,6 @@ public class Log4jHierarchyInit implements InitializingBean, ApplicationContextA
      */
     @Override
     public void postProcessBeanFactory(final ConfigurableListableBeanFactory beanFactory) throws BeansException
-    {
-        // NO-OP - we only implement the interface to be instantiated as early as possible in Spring lifecycle
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void postProcessBeanDefinitionRegistry(final BeanDefinitionRegistry registry) throws BeansException
     {
         // NO-OP - we only implement the interface to be instantiated as early as possible in Spring lifecycle
     }

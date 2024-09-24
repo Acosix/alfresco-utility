@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - 2021 Acosix GmbH
+ * Copyright 2016 - 2024 Acosix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,6 +100,20 @@ public class BulkQueryNodeBatchWorkProvider implements BatchProcessWorkProvider<
     public void setQueryConsistency(final QueryConsistency queryConsistency)
     {
         this.queryConsistency = queryConsistency;
+    }
+
+    /**
+     * Get an estimate of the total number of objects that will be provided by this instance.
+     * Instances can provide accurate answers on each call, but only if the answer can be
+     * provided quickly and efficiently; usually it is enough to to cache the result after
+     * providing an initial estimate.
+     *
+     * @return a total work size estimate
+     */
+    public long getTotalEstimatedWorkSizeLong()
+    {
+        // can't efficiently determine number of affected nodes without doing an actual (expensive) query
+        return 0l;
     }
 
     /**

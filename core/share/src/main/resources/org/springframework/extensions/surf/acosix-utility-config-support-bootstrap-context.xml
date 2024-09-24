@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- 
- Copyright 2016 - 2021 Acosix GmbH
+ Copyright 2016 - 2024 Acosix GmbH
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -30,6 +30,38 @@
             </list>
         </property>
         <property name="propertiesSource" ref="${configModuleId}-properties" />
+    </bean>
+
+    <bean class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
+        <property name="enabled" value="true" />
+        <property name="targetBeanName" value="log4JHierarchyInit" />
+        <property name="originalClassName" value="${javaPackageName}.config.Log4jHierarchyInit" />
+        <property name="replacementClassName" value="${javaPackageName}.config.Log4j2HierarchyInit" />
+        <property name="condition">
+            <bean class="${common.artifactId}.spring.condition.ClassDefinedCondition">
+                <property name="className" value="org.apache.logging.log4j.core.LoggerContext" />
+            </bean>
+        </property>
+    </bean>
+
+    <bean class="${common.artifactId}.spring.PropertyAlteringBeanDefinitionRegistryPostProcessor">
+        <property name="enabled" value="true" />
+        <property name="targetBeanName" value="log4JHierarchyInit" />
+        <property name="expectedClassName" value="${javaPackageName}.config.Log4j2HierarchyInit" />
+        <property name="propertyName" value="extraLog4jUrls" />
+        <property name="valueList">
+            <list>
+                <value>classpath*:alfresco/enterprise/*-log4j2.properties</value>
+                <value>classpath*:alfresco/module/*/log4j2.properties</value>
+                <value>classpath*:alfresco/web-extension/*-log4j2.properties</value>
+                <value>classpath*:alfresco/web-extension/dev-log4j2.properties</value>
+            </list>
+        </property>
+        <property name="condition">
+            <bean class="${common.artifactId}.spring.condition.ClassDefinedCondition">
+                <property name="className" value="org.apache.logging.log4j.core.LoggerContext" />
+            </bean>
+        </property>
     </bean>
 
     <bean class="${common.artifactId}.spring.BeanDefinitionFromPropertiesPostProcessor">

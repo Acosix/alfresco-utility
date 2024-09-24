@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - 2021 Acosix GmbH
+ * Copyright 2016 - 2024 Acosix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,9 @@ package de.acosix.alfresco.utility.share.surf;
 
 import java.io.IOException;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.extensions.surf.RequestContext;
-import org.springframework.extensions.surf.RequestContextUtil;
-import org.springframework.extensions.surf.ServletUtil;
 import org.springframework.extensions.surf.extensibility.ExtensibilityModel;
-import org.springframework.extensions.surf.support.ThreadLocalRequestContext;
 import org.springframework.extensions.webscripts.Authenticator;
 import org.springframework.extensions.webscripts.Description;
 import org.springframework.extensions.webscripts.Description.RequiredAuthentication;
@@ -36,7 +29,10 @@ import org.springframework.extensions.webscripts.WebScript;
 import org.springframework.extensions.webscripts.WebScriptException;
 import org.springframework.extensions.webscripts.WebScriptRequest;
 import org.springframework.extensions.webscripts.WebScriptResponse;
-import org.springframework.extensions.webscripts.servlet.WebScriptServletRuntime;
+
+import de.acosix.alfresco.utility.common.function.Callback;
+import de.acosix.alfresco.utility.core.share.jakarta.surf.JakartaRequestContextUtility;
+import de.acosix.alfresco.utility.core.share.javax.surf.JavaxRequestContextUtility;
 
 /**
  * This sub-class addresses concerns with regards to extensibility handling, specifically thread-safety of its suppression as well as
@@ -47,6 +43,21 @@ import org.springframework.extensions.webscripts.servlet.WebScriptServletRuntime
  */
 public class ExtensibilityFixedLocalWebScriptRuntimeContainer extends LocalWebScriptRuntimeContainer
 {
+
+    private static final boolean USE_JAVAX_CONTEXT_UTILITY;
+    static
+    {
+        boolean useJavaxUtility = false;
+        try
+        {
+            Class.forName("jakarta.servlet.http.HttpServletRequest");
+        }
+        catch (final ClassNotFoundException cnf)
+        {
+            useJavaxUtility = true;
+        }
+        USE_JAVAX_CONTEXT_UTILITY = useJavaxUtility;
+    }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ExtensibilityFixedLocalWebScriptRuntimeContainer.class);
 
@@ -95,99 +106,48 @@ public class ExtensibilityFixedLocalWebScriptRuntimeContainer extends LocalWebSc
     public void executeScript(final WebScriptRequest scriptReq, final WebScriptResponse scriptRes, final Authenticator auth)
             throws IOException
     {
-        boolean handleBinding = false;
-
-        RequestContext rc = null;
-
-        try
-        {
-            // ensure the request is stored onto the request attributes
-            if (ServletUtil.getRequest() == null)
-            {
-                final HttpServletRequest request = WebScriptServletRuntime.getHttpServletRequest(scriptReq);
-                if (request != null)
-                {
-                    try
-                    {
-                        rc = RequestContextUtil.initRequestContext(this.getApplicationContext(), request);
-                    }
-                    catch (final Exception e)
-                    {
-                        throw new IOException("Failed to initialize RequestContext for local WebScript runtime: " + e.getMessage());
-                    }
-                }
-            }
-
-            // check whether a render context already exists
-            RequestContext context = this.getRequestContext();
-            if (context == null)
-            {
-                final HttpServletResponse response = WebScriptServletRuntime.getHttpServletResponse(scriptRes);
-                if (response != null)
-                {
-                    context = ThreadLocalRequestContext.getRequestContext();
-                    context.setResponse(response);
-
-                    // flag that we will manually handle the bindings
-                    handleBinding = true;
-                }
-            }
-
-            // manually handle binding of RequestContext to current thread
-            if (handleBinding)
-            {
-                this.bindRequestContext(context);
-            }
-
+        final Callback<IOException> cb = () -> {
+            // call through to the parent container to perform the WebScript processing
+            final ExtensibilityModel extModel = this.openExtensibilityModel();
+            boolean exceptionOccurred = false;
             try
             {
-                // call through to the parent container to perform the WebScript processing
-                final ExtensibilityModel extModel = this.openExtensibilityModel();
-                boolean exceptionOccurred = false;
-                try
+                this.executeScriptImpl(scriptReq, scriptRes, auth);
+            }
+            catch (final Exception e)
+            {
+                LOGGER.debug(
+                        "{} occurred during script execution - not closing extensibility model and thus not flushing response (relegated to container status handling)",
+                        e.getClass());
+                exceptionOccurred = true;
+                if (e instanceof RuntimeException || e instanceof IOException)
                 {
-                    this.executeScriptImpl(scriptReq, scriptRes, auth);
+                    throw e;
                 }
-                catch (final Exception e)
-                {
-                    LOGGER.debug(
-                            "{} occurred during script execution - not closing extensibility model and thus not flushing response (relegated to container status handling)",
-                            e.getClass());
-                    exceptionOccurred = true;
-                    if (e instanceof RuntimeException || e instanceof IOException)
-                    {
-                        throw e;
-                    }
-                    throw new WebScriptException(Status.STATUS_INTERNAL_SERVER_ERROR, "Unexpected error", e);
-                }
-                finally
-                {
-                    // It's only necessary to close the model if it's actually been used. Not all WebScripts will make use of the
-                    // model. An example of this would be the StreamContent WebScript. It is important not to attempt to close
-                    // an unused model since the WebScript executed may have already flushed the response if it has overridden
-                    // the default .execute() method.
-                    if (!exceptionOccurred && extModel.isModelStarted())
-                    {
-                        this.closeExtensibilityModel(extModel, scriptRes.getWriter());
-                    }
-                }
+                throw new WebScriptException(Status.STATUS_INTERNAL_SERVER_ERROR, "Unexpected error", e);
             }
             finally
             {
-                // manually handle unbinding of RequestContext from current thread
-                if (handleBinding)
+                // It's only necessary to close the model if it's actually been used. Not all WebScripts will make use of the
+                // model. An example of this would be the StreamContent WebScript. It is important not to attempt to close
+                // an unused model since the WebScript executed may have already flushed the response if it has overridden
+                // the default .execute() method.
+                if (!exceptionOccurred && extModel.isModelStarted())
                 {
-                    this.unbindRequestContext();
+                    this.closeExtensibilityModel(extModel, scriptRes.getWriter());
                 }
             }
-        }
-        finally
+        };
+
+        if (USE_JAVAX_CONTEXT_UTILITY)
         {
-            // unbind RequestContext from current thread
-            if (rc != null)
-            {
-                rc.release();
-            }
+            JavaxRequestContextUtility.doInRequestContext(this.applicationContext, scriptReq, scriptRes, this::getRequestContext,
+                    this::bindRequestContext, this::unbindRequestContext, cb);
+        }
+        else
+        {
+            JakartaRequestContextUtility.doInRequestContext(this.applicationContext, scriptReq, scriptRes, this::getRequestContext,
+                    this::bindRequestContext, this::unbindRequestContext, cb);
         }
     }
 

@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- 
- Copyright 2016 - 2021 Acosix GmbH
+ Copyright 2016 - 2024 Acosix GmbH
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
     <parent>
         <groupId>de.acosix.alfresco.utility</groupId>
         <artifactId>de.acosix.alfresco.utility.core.parent</artifactId>
-        <version>1.3.3-SNAPSHOT</version>
+        <version>1.4.4</version>
     </parent>
 
     <artifactId>de.acosix.alfresco.utility.core.share</artifactId>
@@ -38,6 +38,18 @@
                 <artifactId>spring-surf</artifactId>
                 <version>${surf.share.api.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>de.acosix.alfresco.utility</groupId>
+                <artifactId>de.acosix.alfresco.utility.core.share.javax</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>de.acosix.alfresco.utility</groupId>
+                <artifactId>de.acosix.alfresco.utility.core.share.jakarta</artifactId>
+                <version>${project.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -45,6 +57,16 @@
         <dependency>
             <groupId>de.acosix.alfresco.utility</groupId>
             <artifactId>${common.artifactId}</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>de.acosix.alfresco.utility</groupId>
+            <artifactId>de.acosix.alfresco.utility.core.share.javax</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>de.acosix.alfresco.utility</groupId>
+            <artifactId>de.acosix.alfresco.utility.core.share.jakarta</artifactId>
         </dependency>
 
         <dependency>
@@ -58,11 +80,6 @@
             <artifactId>spring-surf</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-        </dependency>
-
         <!-- we used to include this in the AMP in previous versions, but newer ACS versions now contain this in Share so we need to avoid the conflict -->
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -74,6 +91,14 @@
             <artifactId>jcl-over-slf4j</artifactId>
             <!-- normally this is for test, but here for inclusion in AMP -->
             <scope>compile</scope>
+        </dependency>
+
+        <!-- included to compile ACS 7.4 compatible Log4j2HierarchyInit -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.19.0</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

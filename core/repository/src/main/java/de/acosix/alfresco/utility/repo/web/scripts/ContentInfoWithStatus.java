@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - 2021 Acosix GmbH
+ * Copyright 2016 - 2024 Acosix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@ package de.acosix.alfresco.utility.repo.web.scripts;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.servlet.http.HttpServletResponse;
 
 import org.alfresco.repo.web.scripts.content.ContentInfo;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -113,7 +111,7 @@ public class ContentInfoWithStatus extends ContentInfo implements InitializingBe
         {
             if (contentPart.length() < 2)
             {
-                throw new WebScriptException(HttpServletResponse.SC_BAD_REQUEST, "Content property malformed");
+                throw new WebScriptException(Status.STATUS_BAD_REQUEST, "Content property malformed");
             }
             final String propertyName = contentPart.substring(1);
             if (propertyName.length() > 0)

@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- 
- Copyright 2016 - 2021 Acosix GmbH
+ Copyright 2016 - 2024 Acosix GmbH
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -28,20 +28,30 @@
         <property name="replacementClassName" value="${javaPackageName}.connector.MutableSlingshotRemoteClient" />
     </bean>
 
-    <bean id="${moduleId}-webscripts.connector.provider-sessionAwareWebScriptsConnectorProviderPatch"
+    <bean id="${moduleId}-webscripts.connector.provider-javaxSessionAwareWebScriptsConnectorProviderPatch"
         class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
         <property name="enabled" value="true" />
         <property name="targetBeanName" value="webscripts.connector.provider" />
         <property name="originalClassName" value="org.springframework.extensions.webscripts.connector.ConnectorProviderImpl" />
-        <property name="replacementClassName" value="${javaPackageName}.connector.SessionAwareConnectorProviderImpl" />
+        <property name="replacementClassName" value="de.acosix.alfresco.utility.core.share.javax.connector.SessionAwareConnectorProviderImpl" />
+        <property name="condition">
+            <bean class="${common.artifactId}.spring.condition.ClassDefinedCondition">
+                <property name="className" value="javax.servlet.http.HttpServletRequest" />
+            </bean>
+        </property>
     </bean>
 
-    <bean id="${moduleId}-webframework.connector.provider-sessionAwareWebScriptsConnectorProviderPatch"
+    <bean id="${moduleId}-webscripts.connector.provider-jakartaSessionAwareWebScriptsConnectorProviderPatch"
         class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
         <property name="enabled" value="true" />
-        <property name="targetBeanName" value="webframework.connector.provider" />
-        <property name="originalClassName" value="org.springframework.extensions.surf.WebFrameworkConnectorProvider" />
-        <property name="replacementClassName" value="${javaPackageName}.connector.SessionAwareConnectorProviderImpl" />
+        <property name="targetBeanName" value="webscripts.connector.provider" />
+        <property name="originalClassName" value="org.springframework.extensions.webscripts.connector.ConnectorProviderImpl" />
+        <property name="replacementClassName" value="de.acosix.alfresco.utility.core.share.jakarta.connector.SessionAwareConnectorProviderImpl" />
+        <property name="condition">
+            <bean class="${common.artifactId}.spring.condition.ClassDefinedCondition">
+                <property name="className" value="jakarta.servlet.http.HttpServletRequest" />
+            </bean>
+        </property>
     </bean>
 
     <bean class="org.alfresco.i18n.ResourceBundleBootstrapComponent">

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - 2021 Acosix GmbH
+ * Copyright 2016 - 2024 Acosix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package de.acosix.alfresco.utility.repo.subsystems;
 
+import java.util.List;
 import java.util.Properties;
 
 import org.alfresco.repo.management.subsystems.ChildApplicationContextFactory;
@@ -49,6 +50,8 @@ public class SubsystemEffectivePropertiesFactoryBean
 
     protected ChildApplicationContextFactory subsystemChildApplicationContextFactory;
 
+    protected List<String> systemPropertyPrefixes;
+
     /**
      * {@inheritDoc}
      */
@@ -65,6 +68,15 @@ public class SubsystemEffectivePropertiesFactoryBean
     public void setBeanName(final String name)
     {
         this.beanName = name;
+    }
+
+    /**
+     * @param systemPropertyPrefixes
+     *     the systemPropertyPrefixes to set
+     */
+    public void setSystemPropertyPrefixes(final List<String> systemPropertyPrefixes)
+    {
+        this.systemPropertyPrefixes = systemPropertyPrefixes;
     }
 
     /**
@@ -94,7 +106,7 @@ public class SubsystemEffectivePropertiesFactoryBean
 
     /**
      * @param subsystemChildApplicationContextManager
-     *            the subsystemChildApplicationContextManager to set
+     *     the subsystemChildApplicationContextManager to set
      */
     public void setSubsystemChildApplicationContextManager(final ChildApplicationContextManager subsystemChildApplicationContextManager)
     {
@@ -103,7 +115,7 @@ public class SubsystemEffectivePropertiesFactoryBean
 
     /**
      * @param subsystemChildApplicationContextFactory
-     *            the subsystemChildApplicationContextFactory to set
+     *     the subsystemChildApplicationContextFactory to set
      */
     public void setSubsystemChildApplicationContextFactory(final ChildApplicationContextFactory subsystemChildApplicationContextFactory)
     {
@@ -142,6 +154,26 @@ public class SubsystemEffectivePropertiesFactoryBean
         else
         {
             effectiveProperties = new Properties();
+        }
+
+        final Properties systemProperties = System.getProperties();
+        for (final String propertyName : effectiveProperties.stringPropertyNames())
+        {
+            if (systemProperties.containsKey(propertyName))
+            {
+                effectiveProperties.put(propertyName, systemProperties.get(propertyName));
+            }
+        }
+
+        if (this.systemPropertyPrefixes != null)
+        {
+            for (final String propertyName : systemProperties.stringPropertyNames())
+            {
+                if (this.systemPropertyPrefixes.stream().anyMatch(propertyName::startsWith))
+                {
+                    effectiveProperties.put(propertyName, systemProperties.get(propertyName));
+                }
+            }
         }
 
         return effectiveProperties;

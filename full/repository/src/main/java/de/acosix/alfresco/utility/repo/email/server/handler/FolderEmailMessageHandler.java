@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - 2022 Acosix GmbH
+ * Copyright 2016 - 2024 Acosix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,12 +33,6 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.mail.MessagingException;
-import javax.mail.Multipart;
-import javax.mail.Part;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeUtility;
 
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.model.ContentModel;
@@ -221,17 +215,16 @@ public class FolderEmailMessageHandler extends AbstractEmailMessageHandler
     {
         if (message instanceof ImprovedEmailMessage)
         {
-            final MimeMessage mimeMessage = ((ImprovedEmailMessage) message).getMimeMessage();
             final ContentWriter writer = this.contentService.getWriter(contentNode, ContentModel.PROP_CONTENT, true);
             writer.setMimetype(MimetypeMap.MIMETYPE_RFC822);
             try (OutputStream os = writer.getContentOutputStream())
             {
-                mimeMessage.writeTo(os);
+                MESSAGE_HELPER.writeTo(((ImprovedEmailMessage) message).getMimeMessage(), os);
             }
-            catch (final MessagingException mEx)
+            catch (final IOException e)
             {
-                LOGGER.error("Error writing content of mime message", mEx);
-                throw new AlfrescoRuntimeException("Failure storing original RFC 822 email", mEx);
+                LOGGER.error("Error writing content of mime message", e);
+                throw new AlfrescoRuntimeException("Failure storing original RFC 822 email", e);
             }
         }
         else
@@ -270,9 +263,9 @@ public class FolderEmailMessageHandler extends AbstractEmailMessageHandler
 
         if (message instanceof ImprovedEmailMessage)
         {
-            final Collection<Part> attachments = new ArrayList<>();
-            this.collectRelevantAttachments(((ImprovedEmailMessage) message).getMimeMessage(), attachments);
-            for (final Part attachment : attachments)
+            final Collection<de.acosix.alfresco.utility.repo.email.server.EmailMessageHelper.EmailMessagePart> attachments = new ArrayList<>();
+            this.collectRelevantAttachments(MESSAGE_HELPER.getMessagePart(((ImprovedEmailMessage) message).getMimeMessage()), attachments);
+            for (final de.acosix.alfresco.utility.repo.email.server.EmailMessageHelper.EmailMessagePart attachment : attachments)
             {
                 this.writeAttachment(mailNodeRef, mailProperties, childAssocType, EmailModel.ASSOC_ATTACHMENTS, attachmentParent,
                         attachment);
@@ -351,16 +344,13 @@ public class FolderEmailMessageHandler extends AbstractEmailMessageHandler
     }
 
     protected void writeAttachment(final NodeRef mailNodeRef, final Map<QName, Serializable> mailProperties, final QName childAssocType,
-            final QName mailNodeRefChildAssocType, final NodeRef attachmentParent, final Part attachment) throws IOException
+            final QName mailNodeRefChildAssocType, final NodeRef attachmentParent,
+            final de.acosix.alfresco.utility.repo.email.server.EmailMessageHelper.EmailMessagePart attachment) throws IOException
     {
         try
         {
-            String fileName = attachment.getFileName();
-            if (fileName != null)
-            {
-                fileName = MimeUtility.decodeText(fileName);
-            }
-            else
+            final String fileName = attachment.getFileName(true);
+            if (fileName == null)
             {
                 throw new EmailMessageException("Cannot handle attachment without a file name");
             }
@@ -414,43 +404,40 @@ public class FolderEmailMessageHandler extends AbstractEmailMessageHandler
             final Action extracterAction = this.actionService.createAction(ContentMetadataExtracter.EXECUTOR_NAME);
             this.actionService.executeAction(extracterAction, attachmentNodeRef, true, true);
         }
-        catch (final MessagingException mex)
+        catch (final RuntimeException e)
         {
-            LOGGER.error("Error processing mail attachment part", mex);
-            throw new AlfrescoRuntimeException("Failed to store mail attachment", mex);
+            LOGGER.error("Error processing mail attachment part", e);
+            if (e instanceof AlfrescoRuntimeException)
+            {
+                throw e;
+            }
+            throw new AlfrescoRuntimeException("Failed to store mail attachment", e);
         }
     }
 
-    protected void collectRelevantAttachments(final Part messagePart, final Collection<Part> attachmentParts) throws IOException
+    protected void collectRelevantAttachments(
+            final de.acosix.alfresco.utility.repo.email.server.EmailMessageHelper.EmailMessagePart messagePart,
+            final Collection<de.acosix.alfresco.utility.repo.email.server.EmailMessageHelper.EmailMessagePart> attachmentParts)
     {
         try
         {
-            String mimetype = messagePart.getContentType();
-            if (mimetype.contains(";"))
+            if (messagePart.isMultipart())
             {
-                mimetype = mimetype.substring(0, mimetype.indexOf(';'));
+                messagePart.processBodyParts(p -> this.collectRelevantAttachments(p, attachmentParts));
             }
-            final String disposition = messagePart.getDisposition();
-
-            if (messagePart.isMimeType("multipart/*"))
-            {
-                final Multipart mp = (Multipart) messagePart.getContent();
-                final int count = mp.getCount();
-
-                for (int i = 0; i < count; i++)
-                {
-                    this.collectRelevantAttachments(mp.getBodyPart(i), attachmentParts);
-                }
-            }
-            else if (Part.ATTACHMENT.equalsIgnoreCase(disposition) && messagePart.getFileName() != null)
+            else if (messagePart.isAttachmentDisposition() && messagePart.getFileName(false) != null)
             {
                 attachmentParts.add(messagePart);
             }
         }
-        catch (final MessagingException mex)
+        catch (final RuntimeException e)
         {
-            LOGGER.error("Error processing mail message parts", mex);
-            throw new AlfrescoRuntimeException("Error evaulating message parts for attachments", mex);
+            LOGGER.error("Error processing mail message parts", e);
+            if (e instanceof AlfrescoRuntimeException)
+            {
+                throw e;
+            }
+            throw new AlfrescoRuntimeException("Error evaluating message parts for attachments", e);
         }
     }
 

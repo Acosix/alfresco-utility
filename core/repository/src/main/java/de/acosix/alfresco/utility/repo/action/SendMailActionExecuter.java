@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - 2021 Acosix GmbH
+ * Copyright 2016 - 2024 Acosix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,17 @@
 package de.acosix.alfresco.utility.repo.action;
 
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import javax.mail.Address;
-import javax.mail.MessagingException;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMessage.RecipientType;
 
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.model.ContentModel;
@@ -79,9 +71,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.extensions.surf.util.I18NUtil;
-import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+
+import de.acosix.alfresco.utility.repo.action.SendEmailActionExecuterHelper.AddressHandler;
+import de.acosix.alfresco.utility.repo.action.SendEmailActionExecuterHelper.AttachmentHandler;
+import de.acosix.alfresco.utility.repo.email.EmailAddress;
+import de.acosix.alfresco.utility.repo.email.EmailMessage;
 
 /**
  * This action implementation is an alternative to the default Alfresco {@link MailActionExecuter mail action}. Its aim is to have
@@ -146,6 +141,23 @@ public class SendMailActionExecuter extends ActionExecuterAbstractBase implement
     private static final Logger LOGGER = LoggerFactory.getLogger(SendMailActionExecuter.class);
 
     private static final String FROM_DEFAULT_ADDRESS = "alfresco@alfresco.org";
+
+    private static final SendEmailActionExecuterHelper HELPER;
+    static
+    {
+        SendEmailActionExecuterHelper helper;
+        try
+        {
+            Class.forName("jakarta.mail.Address");
+
+            helper = de.acosix.alfresco.utility.core.repo.jakarta.SendEmailActionExecutorHelperImpl.INSTANCE;
+        }
+        catch (final ClassNotFoundException cnfe)
+        {
+            helper = de.acosix.alfresco.utility.core.repo.javax.SendEmailActionExecutorHelperImpl.INSTANCE;
+        }
+        HELPER = helper;
+    }
 
     protected JavaMailSender mailService;
 
@@ -407,44 +419,38 @@ public class SendMailActionExecuter extends ActionExecuterAbstractBase implement
         final boolean failIfNoValidToAddressees = Boolean.TRUE.equals(
                 DefaultTypeConverter.INSTANCE.convert(Boolean.class, action.getParameterValue(PARAM_FAIL_IF_NO_VALID_TO_ADDRESSEES)));
 
-        final Pair<InternetAddress, Locale> fromAndMailDefaultLocale = this.resolveFromAndMailDefaultLocale(action);
-        final List<Pair<InternetAddress, Locale>> addresseesAndLocale = this.resolveToAddresseesAndLocale(action, filterInvalidAddressees);
+        final Pair<EmailAddress, Locale> fromAndMailDefaultLocale = this.resolveFromAndMailDefaultLocale(action);
+        final List<Pair<EmailAddress, Locale>> addresseesAndLocale = this.resolveToAddresseesAndLocale(action, filterInvalidAddressees);
 
         if (!addresseesAndLocale.isEmpty())
         {
-            final List<InternetAddress> ccAddressees = this.resolveAddressees(action, PARAM_CC, filterInvalidAddressees);
-            final List<InternetAddress> bccAddressees = this.resolveAddressees(action, PARAM_BCC, filterInvalidAddressees);
+            final List<EmailAddress> ccAddressees = this.resolveAddressees(action, PARAM_CC, filterInvalidAddressees);
+            final List<EmailAddress> bccAddressees = this.resolveAddressees(action, PARAM_BCC, filterInvalidAddressees);
             final String replyTo = DefaultTypeConverter.INSTANCE.convert(String.class, action.getParameterValue(PARAM_REPLY_TO));
 
             final boolean split = Boolean.TRUE
                     .equals(DefaultTypeConverter.INSTANCE.convert(Boolean.class, action.getParameterValue(PARAM_ONE_MAIL_PER_ADDRESSEE)));
 
-            final List<MimeMessage> messages;
-            try
-            {
-                if (addresseesAndLocale.size() == 1 || !split)
-                {
-                    LOGGER.debug("Preparing single/consolidated mail message");
-                    final MimeMessage message = this.prepareSingleMessage(action, actionedUponNodeRef, fromAndMailDefaultLocale,
-                            addresseesAndLocale, ccAddressees, bccAddressees, replyTo);
-                    messages = Collections.singletonList(message);
-                }
-                else
-                {
-                    LOGGER.debug("Preparing individual mail messages");
-                    messages = new ArrayList<>(addresseesAndLocale.size());
+            final List<EmailMessage> messages;
 
-                    for (final Pair<InternetAddress, Locale> addresseeAndLocale : addresseesAndLocale)
-                    {
-                        final MimeMessage message = this.prepareSingleMessage(action, actionedUponNodeRef, fromAndMailDefaultLocale,
-                                Collections.singletonList(addresseeAndLocale), ccAddressees, bccAddressees, replyTo);
-                        messages.add(message);
-                    }
-                }
-            }
-            catch (MailException | MessagingException mex)
+            if (addresseesAndLocale.size() == 1 || !split)
             {
-                throw new ActionServiceException("Failed to create / prepare the mail message", mex);
+                LOGGER.debug("Preparing single/consolidated mail message");
+                final EmailMessage message = this.prepareSingleMessage(action, actionedUponNodeRef, fromAndMailDefaultLocale,
+                        addresseesAndLocale, ccAddressees, bccAddressees, replyTo);
+                messages = Collections.singletonList(message);
+            }
+            else
+            {
+                LOGGER.debug("Preparing individual mail messages");
+                messages = new ArrayList<>(addresseesAndLocale.size());
+
+                for (final Pair<EmailAddress, Locale> addresseeAndLocale : addresseesAndLocale)
+                {
+                    final EmailMessage message = this.prepareSingleMessage(action, actionedUponNodeRef, fromAndMailDefaultLocale,
+                            Collections.singletonList(addresseeAndLocale), ccAddressees, bccAddressees, replyTo);
+                    messages.add(message);
+                }
             }
 
             this.sendMails(action, messages);
@@ -455,10 +461,9 @@ public class SendMailActionExecuter extends ActionExecuterAbstractBase implement
         }
     }
 
-    protected MimeMessage prepareSingleMessage(final Action action, final NodeRef actionedUponNodeRef,
-            final Pair<InternetAddress, Locale> fromAndMailDefaultLocale, final List<Pair<InternetAddress, Locale>> addresseesAndLocale,
-            final List<InternetAddress> ccAddressees, final List<InternetAddress> bccAddressees, final String replyTo)
-            throws MessagingException
+    protected EmailMessage prepareSingleMessage(final Action action, final NodeRef actionedUponNodeRef,
+            final Pair<EmailAddress, Locale> fromAndMailDefaultLocale, final List<Pair<EmailAddress, Locale>> addresseesAndLocale,
+            final List<EmailAddress> ccAddressees, final List<EmailAddress> bccAddressees, final String replyTo)
     {
         final Locale explicitLocale = DefaultTypeConverter.INSTANCE.convert(Locale.class, action.getParameterValue(PARAM_LOCALE));
 
@@ -469,7 +474,7 @@ public class SendMailActionExecuter extends ActionExecuterAbstractBase implement
         }
         else
         {
-            final Pair<InternetAddress, Locale> primaryAddressee = addresseesAndLocale.get(0);
+            final Pair<EmailAddress, Locale> primaryAddressee = addresseesAndLocale.get(0);
             if (primaryAddressee.getSecond() != null)
             {
                 effectiveLocale = primaryAddressee.getSecond();
@@ -480,262 +485,168 @@ public class SendMailActionExecuter extends ActionExecuterAbstractBase implement
             }
         }
 
-        final MimeMessage mimeMessage = this.prepareMessage(action, actionedUponNodeRef, effectiveLocale, mmh -> {
-            mmh.setFrom(fromAndMailDefaultLocale.getFirst());
-            mmh.setTo(addresseesAndLocale.stream().map(Pair::getFirst).collect(Collectors.toList()).toArray(new InternetAddress[0]));
-            if (!ccAddressees.isEmpty())
-            {
-                mmh.setCc(ccAddressees.toArray(new InternetAddress[0]));
-            }
-            if (!bccAddressees.isEmpty())
-            {
-                mmh.setBcc(bccAddressees.toArray(new InternetAddress[0]));
-            }
-            if (replyTo != null && !replyTo.trim().isEmpty())
-            {
-                mmh.setReplyTo(replyTo);
-            }
-        });
+        final EmailMessage emailMessage = this.prepareMessage(action, actionedUponNodeRef, effectiveLocale);
+        final AddressHandler addressHandler = HELPER.getAddressHandler(emailMessage);
 
-        this.handleAttachments(true, action, mimeMessage);
-        this.handleAttachments(false, action, mimeMessage);
+        addressHandler.setFrom(fromAndMailDefaultLocale.getFirst());
+        addressHandler.setTo(addresseesAndLocale.stream().map(Pair::getFirst).collect(Collectors.toList()));
+        addressHandler.setCc(ccAddressees);
+        addressHandler.setBcc(bccAddressees);
+        if (replyTo != null && !replyTo.isEmpty())
+        {
+            addressHandler.setReplyTo(HELPER.toEmailAddress(replyTo));
+        }
 
-        return mimeMessage;
+        this.handleAttachments(true, action, emailMessage);
+        this.handleAttachments(false, action, emailMessage);
+
+        return emailMessage;
     }
 
-    protected List<Pair<InternetAddress, Locale>> resolveToAddresseesAndLocale(final Action action, final boolean filterInvalidAddresses)
+    protected List<Pair<EmailAddress, Locale>> resolveToAddresseesAndLocale(final Action action, final boolean filterInvalidAddresses)
     {
         final Serializable toParam = action.getParameterValue(PARAM_TO);
         final List<String> effectiveTo = this.resolveEffectiveAddressees(toParam);
 
-        final List<Pair<InternetAddress, Locale>> addressesAndLocales = effectiveTo.stream().map(t -> {
-            try
-            {
-                InternetAddress address;
-                Locale locale = null;
-                if (t.matches("^[^<]+<[^>]+@[^>]+>$"))
-                {
-                    // looks like an address already in the form
-                    // "Doe, John <john.doe@acme.com>"
-                    // potentially mapped from recorded properties such as cm:originator / imap:messageFrom
-                    final int addressStartIdx = t.indexOf('<');
-                    final String personalName = t.substring(0, addressStartIdx).trim();
-                    final String email = t.substring(addressStartIdx + 1, t.length() - 1).trim();
-                    try
-                    {
-                        address = new InternetAddress(email, personalName);
-                    }
-                    catch (final UnsupportedEncodingException e)
-                    {
-                        address = new InternetAddress(email);
-                    }
-                }
-                else if (this.personExists(t))
-                {
-                    locale = this.getLocaleForUser(t);
-                    final String email = this.getPersonEmail(t);
-                    if (email != null && !email.trim().isEmpty() && this.isValidAddress(email))
-                    {
-                        address = new InternetAddress(email);
-                    }
-                    else if (this.isValidAddress(t))
-                    {
-                        address = new InternetAddress(t);
-                    }
-                    else if (!filterInvalidAddresses)
-                    {
-                        throw new ActionServiceException("Invalid email address " + email + " for user " + t);
-                    }
-                    else
-                    {
-                        address = null;
-                    }
-                }
-                else if (this.isValidAddress(t))
-                {
-                    address = new InternetAddress(t);
-                }
-                else if (!filterInvalidAddresses)
-                {
-                    throw new ActionServiceException("Invalid email address " + t);
-                }
-                else
-                {
-                    address = null;
-                }
-                return new Pair<>(address, locale);
-            }
-            catch (final AddressException e)
-            {
-                throw new ActionServiceException("Failed to handle addressee " + t, e);
-            }
-        }).filter(p -> p.getFirst() != null).collect(Collectors.toList());
+        final List<Pair<EmailAddress, Locale>> addressesAndLocales = effectiveTo.stream()
+                .map(t -> this.resolveAddress(t, filterInvalidAddresses)).filter(p -> p.getFirst() != null).collect(Collectors.toList());
 
         LOGGER.debug("Resolved addresses and locales {} from parameter to", addressesAndLocales);
 
         return addressesAndLocales;
     }
 
-    protected List<InternetAddress> resolveAddressees(final Action action, final String paramName, final boolean filterInvalidAddresses)
+    protected List<EmailAddress> resolveAddressees(final Action action, final String paramName, final boolean filterInvalidAddresses)
     {
         final Serializable addresseeParam = action.getParameterValue(paramName);
         final List<String> effectiveTo = this.resolveEffectiveAddressees(addresseeParam);
 
-        final List<InternetAddress> addresses = effectiveTo.stream().map(t -> {
-            try
-            {
-                InternetAddress address;
-                if (t.matches("^[^<]+<[^>]+@[^>]+>$"))
-                {
-                    // looks like an address already in the form
-                    // "Doe, John <john.doe@acme.com>"
-                    // potentially mapped from recorded properties such as cm:originator / imap:messageFrom
-                    final int addressStartIdx = t.indexOf('<');
-                    final String personalName = t.substring(0, addressStartIdx).trim();
-                    final String email = t.substring(addressStartIdx + 1, t.length() - 1).trim();
-                    try
-                    {
-                        address = new InternetAddress(email, personalName);
-                    }
-                    catch (final UnsupportedEncodingException e)
-                    {
-                        address = new InternetAddress(email);
-                    }
-                }
-                else if (this.personExists(t))
-                {
-                    final String email = this.getPersonEmail(t);
-                    if (email != null && !email.trim().isEmpty() && this.isValidAddress(email))
-                    {
-                        address = new InternetAddress(email);
-                    }
-                    else if (this.isValidAddress(t))
-                    {
-                        address = new InternetAddress(t);
-                    }
-                    else if (!filterInvalidAddresses)
-                    {
-                        throw new ActionServiceException("Invalid email address " + email + " for user " + t);
-                    }
-                    else
-                    {
-                        address = null;
-                    }
-                }
-                else if (this.isValidAddress(t))
-                {
-                    address = new InternetAddress(t);
-                }
-                else if (!filterInvalidAddresses)
-                {
-                    throw new ActionServiceException("Invalid email address " + t);
-                }
-                else
-                {
-                    address = null;
-                }
-                return address;
-            }
-            catch (final AddressException e)
-            {
-                throw new ActionServiceException("Failed to handle addressee " + t, e);
-            }
-        }).filter(Objects::nonNull).collect(Collectors.toList());
+        final List<EmailAddress> addresses = effectiveTo.stream().map(t -> this.resolveAddress(t, filterInvalidAddresses).getFirst())
+                .filter(Objects::nonNull).collect(Collectors.toList());
 
         LOGGER.debug("Resolved addresses {} from parameter {}", addresses, paramName);
 
         return addresses;
     }
 
-    protected Pair<InternetAddress, Locale> resolveFromAndMailDefaultLocale(final Action action)
+    protected Pair<EmailAddress, Locale> resolveAddress(final String input, final boolean filterInvalidAddresses)
     {
-        try
+        EmailAddress address;
+        Locale locale = null;
+        if (input.matches("^[^<]+<[^>]+@[^>]+>$"))
         {
-            InternetAddress address = null;
-            Locale locale = I18NUtil.getLocale();
-
-            final String paramFrom = DefaultTypeConverter.INSTANCE.convert(String.class, action.getParameterValue(PARAM_FROM));
-            if (this.fromEnabled && paramFrom != null && !paramFrom.trim().isEmpty())
+            // looks like an address already in the form
+            // "Doe, John <john.doe@acme.com>"
+            // potentially mapped from recorded properties such as cm:originator / imap:messageFrom
+            final int addressStartIdx = input.indexOf('<');
+            final String personalName = input.substring(0, addressStartIdx).trim();
+            final String email = input.substring(addressStartIdx + 1, input.length() - 1).trim();
+            address = HELPER.toEmailAddress(email, personalName);
+        }
+        else if (this.personExists(input))
+        {
+            locale = this.getLocaleForUser(input);
+            final String email = this.getPersonEmail(input);
+            if (email != null && !email.trim().isEmpty() && this.isValidAddress(email))
             {
-                LOGGER.debug("From specified via action parameter as {}", paramFrom);
+                address = HELPER.toEmailAddress(email);
+            }
+            else if (this.isValidAddress(input))
+            {
+                address = HELPER.toEmailAddress(input);
+            }
+            else if (!filterInvalidAddresses)
+            {
+                throw new ActionServiceException("Invalid email address " + email + " for user " + input);
+            }
+            else
+            {
+                address = null;
+            }
+        }
+        else if (this.isValidAddress(input))
+        {
+            address = HELPER.toEmailAddress(input);
+        }
+        else if (!filterInvalidAddresses)
+        {
+            throw new ActionServiceException("Invalid email address " + input);
+        }
+        else
+        {
+            address = null;
+        }
+        return new Pair<>(address, locale);
+    }
 
-                final String personalName = DefaultTypeConverter.INSTANCE.convert(String.class,
-                        action.getParameterValue(PARAM_FROM_PERSONAL_NAME));
+    protected Pair<EmailAddress, Locale> resolveFromAndMailDefaultLocale(final Action action)
+    {
+        EmailAddress address = null;
+        Locale locale = I18NUtil.getLocale();
 
-                if (paramFrom.matches("^[^<]+<[^>]+@[^>]+>$"))
+        final String paramFrom = DefaultTypeConverter.INSTANCE.convert(String.class, action.getParameterValue(PARAM_FROM));
+        if (this.fromEnabled && paramFrom != null && !paramFrom.trim().isEmpty())
+        {
+            LOGGER.debug("From specified via action parameter as {}", paramFrom);
+
+            final String personalName = DefaultTypeConverter.INSTANCE.convert(String.class,
+                    action.getParameterValue(PARAM_FROM_PERSONAL_NAME));
+
+            if (paramFrom.matches("^[^<]+<[^>]+@[^>]+>$"))
+            {
+                // looks like an address already in the form
+                // "Doe, John <john.doe@acme.com>"
+                // potentially mapped from recorded properties such as cm:originator / imap:messageFrom
+                // use the included personal name only of no explicit personal name was specified
+                final int addressStartIdx = paramFrom.indexOf('<');
+                final String includedPersonalName = paramFrom.substring(0, addressStartIdx).trim();
+                final String email = paramFrom.substring(addressStartIdx + 1, paramFrom.length() - 1).trim();
+                address = HELPER.toEmailAddress(email,
+                        personalName != null && !personalName.trim().isEmpty() ? personalName : includedPersonalName);
+            }
+            else if (personalName != null && !personalName.trim().isEmpty())
+            {
+                address = HELPER.toEmailAddress(paramFrom, personalName);
+            }
+            else
+            {
+                address = HELPER.toEmailAddress(paramFrom);
+            }
+
+            if (this.personExists(paramFrom))
+            {
+                final Locale userLocale = this.getLocaleForUser(paramFrom);
+                locale = userLocale != null ? userLocale : locale;
+            }
+        }
+
+        if (address == null && !this.authenticationService.isCurrentUserTheSystemUser())
+        {
+            final String currentUser = this.authenticationService.getCurrentUserName();
+            if (currentUser != null && !this.authorityService.isGuestAuthority(currentUser) && this.personExists(currentUser))
+            {
+                final String email = this.getPersonEmail(currentUser);
+                if (email != null && !email.trim().isEmpty())
                 {
-                    // looks like an address already in the form
-                    // "Doe, John <john.doe@acme.com>"
-                    // potentially mapped from recorded properties such as cm:originator / imap:messageFrom
-                    // use the included personal name only of no explicit personal name was specified
-                    final int addressStartIdx = paramFrom.indexOf('<');
-                    final String includedPersonalName = paramFrom.substring(0, addressStartIdx).trim();
-                    final String email = paramFrom.substring(addressStartIdx + 1, paramFrom.length() - 1).trim();
-                    try
-                    {
-                        address = new InternetAddress(email,
-                                personalName != null && !personalName.trim().isEmpty() ? personalName : includedPersonalName);
-                    }
-                    catch (final UnsupportedEncodingException e)
-                    {
-                        address = new InternetAddress(email);
-                    }
-                }
-                else if (personalName != null && !personalName.trim().isEmpty())
-                {
-                    try
-                    {
-                        address = new InternetAddress(paramFrom, personalName);
-                    }
-                    catch (final UnsupportedEncodingException e)
-                    {
-                        address = new InternetAddress(paramFrom);
-                    }
+                    address = HELPER.toEmailAddress(email);
                 }
                 else
                 {
-                    address = new InternetAddress(paramFrom);
+                    LOGGER.info(
+                            "User {} does not have a personal email address set - falling back to the default from-address for mail to {}",
+                            currentUser, action.getParameterValue(PARAM_TO));
                 }
 
-                if (this.personExists(paramFrom))
-                {
-                    final Locale userLocale = this.getLocaleForUser(paramFrom);
-                    locale = userLocale != null ? userLocale : locale;
-                }
+                final Locale userLocale = this.getLocaleForUser(currentUser);
+                locale = userLocale != null ? userLocale : locale;
             }
-
-            if (address == null && !this.authenticationService.isCurrentUserTheSystemUser())
-            {
-                final String currentUser = this.authenticationService.getCurrentUserName();
-                if (currentUser != null && !this.authorityService.isGuestAuthority(currentUser) && this.personExists(currentUser))
-                {
-                    final String email = this.getPersonEmail(currentUser);
-                    if (email != null && !email.trim().isEmpty())
-                    {
-                        address = new InternetAddress(email);
-                    }
-                    else
-                    {
-                        LOGGER.info(
-                                "User {} does not have a personal email address set - falling back to the default from-address for mail to {}",
-                                currentUser, action.getParameterValue(PARAM_TO));
-                    }
-
-                    final Locale userLocale = this.getLocaleForUser(currentUser);
-                    locale = userLocale != null ? userLocale : locale;
-                }
-            }
-
-            if (address == null)
-            {
-                address = new InternetAddress(this.fromDefaultAddress);
-            }
-            return new Pair<>(address, locale);
         }
-        catch (final AddressException e)
+
+        if (address == null)
         {
-            throw new ActionServiceException("Failed to resolve sender mail address", e);
+            address = HELPER.toEmailAddress(this.fromDefaultAddress);
         }
+        return new Pair<>(address, locale);
     }
 
     protected List<String> resolveEffectiveAddressees(final Serializable addresseeParamValue)
@@ -783,73 +694,32 @@ public class SendMailActionExecuter extends ActionExecuterAbstractBase implement
         return addressees;
     }
 
-    protected MimeMessage prepareMessage(final Action action, final NodeRef actionedUponNodeRef, final Locale effectiveLocale,
-            final MessageAddressHandler addressHandler) throws MailException, MessagingException
+    protected EmailMessage prepareMessage(final Action action, final NodeRef actionedUponNodeRef, final Locale effectiveLocale)
     {
-        final MimeMessage mimeMessage = this.mailService.createMimeMessage();
-        final MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage);
-        this.prepareMessageHeaders(effectiveLocale, action, mimeMessage);
-
-        messageHelper.setSubject(this.prepareSubject(effectiveLocale, action));
+        final String subject = this.prepareSubject(effectiveLocale, action);
 
         final Pair<String, String> textOrHtml = this.prepareTextOrHtml(effectiveLocale, action, actionedUponNodeRef);
         final String text = textOrHtml.getFirst();
         final String html = textOrHtml.getSecond();
 
-        if (text != null && !text.trim().isEmpty() && html != null && !html.trim().isEmpty())
-        {
-            messageHelper.setText(text, html);
-        }
-        else if (text != null && !text.trim().isEmpty())
-        {
-            messageHelper.setText(text, false);
-        }
-        else if (html != null && !html.trim().isEmpty())
-        {
-            messageHelper.setText(html, true);
-        }
-        else
-        {
-            throw new ActionServiceException("Mail content must be specified");
-        }
-
-        addressHandler.addAddressDetails(messageHelper);
-
-        return mimeMessage;
-    }
-
-    protected void prepareMessageHeaders(final Locale effectiveLocale, final Action action, final MimeMessage mimeMessage)
-            throws MessagingException
-    {
-        if (this.headerEncoding != null && !this.headerEncoding.trim().isEmpty())
-        {
-            mimeMessage.setHeader("Content-Transfer-Encoding", this.headerEncoding);
-        }
-        mimeMessage.setHeader("Content-Language", effectiveLocale.toString().replace('_', '-'));
-
+        final Map<String, String> effectiveHeaders = new HashMap<>();
         final Serializable headers = action.getParameterValue(PARAM_MAIL_HEADERS);
         if (headers instanceof Map<?, ?>)
         {
-            final Map<?, ?> headersM = (Map<?, ?>) headers;
-            for (final Entry<?, ?> header : headersM.entrySet())
-            {
-                final Object key = header.getKey();
-                final Object value = header.getValue();
-
-                if (key instanceof String && value instanceof String)
+            ((Map<?, ?>) headers).forEach((k, v) -> {
+                if (k instanceof String && v instanceof String)
                 {
-                    mimeMessage.setHeader((String) key, (String) value);
+                    effectiveHeaders.put((String) k, (String) v);
                 }
-                else
-                {
-                    throw new ActionServiceException("Mail headers parameter must be a map of String header names to String header values");
-                }
-            }
+            });
         }
-        else if (headers != null)
+        if (this.headerEncoding != null && !this.headerEncoding.trim().isEmpty())
         {
-            throw new ActionServiceException("Mail headers parameter must be a map of String header names to String header values");
+            effectiveHeaders.put("Content-Transfer-Encoding", this.headerEncoding);
         }
+        effectiveHeaders.put("Content-Language", effectiveLocale.toString().replace('_', '-'));
+
+        return HELPER.buildEmail(subject, text, html, effectiveHeaders, this.mailService);
     }
 
     protected String prepareSubject(final Locale effectiveLocale, final Action action)
@@ -983,7 +853,7 @@ public class SendMailActionExecuter extends ActionExecuterAbstractBase implement
         return model;
     }
 
-    protected void handleAttachments(final boolean inline, final Action action, final MimeMessage mimeMessage)
+    protected void handleAttachments(final boolean inline, final Action action, final EmailMessage emailMessage)
     {
         final Serializable attachments = action.getParameterValue(inline ? PARAM_INLINE_ATTACHMENTS : PARAM_ATTACHMENTS);
         Collection<NodeRef> attachmentsC;
@@ -1004,37 +874,30 @@ public class SendMailActionExecuter extends ActionExecuterAbstractBase implement
             final NodeService pNodeService = this.serviceRegistry.getNodeService();
             final ContentService pContentService = this.serviceRegistry.getContentService();
 
-            final MimeMessageHelper mmh = new MimeMessageHelper(mimeMessage);
-            try
+            final AttachmentHandler attachmentHelper = HELPER.getAttachmentHandler(emailMessage);
+            for (final NodeRef attachment : attachmentsC)
             {
-                for (final NodeRef attachment : attachmentsC)
+                final ContentReader reader = pContentService.getReader(attachment, ContentModel.PROP_CONTENT);
+                if (reader == null || !reader.exists())
                 {
-                    final ContentReader reader = pContentService.getReader(attachment, ContentModel.PROP_CONTENT);
-                    if (reader == null || !reader.exists())
-                    {
-                        throw new ActionServiceException("Cannot add attachment from content-less node " + attachment);
-                    }
-
-                    if (inline)
-                    {
-                        mmh.addInline(attachment.getId(), reader::getContentInputStream, reader.getMimetype());
-                    }
-                    else
-                    {
-                        final String name = DefaultTypeConverter.INSTANCE.convert(String.class,
-                                pNodeService.getProperty(attachment, ContentModel.PROP_NAME));
-                        mmh.addAttachment(name, reader::getContentInputStream, reader.getMimetype());
-                    }
+                    throw new ActionServiceException("Cannot add attachment from content-less node " + attachment);
                 }
-            }
-            catch (final MessagingException mex)
-            {
-                throw new ActionServiceException("Failed to handle attachments", mex);
+
+                if (inline)
+                {
+                    attachmentHelper.addInline(attachment.getId(), reader.getMimetype(), reader::getContentInputStream);
+                }
+                else
+                {
+                    final String name = DefaultTypeConverter.INSTANCE.convert(String.class,
+                            pNodeService.getProperty(attachment, ContentModel.PROP_NAME));
+                    attachmentHelper.addAttachment(name, reader.getMimetype(), reader::getContentInputStream);
+                }
             }
         }
     }
 
-    protected void sendMails(final Action action, final List<MimeMessage> messages)
+    protected void sendMails(final Action action, final List<EmailMessage> messages)
     {
         final boolean sendAfterCommit = Boolean.TRUE
                 .equals(DefaultTypeConverter.INSTANCE.convert(Boolean.class, action.getParameterValue(PARAM_SEND_AFTER_COMMIT)));
@@ -1048,7 +911,7 @@ public class SendMailActionExecuter extends ActionExecuterAbstractBase implement
         }
     }
 
-    protected void sendMailsAfterCommit(final Action action, final List<MimeMessage> messages)
+    protected void sendMailsAfterCommit(final Action action, final List<EmailMessage> messages)
     {
         LOGGER.debug("Scheduling {} messages to be sent after commit", messages.size());
         TransactionSupportUtil.bindListener(new TransactionListenerAdapter()
@@ -1069,38 +932,13 @@ public class SendMailActionExecuter extends ActionExecuterAbstractBase implement
         }, 0);
     }
 
-    protected void sendMailImpl(final Action action, final MimeMessage message)
+    protected void sendMailImpl(final Action action, final EmailMessage message)
     {
-        Address[] recipients = null;
-        try
-        {
-            recipients = message.getRecipients(RecipientType.TO);
-            LOGGER.debug("Sending mail to {} with subject: {}", recipients, message.getSubject());
-        }
-        catch (final MessagingException ignore)
-        {
-            // NO-OP
-        }
+        final Serializable toParam = action.getParameterValue(PARAM_TO);
+        final Boolean ignoreError = DefaultTypeConverter.INSTANCE.convert(Boolean.class,
+                action.getParameterValue(PARAM_IGNORE_SEND_FAILURE));
 
-        try
-        {
-            this.mailService.send(message);
-            LOGGER.debug("Successfully delivered mail to configured mail server");
-        }
-        catch (final MailException e)
-        {
-            final Serializable toParam = action.getParameterValue(PARAM_TO);
-
-            LOGGER.error("Failed to send email to {}", recipients != null ? recipients : toParam, e);
-
-            final Boolean ignoreError = DefaultTypeConverter.INSTANCE.convert(Boolean.class,
-                    action.getParameterValue(PARAM_IGNORE_SEND_FAILURE));
-
-            if (!Boolean.TRUE.equals(ignoreError))
-            {
-                throw new ActionServiceException("Failed to send email to " + (recipients != null ? Arrays.toString(recipients) : toParam));
-            }
-        }
+        HELPER.sendMail(message, toParam, ignoreError, this.mailService);
     }
 
     protected boolean personExists(final String user)
@@ -1181,6 +1019,6 @@ public class SendMailActionExecuter extends ActionExecuterAbstractBase implement
     protected interface MessageAddressHandler
     {
 
-        void addAddressDetails(MimeMessageHelper mimeMessageHelper) throws MessagingException, AddressException;
+        void addAddressDetails(EmailMessage message);
     }
 }

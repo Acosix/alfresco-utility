@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- 
- Copyright 2016 - 2022 Acosix GmbH
+ Copyright 2016 - 2024 Acosix GmbH
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -41,6 +41,29 @@
         <property name="targetBeanName" value="InboundSMTP" />
         <property name="originalClassName" value="org.alfresco.repo.management.subsystems.ChildApplicationContextFactory" />
         <property name="replacementClassName" value="${javaPackageName}.subsystems.SubsystemChildApplicationContextFactory" />
+    </bean>
+
+    <!-- need to expose the EmailService from the InboundSMTP subsystem for reuse in InboundIMAP -->
+    <bean id="EmailService" class="org.alfresco.repo.management.subsystems.SubsystemProxyFactory">
+        <property name="sourceApplicationContextFactory" ref="InboundSMTP" />
+        <property name="sourceBeanName" value="EmailService" />
+        <property name="interfaces">
+            <list>
+                <value>org.alfresco.service.cmr.email.EmailService</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="InboundIMAP" class="${javaPackageName}.subsystems.SubsystemChildApplicationContextFactory"
+        parent="abstractPropertyBackedBean">
+        <property name="category" value="email" />
+        <property name="typeName" value="InboundIMAP" />
+        <property name="instancePath">
+            <list>
+                <value>inboundIMAP</value>
+            </list>
+        </property>
+        <property name="autoStart" value="true" />
     </bean>
 
     <bean id="${moduleId}-enhanceModuleStarter-implementation"
@@ -241,6 +264,7 @@
         <property name="stringToNodeRefEnabled" value="\${${configModuleId}.datatype.improvedTypeConverter.string2NodeRef.enabled}" />
         <property name="stringToQNameEnabled" value="\${${configModuleId}.datatype.improvedTypeConverter.string2QName.enabled}" />
         <property name="stringToLocaleEnabled" value="\${${configModuleId}.datatype.improvedTypeConverter.string2Locale.enabled}" />
+        <property name="stringToDateEnabled" value="\${${configModuleId}.datatype.improvedTypeConverter.string2Date.enabled}" />
     </bean>
 
     <bean id="${moduleId}.xpathNodeLocator.typePatch"

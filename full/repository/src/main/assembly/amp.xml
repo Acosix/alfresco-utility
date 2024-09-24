@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- 
- Copyright 2016 - 2022 Acosix GmbH
+ Copyright 2016 - 2024 Acosix GmbH
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -52,4 +52,15 @@
             <filtered>false</filtered>
         </fileSet>
     </fileSets>
+    <dependencySets>
+        <dependencySet>
+            <outputDirectory>lib</outputDirectory>
+            <includes>
+                <include>de.acosix.alfresco.utility:de.acosix.alfresco.utility.repo.common:*</include>
+                <include>de.acosix.alfresco.utility:de.acosix.alfresco.utility.repo.subetha3:*</include>
+                <include>de.acosix.alfresco.utility:de.acosix.alfresco.utility.repo.subetha6:*</include>
+            </includes>
+            <useTransitiveDependencies>false</useTransitiveDependencies>
+        </dependencySet>
+    </dependencySets>
 </assembly>

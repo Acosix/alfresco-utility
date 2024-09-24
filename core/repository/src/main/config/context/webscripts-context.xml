@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- 
- Copyright 2016 - 2021 Acosix GmbH
+ Copyright 2016 - 2024 Acosix GmbH
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -35,10 +35,7 @@
     </bean>
 
     <bean id="webscript.de.acosix.acosix-utility.rendition.head" parent="webscript.de.acosix.acosix-utility.content.head"
-        class="${javaPackageName}.web.scripts.RenditionInfoWithStatus">
-        <property name="contentService" ref="ContentService" />
-        <property name="thumbnailService" ref="ThumbnailService" />
-    </bean>
+        class="${javaPackageName}.web.scripts.RenditionInfoWithStatus" />
 
     <!-- identical web script, just under different URL - note: no HEAD variant -->
     <!-- can't make abstract since that would cause startup error in repository without alfresco-share-services -->
