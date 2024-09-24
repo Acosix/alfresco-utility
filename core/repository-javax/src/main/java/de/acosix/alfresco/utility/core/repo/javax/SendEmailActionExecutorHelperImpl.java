@@ -306,6 +306,8 @@ public class SendEmailActionExecutorHelperImpl implements SendEmailActionExecute
                 throw new ActionServiceException("Mail content must be specified");
             }
 
+            mimeMessage.setSubject(subject);
+
             return new EmailMessage(mimeMessage);
         }
         catch (final MessagingException e)
