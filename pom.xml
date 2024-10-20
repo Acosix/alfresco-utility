@@ -26,7 +26,7 @@
 
     <groupId>de.acosix.alfresco.utility</groupId>
     <artifactId>de.acosix.alfresco.utility.parent</artifactId>
-    <version>1.4.5-SNAPSHOT</version>
+    <version>1.4.5</version>
     <packaging>pom</packaging>
 
     <name>Acosix Alfresco Utility - Parent</name>
