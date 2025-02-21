@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -736,11 +735,11 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
         if (nextDot != -1)
         {
             propertyName = propertyDefinitionKey.substring(0, nextDot);
-            definitionKeyRemainder = propertyDefinitionKey.substring(nextDot + 1).toLowerCase(Locale.ENGLISH);
+            definitionKeyRemainder = propertyDefinitionKey.substring(nextDot + 1);
         }
         else
         {
-            propertyName = propertyDefinitionKey.toString();
+            propertyName = propertyDefinitionKey;
             definitionKeyRemainder = "";
         }
 
