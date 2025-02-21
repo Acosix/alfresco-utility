@@ -56,15 +56,12 @@ public class FlexibleAlfrescoAuthenticator extends AlfrescoAuthenticator
             authenticated = this.isRemoteUserAuthenticated(connectorSession);
         }
 
-        if (!authenticated)
+        if (!authenticated && connectorSession != null)
         {
-            if (connectorSession != null)
-            {
-                final List<String> cookieNames = Arrays.asList(connectorSession.getCookieNames());
-                // TODO make cookie name to check configurable
-                // authenticator is unfortunately instantiated per reflection
-                authenticated = cookieNames.contains("JSESSIONID");
-            }
+            final List<String> cookieNames = Arrays.asList(connectorSession.getCookieNames());
+            // TODO make cookie name to check configurable
+            // authenticator is unfortunately instantiated per reflection
+            authenticated = cookieNames.contains("JSESSIONID");
         }
 
         return authenticated;

@@ -25,7 +25,7 @@ import org.alfresco.web.scripts.SlingshotRemoteClient;
 /**
  * Instances of this class allow for simpler modification of complex request settings in order to dynamically adapt the behaviour depending
  * on the authentication state. Since remote client instances are handled via a prototype bean, it is safe to modify the state of these
- * objects in concurrent requests / threads, as each contex uses its own, isolated instance.
+ * objects in concurrent requests / threads, as each context uses its own, isolated instance.
  *
  * @author Axel Faust
  */
