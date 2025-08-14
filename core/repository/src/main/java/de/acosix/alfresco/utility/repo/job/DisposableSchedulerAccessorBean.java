@@ -57,7 +57,7 @@ public class DisposableSchedulerAccessorBean extends SchedulerAccessorBean imple
                 DISPOSER = de.acosix.alfresco.utility.core.repo.quartz1.DisposableJobUtilities::disposeJobTriggers;
             }
         }
-        catch (final Exception e)
+        catch (final ClassNotFoundException | NoSuchMethodException | SecurityException e)
         {
             throw new RuntimeException("Error looking up known Quartz 1.x/2.x API reflectively to avoid incompatibilities");
         }

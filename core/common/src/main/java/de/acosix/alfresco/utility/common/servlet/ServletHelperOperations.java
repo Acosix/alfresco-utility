@@ -18,7 +18,6 @@ package de.acosix.alfresco.utility.common.servlet;
 import java.util.Enumeration;
 
 /**
- *
  * @author Axel Faust
  */
 public interface ServletHelperOperations

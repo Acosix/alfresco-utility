@@ -18,6 +18,7 @@ package de.acosix.alfresco.utility.repo.email.imap;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -505,9 +506,9 @@ public class SynchJob implements GenericJob, BatchProcessWorkProvider<SynchWork>
         {
             throw new AlfrescoRuntimeException("No provider supports " + type, kse);
         }
-        try
+        try (final InputStream is = new FileInputStream(path))
         {
-            ks.load(new FileInputStream(path), passphrase != null ? passphrase.toCharArray() : null);
+            ks.load(is, passphrase != null ? passphrase.toCharArray() : null);
         }
         catch (final FileNotFoundException fnfe)
         {
