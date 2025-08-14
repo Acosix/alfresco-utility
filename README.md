@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/Acosix/alfresco-utility.svg?branch=master)](https://travis-ci.org/Acosix/alfresco-utility)
-
 # About
 This project defines sets of utility constructs for Repository- or Share-tier modules as well as cross-cutting utilities. The resulting technical modules are primarily used to avoid redundancy in Acosix GmbH modules, as well as abstracting and consolidating similar functionality without tying it to specific functional constructs.
 
@@ -47,9 +45,9 @@ This addon is being built using the [Acosix Alfresco Maven framework](https://gi
 
 ## Build
 
-This project can be built simply by executing the standard Maven build lifecycles for package, install or deploy depending on the intent for further processing. A Java Development Kit (JDK) version 8 or higher is required for the build of the master branch, while the Alfresco 4.2 branch requires Java 7.
+This project can be built simply by executing the standard Maven build lifecycles for package, install or deploy depending on the intent for further processing. A Java Development Kit (JDK) version 8 or higher is required for the build of the master branch, with some sub-modules requiring a JDK 17 for cross-compilation and API version bridging purposes.
 
-By inheritance from the Acosix Alfresco Maven framework, this project uses the [Maven Toolchains plugin](http://maven.apache.org/plugins/maven-toolchains-plugin/) to allow potential cross-compilation against different Java versions. This is used for instance in a [separate branch to provide an Alfresco 4.2 compatible version](https://github.com/Acosix/alfresco-utility/tree/alfresco-42) of this addon. In order to build the project it is necessary to provide a basic toolchain configuration via the user specific Maven configuration home (usually ~/.m2/). That file (toolchains.xml) only needs to list the path to a compatible JDK for the Java version required by this project. The following is a sample file defining a Java 7 and 8 development kit.
+By inheritance from the Acosix Alfresco Maven framework, this project uses the [Maven Toolchains plugin](http://maven.apache.org/plugins/maven-toolchains-plugin/) to allow potential cross-compilation against different Java versions.In order to build the project it is necessary to provide a basic toolchain configuration via the user specific Maven configuration home (usually ~/.m2/). That file (toolchains.xml) only needs to list the path to a compatible JDK for the Java version required by this project. The following is a sample file defining a Java 8 and 17 development kit.
 
 ```xml
 <?xml version='1.0' encoding='UTF-8'?>
@@ -57,21 +55,23 @@ By inheritance from the Acosix Alfresco Maven framework, this project uses the [
   <toolchain>
     <type>jdk</type>
     <provides>
-      <version>1.8</version>
-      <vendor>oracle</vendor>
+      <version>8</version>
+      <vendor>eclipse</vendor>
+      <id>jdk1.8</id>
     </provides>
     <configuration>
-      <jdkHome>C:\Program Files\Java\jdk1.8.0_112</jdkHome>
+      <jdkHome>C:\Program Files\Eclipse Adoptium\jdk-8.0.345.1-hotspot</jdkHome>
     </configuration>
   </toolchain>
   <toolchain>
     <type>jdk</type>
     <provides>
-      <version>1.7</version>
-      <vendor>oracle</vendor>
+      <version>17</version>
+      <vendor>eclipse</vendor>
+      <id>jdk17</id>
     </provides>
     <configuration>
-      <jdkHome>C:\Program Files\Java\jdk1.7.0_80</jdkHome>
+      <jdkHome>C:\Program Files\Eclipse Adoptium\jdk-17.0.4.101-hotspot</jdkHome>
     </configuration>
   </toolchain>
 </toolchains>
@@ -79,9 +79,23 @@ By inheritance from the Acosix Alfresco Maven framework, this project uses the [
 
 ## Installation
 
-The mode of installation varies noticeably based on version of Alfresco SDK, personal preference in packaging, deployment method and/or other aspects. It is therefor difficult to compile a comprehensive guide on how to install the addon in each of the possible scenarios.
+The mode of installation varies noticeably based on version of Alfresco SDK, personal preference in packaging, deployment method and/or other aspects. It is therefore difficult to compile a comprehensive guide on how to install the addon in each of the possible scenarios.
 
-This addon produces both installable JAR artifacts as well as more traditional AMP packages. Releases are published on Maven Central, while Snapshots are available on Sonatype's [Open Source Software Repository Hosting (OSS RH)](https://oss.sonatype.org). This addon consists of two layers of modules - a **core** layer with various utilities but without any (more or less aggressive) patches / changes to default Alfresco, and the **full** layer with all the utilities, patches and changes.
+This addon produces both installable JAR artifacts as well as more traditional AMP packages. Releases and Snapshots are published on Maven Central. In order to use Snapshots from Maven Central, an explicit repository has to be added in POMs since Maven by default only uses Maven Central to lookup release artifacts.
+
+```xml
+<repositories>
+    <repository>
+        <id>central-snapshots</id>
+        <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+        <snapshots>
+            <enabled>true</enabled>
+        </snapshots>
+    </repository>
+</repositories>
+```
+
+This addon consists of two layers of modules - a **core** layer with various utilities but without any (more or less aggressive) patches / changes to default Alfresco, and the **full** layer with all the utilities, patches and changes.
 
 The following artifact coordinates are relevant for AMP based installations:
 
