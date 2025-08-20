@@ -46,6 +46,9 @@
             <outputDirectory>lib</outputDirectory>
             <includes>
                 <include>de.acosix.alfresco.utility:${common.artifactId}:*</include>
+                <include>de.acosix.alfresco.utility:${common.artifactId}.servlet:*</include>
+                <include>de.acosix.alfresco.utility:${common.artifactId}.javax:*</include>
+                <include>de.acosix.alfresco.utility:${common.artifactId}.jakarta:*</include>
                 <include>de.acosix.alfresco.utility:de.acosix.alfresco.utility.core.repo.common:*</include>
                 <include>de.acosix.alfresco.utility:de.acosix.alfresco.utility.core.repo.acs6:*</include>
                 <include>de.acosix.alfresco.utility:de.acosix.alfresco.utility.core.repo.javax:*</include>

@@ -74,6 +74,18 @@
     <dependencies>
 
         <dependency>
+            <groupId>de.acosix.alfresco.utility</groupId>
+            <artifactId>${common.artifactId}.javax</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>de.acosix.alfresco.utility</groupId>
+            <artifactId>${common.artifactId}.jakarta</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.alfresco</groupId>
             <artifactId>alfresco-core</artifactId>
         </dependency>
