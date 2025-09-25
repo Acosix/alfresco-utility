@@ -1,16 +1,14 @@
 FROM alfresco/alfresco-share:7.4.2
 
 ARG AMP_PATH=full/share/target
-ARG AMP_NAME=de.acosix.alfresco.utility.share-1.4.4.amp
+ARG AMP_NAME=de.acosix.alfresco.utility.share-1.5.0-SNAPSHOT.amp
 
 ARG TOMCAT_DIR=/usr/local/tomcat
 
 # fix to deal with "warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8)"
 RUN yum install -y glibc-langpack-en
 
-COPY $AMP_PATH/$AMP_NAME support-tools-share-1.2.2.0-amp.amp $TOMCAT_DIR/amps_share/
+COPY $AMP_PATH/$AMP_NAME $TOMCAT_DIR/amps_share/
 
 RUN java -jar $TOMCAT_DIR/alfresco-mmt/alfresco-mmt*.jar install \
-              $TOMCAT_DIR/amps_share/$AMP_NAME $TOMCAT_DIR/webapps/share -nobackup -force \
-  && java -jar $TOMCAT_DIR/alfresco-mmt/alfresco-mmt*.jar install \
-              $TOMCAT_DIR/amps_share/support-tools-share-1.2.2.0-amp.amp $TOMCAT_DIR/webapps/share -nobackup -force
+              $TOMCAT_DIR/amps_share/$AMP_NAME $TOMCAT_DIR/webapps/share -nobackup -force

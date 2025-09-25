@@ -2,7 +2,7 @@ FROM alfresco/alfresco-content-repository-community:7.4.2
 USER root
 
 ARG AMP_PATH=full/repository/target
-ARG AMP_NAME=de.acosix.alfresco.utility.repo-1.4.4.amp
+ARG AMP_NAME=de.acosix.alfresco.utility.repo-1.5.0-SNAPSHOT.amp
 
 ARG TOMCAT_DIR=/usr/local/tomcat
 ARG GROUPNAME=Alfresco
@@ -11,12 +11,10 @@ ARG IMAGEUSERNAME=alfresco
 # fix to deal with "warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8)"
 RUN yum install -y glibc-langpack-en
 
-COPY $AMP_PATH/$AMP_NAME support-tools-repo-1.2.2.0-amp.amp $TOMCAT_DIR/amps/
+COPY $AMP_PATH/$AMP_NAME $TOMCAT_DIR/amps/
 
 RUN java -jar $TOMCAT_DIR/alfresco-mmt/alfresco-mmt*.jar install \
-              $TOMCAT_DIR/amps/$AMP_NAME $TOMCAT_DIR/webapps/alfresco -nobackup -force \
-  && java -jar $TOMCAT_DIR/alfresco-mmt/alfresco-mmt*.jar install \
-              $TOMCAT_DIR/amps/support-tools-repo-1.2.2.0-amp.amp $TOMCAT_DIR/webapps/alfresco -nobackup -force
+              $TOMCAT_DIR/amps/$AMP_NAME $TOMCAT_DIR/webapps/alfresco -nobackup -force
 
 # The standard configuration is to have all Tomcat files owned by root with group GROUPNAME and whilst owner has read/write privileges,
 # group only has restricted permissions and world has no permissions.

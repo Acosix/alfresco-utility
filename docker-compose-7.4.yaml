@@ -34,7 +34,7 @@ services:
            -Dsolr.host=solr6
            -Dsolr.port=8983
            -Dsolr.secureComms=secret
-           -Dsolr.sharedSecret=secret  
+           -Dsolr.sharedSecret=secret
            -Dsolr.base.url=/solr
            -Dindex.subsystem.name=solr6
            -Dmessaging.broker.url="failover:(nio://activemq:61616)?timeout=3000&jms.useCompression=true"

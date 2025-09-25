@@ -14,7 +14,7 @@ services:
       image: acosix-utility-repo-test:local
       build:
          context: ./
-         dockerfile: Dockerfile-ACS-23.1
+         dockerfile: Dockerfile-ACS-25.1
       volumes:
         - alfresco_data:/usr/local/tomcat/alf_data
       environment:
@@ -61,7 +61,7 @@ services:
       image: acosix-utility-share-test:local
       build:
          context: ./
-         dockerfile: Dockerfile-Share-23.1
+         dockerfile: Dockerfile-Share-25.1
       environment:
          REPO_HOST: alfresco
          REPO_PORT: 8080
@@ -73,7 +73,7 @@ services:
         - 8180:8080
 
    solr6:
-      image: alfresco/alfresco-search-services:2.0.10
+      image: alfresco/alfresco-search-services:2.0.16
       environment:
          SOLR_ALFRESCO_HOST: alfresco
          SOLR_ALFRESCO_PORT: 8080
@@ -90,7 +90,7 @@ services:
       image: alfresco/alfresco-activemq:5.17-jre17-rockylinux8
 
    transform-core-aio:
-      image: alfresco/alfresco-transform-core-aio:5.1.2
+      image: alfresco/alfresco-transform-core-aio:5.2.1
       environment:
          JAVA_OPTS: " -Xms256m -Xmx1536m"
          ACTIVEMQ_URL: nio://activemq:61616
