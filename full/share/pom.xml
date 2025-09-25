@@ -29,6 +29,9 @@
 
     <properties>
         <javaPackageName>de.acosix.alfresco.utility.share</javaPackageName>
+
+        <docker.tests.repository.dependency.artifactIds>de.acosix.alfresco.utility.repo</docker.tests.repository.dependency.artifactIds>
+        <docker.tests.share.dependency.artifactIds>slf4j-log4j12</docker.tests.share.dependency.artifactIds>
     </properties>
 
     <dependencyManagement>
@@ -38,6 +41,14 @@
                 <artifactId>spring-surf</artifactId>
                 <version>${surf.share.api.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>de.acosix.alfresco.utility</groupId>
+                <artifactId>de.acosix.alfresco.utility.repo</artifactId>
+                <version>${project.version}</version>
+                <type>amp</type>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -45,6 +56,12 @@
         <dependency>
             <groupId>de.acosix.alfresco.utility</groupId>
             <artifactId>de.acosix.alfresco.utility.core.share</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>de.acosix.alfresco.utility</groupId>
+            <artifactId>de.acosix.alfresco.utility.repo</artifactId>
+            <type>amp</type>
         </dependency>
 
         <dependency>
@@ -62,6 +79,11 @@
             <groupId>de.inetsoftware</groupId>
             <artifactId>jlessc</artifactId>
             <version>1.8</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
         </dependency>
     </dependencies>
 

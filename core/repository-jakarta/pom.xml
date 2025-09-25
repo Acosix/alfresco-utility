@@ -28,6 +28,9 @@
     <name>Acosix Alfresco Utility - Core Repository Jakarta Library</name>
 
     <properties>
+        <!-- necessary for cross-compilation -->
+        <java.version.exec>17</java.version.exec>
+        <quality.findBugs.skip>true</quality.findBugs.skip>
     </properties>
 
     <dependencyManagement>
@@ -149,14 +152,6 @@
 
             <plugin>
                 <artifactId>maven-toolchains-plugin</artifactId>
-                <configuration>
-                    <toolchains>
-                        <jdk>
-                            <!-- force use of 1.17 JDK to link to new Spring etc. -->
-                            <version>1.17</version>
-                        </jdk>
-                    </toolchains>
-                </configuration>
             </plugin>
 
             <plugin>

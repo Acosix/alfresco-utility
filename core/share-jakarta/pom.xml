@@ -32,7 +32,8 @@
         <surf.share.api.version>9.0</surf.share.api.version>
 
         <!-- necessary for cross-compilation -->
-        <toolchain.jdk.version>17</toolchain.jdk.version>
+        <java.version.exec>17</java.version.exec>
+        <quality.findBugs.skip>true</quality.findBugs.skip>
     </properties>
 
     <dependencyManagement>

@@ -29,6 +29,9 @@
 
     <properties>
         <javaPackageName>de.acosix.alfresco.utility.share</javaPackageName>
+
+        <docker.tests.repository.dependency.artifactIds>de.acosix.alfresco.utility.core.repo</docker.tests.repository.dependency.artifactIds>
+        <docker.tests.share.dependency.artifactIds>slf4j-log4j12</docker.tests.share.dependency.artifactIds>
     </properties>
 
     <dependencyManagement>
@@ -50,6 +53,14 @@
                 <artifactId>de.acosix.alfresco.utility.core.share.jakarta</artifactId>
                 <version>${project.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>de.acosix.alfresco.utility</groupId>
+                <artifactId>de.acosix.alfresco.utility.core.repo</artifactId>
+                <version>${project.version}</version>
+                <type>amp</type>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -67,6 +78,12 @@
         <dependency>
             <groupId>de.acosix.alfresco.utility</groupId>
             <artifactId>de.acosix.alfresco.utility.core.share.jakarta</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>de.acosix.alfresco.utility</groupId>
+            <artifactId>de.acosix.alfresco.utility.core.repo</artifactId>
+            <type>amp</type>
         </dependency>
 
         <dependency>
