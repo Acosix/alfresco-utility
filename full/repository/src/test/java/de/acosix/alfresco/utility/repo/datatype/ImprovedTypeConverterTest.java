@@ -15,6 +15,13 @@
  */
 package de.acosix.alfresco.utility.repo.datatype;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+
 import java.lang.reflect.Constructor;
 import java.util.Locale;
 
@@ -30,11 +37,8 @@ import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.apache.log4j.PropertyConfigurator;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,9 +54,6 @@ public class ImprovedTypeConverterTest
         PropertyConfigurator.configure(
                 ImprovedTypeConverterTest.class.getClassLoader().getResourceAsStream("alfresco/extension/test-log4j.properties"));
     }
-
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
 
     @After
     public void tearDown() throws Exception
@@ -70,12 +71,12 @@ public class ImprovedTypeConverterTest
         // tests Alfresco default converter
         final String validNodeRef = "workspace://SpacesStore/abcdefg";
         final NodeRef validNodeRefRes = DefaultTypeConverter.INSTANCE.convert(NodeRef.class, validNodeRef);
-        Assert.assertEquals("Default String to NodeRef conversion did not convert valid NodeRef correctly",
+        assertEquals("Default String to NodeRef conversion did not convert valid NodeRef correctly",
                 new NodeRef("workspace", "SpacesStore", "abcdefg"), validNodeRefRes);
 
         final String nullNodeRef = null;
         final NodeRef nullNodeRefRes = DefaultTypeConverter.INSTANCE.convert(NodeRef.class, nullNodeRef);
-        Assert.assertNull("Default String to NodeRef conversion did not return null NodeRef for null input", nullNodeRefRes);
+        assertNull("Default String to NodeRef conversion did not return null NodeRef for null input", nullNodeRefRes);
     }
 
     @Test
@@ -83,10 +84,11 @@ public class ImprovedTypeConverterTest
     {
         // tests Alfresco default converter
         // should trigger error in StoreRef
-        this.thrown.expect(AlfrescoRuntimeException.class);
         final String invalidNodeRef = "workspace://SpacesStore";
-        DefaultTypeConverter.INSTANCE.convert(NodeRef.class, invalidNodeRef);
-        Assert.fail("Default String to NodeRef conversion with input lacking UUID should have failed");
+        assertThrows("Default String to NodeRef conversion with input lacking UUID should have failed", AlfrescoRuntimeException.class,
+                () -> {
+                    DefaultTypeConverter.INSTANCE.convert(NodeRef.class, invalidNodeRef);
+                });
     }
 
     @Test
@@ -94,10 +96,11 @@ public class ImprovedTypeConverterTest
     {
         // tests Alfresco default converter
         // should trigger error in NodeRef
-        this.thrown.expect(MalformedNodeRefException.class);
         final String invalidNodeRef = "workspace";
-        DefaultTypeConverter.INSTANCE.convert(NodeRef.class, invalidNodeRef);
-        Assert.fail("Default String to NodeRef conversion with input lacking forward slash should have failed");
+        assertThrows("Default String to NodeRef conversion with input lacking forward slash should have failed",
+                MalformedNodeRefException.class, () -> {
+                    DefaultTypeConverter.INSTANCE.convert(NodeRef.class, invalidNodeRef);
+                });
     }
 
     @Test
@@ -105,10 +108,11 @@ public class ImprovedTypeConverterTest
     {
         // tests Alfresco default converter
         // should trigger error in NodeRef
-        this.thrown.expect(MalformedNodeRefException.class);
         final String invalidNodeRef = "";
-        DefaultTypeConverter.INSTANCE.convert(NodeRef.class, invalidNodeRef);
-        Assert.fail("Default String to NodeRef conversion with empty String input should have failed");
+        assertThrows("Default String to NodeRef conversion with empty String input should have failed", MalformedNodeRefException.class,
+                () -> {
+                    DefaultTypeConverter.INSTANCE.convert(NodeRef.class, invalidNodeRef);
+                });
     }
 
     @Test
@@ -120,12 +124,12 @@ public class ImprovedTypeConverterTest
 
         final String validNodeRef = "workspace://SpacesStore/abcdefg";
         final NodeRef validNodeRefRes = DefaultTypeConverter.INSTANCE.convert(NodeRef.class, validNodeRef);
-        Assert.assertEquals("Improved String to NodeRef conversion did not convert valid NodeRef correctly",
+        assertEquals("Improved String to NodeRef conversion did not convert valid NodeRef correctly",
                 new NodeRef("workspace", "SpacesStore", "abcdefg"), validNodeRefRes);
 
         final String nullNodeRef = null;
         final NodeRef nullNodeRefRes = DefaultTypeConverter.INSTANCE.convert(NodeRef.class, nullNodeRef);
-        Assert.assertNull("Improved String to NodeRef conversion did not return null NodeRef for null input", nullNodeRefRes);
+        assertNull("Improved String to NodeRef conversion did not return null NodeRef for null input", nullNodeRefRes);
     }
 
     @Test
@@ -136,10 +140,11 @@ public class ImprovedTypeConverterTest
         initialiser.afterPropertiesSet();
 
         // should trigger error in StoreRef
-        this.thrown.expect(AlfrescoRuntimeException.class);
         final String invalidNodeRef = "workspace://SpacesStore";
-        DefaultTypeConverter.INSTANCE.convert(NodeRef.class, invalidNodeRef);
-        Assert.fail("Improved String to NodeRef conversion with input lacking UUID should have failed");
+        assertThrows("Improved String to NodeRef conversion with input lacking UUID should have failed", AlfrescoRuntimeException.class,
+                () -> {
+                    DefaultTypeConverter.INSTANCE.convert(NodeRef.class, invalidNodeRef);
+                });
     }
 
     @Test
@@ -150,10 +155,11 @@ public class ImprovedTypeConverterTest
         initialiser.afterPropertiesSet();
 
         // should trigger error in NodeRef
-        this.thrown.expect(MalformedNodeRefException.class);
         final String invalidNodeRef = "workspace";
-        DefaultTypeConverter.INSTANCE.convert(NodeRef.class, invalidNodeRef);
-        Assert.fail("Improved String to NodeRef conversion with input lacking forward slash should have failed");
+        assertThrows("Improved String to NodeRef conversion with input lacking forward slash should have failed",
+                MalformedNodeRefException.class, () -> {
+                    DefaultTypeConverter.INSTANCE.convert(NodeRef.class, invalidNodeRef);
+                });
     }
 
     @Test
@@ -165,12 +171,11 @@ public class ImprovedTypeConverterTest
 
         final String emptyStr = "";
         final NodeRef emptyStrRes = DefaultTypeConverter.INSTANCE.convert(NodeRef.class, emptyStr);
-        Assert.assertNull("Improved String to NodeRef conversion did not return null NodeRef for empty String input", emptyStrRes);
+        assertNull("Improved String to NodeRef conversion did not return null NodeRef for empty String input", emptyStrRes);
 
         final String whiteSpaceOnlyStr = " \t";
         final NodeRef whiteSpaceOnlyRes = DefaultTypeConverter.INSTANCE.convert(NodeRef.class, whiteSpaceOnlyStr);
-        Assert.assertNull("Improved String to NodeRef conversion did not return null NodeRef for whitespace-only String input",
-                whiteSpaceOnlyRes);
+        assertNull("Improved String to NodeRef conversion did not return null NodeRef for whitespace-only String input", whiteSpaceOnlyRes);
     }
 
     @Test
@@ -178,45 +183,45 @@ public class ImprovedTypeConverterTest
     {
         final String fullQName = "{" + NamespaceService.CONTENT_MODEL_1_0_URI + "}content";
         final QName fullQNameRes = DefaultTypeConverter.INSTANCE.convert(QName.class, fullQName);
-        Assert.assertEquals("Default String to QName conversion did not convert fully qualified name correctly", ContentModel.PROP_CONTENT,
+        assertEquals("Default String to QName conversion did not convert fully qualified name correctly", ContentModel.PROP_CONTENT,
                 fullQNameRes);
 
         final String implicitNamespaceQName = "content";
         final QName implicitNamespaceQNameRes = DefaultTypeConverter.INSTANCE.convert(QName.class, implicitNamespaceQName);
-        Assert.assertNotEquals("Default String to QName conversion did convert name with implicit default namespace correctly",
+        assertNotEquals("Default String to QName conversion did convert name with implicit default namespace correctly",
                 ContentModel.PROP_CONTENT, implicitNamespaceQNameRes);
 
         final String prefixedQName = "cm:content";
         final QName prefixedQNameRes = DefaultTypeConverter.INSTANCE.convert(QName.class, prefixedQName);
-        Assert.assertNotEquals("Default String to QName conversion did convert qualified name in prefix form correctly",
-                ContentModel.PROP_CONTENT, prefixedQNameRes);
+        assertNotEquals("Default String to QName conversion did convert qualified name in prefix form correctly", ContentModel.PROP_CONTENT,
+                prefixedQNameRes);
     }
 
     @Test
     public void defaultStringToQName_invalidNamespaceBegin()
     {
-        this.thrown.expect(InvalidQNameException.class);
         final String invalidQName = "prefix{" + NamespaceService.CONTENT_MODEL_1_0_URI + "}content";
-        DefaultTypeConverter.INSTANCE.convert(QName.class, invalidQName);
-        Assert.fail("Default String to QName conversion should have failed");
+        assertThrows("Default String to QName conversion should have failed", InvalidQNameException.class, () -> {
+            DefaultTypeConverter.INSTANCE.convert(QName.class, invalidQName);
+        });
     }
 
     @Test
     public void defaultStringToQName_missingNamespaceEnd()
     {
-        this.thrown.expect(InvalidQNameException.class);
         final String invalidQName = "{" + NamespaceService.CONTENT_MODEL_1_0_URI + "content";
-        DefaultTypeConverter.INSTANCE.convert(QName.class, invalidQName);
-        Assert.fail("Default String to QName conversion should have failed");
+        assertThrows("Default String to QName conversion should have failed", InvalidQNameException.class, () -> {
+            DefaultTypeConverter.INSTANCE.convert(QName.class, invalidQName);
+        });
     }
 
     @Test
     public void defaultStringToQName_missingLocalName()
     {
-        this.thrown.expect(InvalidQNameException.class);
         final String invalidQName = "{" + NamespaceService.CONTENT_MODEL_1_0_URI + "}";
-        DefaultTypeConverter.INSTANCE.convert(QName.class, invalidQName);
-        Assert.fail("Default String to QName conversion should have failed");
+        assertThrows("Default String to QName conversion should have failed", InvalidQNameException.class, () -> {
+            DefaultTypeConverter.INSTANCE.convert(QName.class, invalidQName);
+        });
     }
 
     @Test
@@ -232,17 +237,17 @@ public class ImprovedTypeConverterTest
 
         final String fullQName = "{" + NamespaceService.CONTENT_MODEL_1_0_URI + "}content";
         final QName fullQNameRes = DefaultTypeConverter.INSTANCE.convert(QName.class, fullQName);
-        Assert.assertEquals("Improved String to QName conversion did not convert fully qualified name correctly", ContentModel.PROP_CONTENT,
+        assertEquals("Improved String to QName conversion did not convert fully qualified name correctly", ContentModel.PROP_CONTENT,
                 fullQNameRes);
 
         final String implicitNamespaceQName = "content";
         final QName implicitNamespaceQNameRes = DefaultTypeConverter.INSTANCE.convert(QName.class, implicitNamespaceQName);
-        Assert.assertEquals("Improved String to QName conversion did not convert name with implicit default namespace correctly",
+        assertEquals("Improved String to QName conversion did not convert name with implicit default namespace correctly",
                 ContentModel.PROP_CONTENT, implicitNamespaceQNameRes);
 
         final String prefixedQName = "cm:content";
         final QName prefixedQNameRes = DefaultTypeConverter.INSTANCE.convert(QName.class, prefixedQName);
-        Assert.assertEquals("Improved String to QName conversion did not convert qualified name in prefix form correctly",
+        assertEquals("Improved String to QName conversion did not convert qualified name in prefix form correctly",
                 ContentModel.PROP_CONTENT, prefixedQNameRes);
     }
 
@@ -257,10 +262,10 @@ public class ImprovedTypeConverterTest
         initialiser.setNamespaceService(prefixResolver);
         initialiser.afterPropertiesSet();
 
-        this.thrown.expect(NamespaceException.class);
         final String invalidQName = "prefix{" + NamespaceService.CONTENT_MODEL_1_0_URI + "}content";
-        DefaultTypeConverter.INSTANCE.convert(QName.class, invalidQName);
-        Assert.fail("Improved String to QName conversion should have failed");
+        assertThrows("Improved String to QName conversion should have failed", NamespaceException.class, () -> {
+            DefaultTypeConverter.INSTANCE.convert(QName.class, invalidQName);
+        });
     }
 
     @Test
@@ -274,10 +279,10 @@ public class ImprovedTypeConverterTest
         initialiser.setNamespaceService(prefixResolver);
         initialiser.afterPropertiesSet();
 
-        this.thrown.expect(InvalidQNameException.class);
         final String invalidQName = "{" + NamespaceService.CONTENT_MODEL_1_0_URI + "content";
-        DefaultTypeConverter.INSTANCE.convert(QName.class, invalidQName);
-        Assert.fail("Improved String to QName conversion should have failed");
+        assertThrows("Improved String to QName conversion should have failed", InvalidQNameException.class, () -> {
+            DefaultTypeConverter.INSTANCE.convert(QName.class, invalidQName);
+        });
     }
 
     @Test
@@ -291,10 +296,10 @@ public class ImprovedTypeConverterTest
         initialiser.setNamespaceService(prefixResolver);
         initialiser.afterPropertiesSet();
 
-        this.thrown.expect(InvalidQNameException.class);
         final String invalidQName = "{" + NamespaceService.CONTENT_MODEL_1_0_URI + "}";
-        DefaultTypeConverter.INSTANCE.convert(QName.class, invalidQName);
-        Assert.fail("Improved String to QName conversion should have failed");
+        assertThrows("Improved String to QName conversion should have failed", InvalidQNameException.class, () -> {
+            DefaultTypeConverter.INSTANCE.convert(QName.class, invalidQName);
+        });
     }
 
     @Test
@@ -304,25 +309,25 @@ public class ImprovedTypeConverterTest
 
         final String language = "de";
         final Locale languageRes = DefaultTypeConverter.INSTANCE.convert(Locale.class, language);
-        Assert.assertEquals("Default String to Locale conversion did not convert language code correctly", Locale.GERMAN, languageRes);
+        assertEquals("Default String to Locale conversion did not convert language code correctly", Locale.GERMAN, languageRes);
 
         final String languageAndCountry = "de_DE";
         final Locale languageAndCountryRes = DefaultTypeConverter.INSTANCE.convert(Locale.class, languageAndCountry);
-        Assert.assertEquals("Default String to Locale conversion did not convert language + country code correctly", Locale.GERMANY,
+        assertEquals("Default String to Locale conversion did not convert language + country code correctly", Locale.GERMANY,
                 languageAndCountryRes);
 
         final String languageCountryAndVariant = "de_DE_test";
         final Locale languageCountryAndVariantRes = DefaultTypeConverter.INSTANCE.convert(Locale.class, languageCountryAndVariant);
-        Assert.assertEquals("Default String to Locale conversion did not convert language + country + variant code correctly",
+        assertEquals("Default String to Locale conversion did not convert language + country + variant code correctly",
                 new Locale("de", "DE", "test"), languageCountryAndVariantRes);
 
         final Locale languageCountryAndVariantRes2 = DefaultTypeConverter.INSTANCE.convert(Locale.class, languageCountryAndVariant);
-        Assert.assertFalse("Default String to Locale conversion did re-use same Locale instance as result of repeated conversion",
+        assertFalse("Default String to Locale conversion did re-use same Locale instance as result of repeated conversion",
                 languageCountryAndVariantRes == languageCountryAndVariantRes2);
 
         final String tooManyTokenInput = "de_DE_test_oneTooMany";
         final Locale tooManyTokenInputRes = DefaultTypeConverter.INSTANCE.convert(Locale.class, tooManyTokenInput);
-        Assert.assertEquals("Default String to Locale conversion did not return default Locale for invalid input", defaultLocale,
+        assertEquals("Default String to Locale conversion did not return default Locale for invalid input", defaultLocale,
                 tooManyTokenInputRes);
     }
 
@@ -337,25 +342,25 @@ public class ImprovedTypeConverterTest
 
         final String language = "de";
         final Locale languageRes = DefaultTypeConverter.INSTANCE.convert(Locale.class, language);
-        Assert.assertEquals("Improved String to Locale conversion did not convert language code correctly", Locale.GERMAN, languageRes);
+        assertEquals("Improved String to Locale conversion did not convert language code correctly", Locale.GERMAN, languageRes);
 
         final String languageAndCountry = "de_DE";
         final Locale languageAndCountryRes = DefaultTypeConverter.INSTANCE.convert(Locale.class, languageAndCountry);
-        Assert.assertEquals("Improved String to Locale conversion did not convert language + country code correctly", Locale.GERMANY,
+        assertEquals("Improved String to Locale conversion did not convert language + country code correctly", Locale.GERMANY,
                 languageAndCountryRes);
 
         final String languageCountryAndVariant = "de_DE_test";
         final Locale languageCountryAndVariantRes = DefaultTypeConverter.INSTANCE.convert(Locale.class, languageCountryAndVariant);
-        Assert.assertEquals("Improved String to Locale conversion did not convert language + country + variant code correctly",
+        assertEquals("Improved String to Locale conversion did not convert language + country + variant code correctly",
                 new Locale("de", "DE", "test"), languageCountryAndVariantRes);
 
         final Locale languageCountryAndVariantRes2 = DefaultTypeConverter.INSTANCE.convert(Locale.class, languageCountryAndVariant);
-        Assert.assertTrue("Improved String to Locale conversion did not re-use same Locale instance as result of repeated conversion",
+        assertTrue("Improved String to Locale conversion did not re-use same Locale instance as result of repeated conversion",
                 languageCountryAndVariantRes == languageCountryAndVariantRes2);
 
         final String tooManyTokenInput = "de_DE_test_oneTooMany";
         final Locale tooManyTokenInputRes = DefaultTypeConverter.INSTANCE.convert(Locale.class, tooManyTokenInput);
-        Assert.assertEquals("Improved String to Locale conversion did not return default Locale for invalid input", defaultLocale,
+        assertEquals("Improved String to Locale conversion did not return default Locale for invalid input", defaultLocale,
                 tooManyTokenInputRes);
     }
 
@@ -419,15 +424,15 @@ public class ImprovedTypeConverterTest
         logger.info("String to Locale performance micro-benchmark shows {} ns for default conversion and {} ns for improved conversion",
                 defaultTime, improvedTime);
 
-        Assert.assertTrue("Improved String to Locale conversion did not provide a performance improvement", improvedTime < defaultTime);
+        assertTrue("Improved String to Locale conversion did not provide a performance improvement", improvedTime < defaultTime);
 
         final long delta = defaultTime - improvedTime;
         final double percentImprovement = delta * 100.0 / defaultTime;
         logger.info(
                 "String to Locale performance micro-benchmark shows {} % reduction of runtime over default conversion for {} consecutive conversions spread across {} input values",
                 percentImprovement, conversionRuns, inputValues);
-        Assert.assertTrue("Improved String to Locale conversion did not provide a 10% reduction of runtime", percentImprovement >= 10);
-        Assert.assertTrue("Improved String to Locale conversion did not provide a 20% reduction of runtime", percentImprovement >= 20);
-        Assert.assertTrue("Improved String to Locale conversion did not provide a 30% reduction of runtime", percentImprovement >= 30);
+        assertTrue("Improved String to Locale conversion did not provide a 10% reduction of runtime", percentImprovement >= 10);
+        assertTrue("Improved String to Locale conversion did not provide a 20% reduction of runtime", percentImprovement >= 20);
+        assertTrue("Improved String to Locale conversion did not provide a 30% reduction of runtime", percentImprovement >= 30);
     }
 }
