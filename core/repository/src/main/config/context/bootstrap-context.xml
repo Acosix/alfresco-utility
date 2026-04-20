@@ -19,6 +19,11 @@
            http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
+    <bean id="${moduleId}.nonStrictPlaceholderHelper" class="${common.artifactId}.spring.PropertyPlaceholderHelperFactory" />
+    <bean id="${moduleId}.strictPlaceholderHelper" class="${common.artifactId}.spring.PropertyPlaceholderHelperFactory">
+        <property name="ignoreUnresolvablePlaceholders" value="false" />
+    </bean>
+
     <bean id="${moduleId}.baseNodesPatchModuleComponent" class="${javaPackageName}.component.NodesPatchModuleComponent" abstract="true"
         parent="module.baseComponent">
         <property name="transactionService" ref="TransactionService" />

@@ -45,6 +45,7 @@
         <property name="accessorBeanName" value="${moduleId}-jobs" />
         <property name="baseTriggerBeanName" value="${moduleId}-baseTrigger" />
         <property name="baseDetailBeanName" value="${moduleId}-baseDetail" />
+        <property name="placeholderHelper" ref="${coreModuleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean id="${moduleId}-jobs" class="de.acosix.alfresco.utility.repo.job.DisposableSchedulerAccessorBean">

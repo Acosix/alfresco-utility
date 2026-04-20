@@ -24,6 +24,9 @@
     <bean class="${project.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
         <property name="enabled" value="true" />
         <property name="replacementClassName" value="${common.artifactId}.spring.TestDummyBean" />
+        <property name="placeholderHelper">
+            <bean class="${project.artifactId}.spring.PropertyPlaceholderHelperFactory" />
+        </property>
     </bean>
 
 </beans>

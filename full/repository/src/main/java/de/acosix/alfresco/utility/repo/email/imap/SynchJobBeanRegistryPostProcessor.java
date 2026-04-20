@@ -49,12 +49,6 @@ public class SynchJobBeanRegistryPostProcessor implements BeanDefinitionRegistry
 
     protected Properties propertiesSource;
 
-    protected String placeholderPrefix = PlaceholderConfigurerSupport.DEFAULT_PLACEHOLDER_PREFIX;
-
-    protected String placeholderSuffix = PlaceholderConfigurerSupport.DEFAULT_PLACEHOLDER_SUFFIX;
-
-    protected String valueSeparator = PlaceholderConfigurerSupport.DEFAULT_VALUE_SEPARATOR;
-
     protected PropertyPlaceholderHelper placeholderHelper;
 
     protected String accessorBeanName;
@@ -84,30 +78,14 @@ public class SynchJobBeanRegistryPostProcessor implements BeanDefinitionRegistry
     }
 
     /**
-     * @param placeholderPrefix
-     *     the placeholderPrefix to set
+     * Sets the placeholder helper to use in resolving effective configuration properties.
+     *
+     * @param placeholderHelper
+     *     the placeholderHelper to set
      */
-    public void setPlaceholderPrefix(final String placeholderPrefix)
+    public void setPlaceholderHelper(final PropertyPlaceholderHelper placeholderHelper)
     {
-        this.placeholderPrefix = placeholderPrefix;
-    }
-
-    /**
-     * @param placeholderSuffix
-     *     the placeholderSuffix to set
-     */
-    public void setPlaceholderSuffix(final String placeholderSuffix)
-    {
-        this.placeholderSuffix = placeholderSuffix;
-    }
-
-    /**
-     * @param valueSeparator
-     *     the valueSeparator to set
-     */
-    public void setValueSeparator(final String valueSeparator)
-    {
-        this.valueSeparator = valueSeparator;
+        this.placeholderHelper = placeholderHelper;
     }
 
     /**
@@ -149,8 +127,7 @@ public class SynchJobBeanRegistryPostProcessor implements BeanDefinitionRegistry
         PropertyCheck.mandatory(this, "accessorBeanName", this.accessorBeanName);
         PropertyCheck.mandatory(this, "baseTriggerBeanName", this.baseTriggerBeanName);
         PropertyCheck.mandatory(this, "baseDetailBeanName", this.baseDetailBeanName);
-
-        this.placeholderHelper = new PropertyPlaceholderHelper(this.placeholderPrefix, this.placeholderSuffix, this.valueSeparator, true);
+        PropertyCheck.mandatory(this, "placeholderHelper", this.placeholderHelper);
     }
 
     /**

@@ -26,7 +26,7 @@
 
     <groupId>de.acosix.alfresco.utility</groupId>
     <artifactId>de.acosix.alfresco.utility.parent</artifactId>
-    <version>1.5.0</version>
+    <version>1.5.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Acosix Alfresco Utility - Parent</name>
@@ -67,6 +67,7 @@
         <messages.path>acosix/utility</messages.path>
         <messages.packageId>acosix.utility</messages.packageId>
         <configModuleId>acosix-utility</configModuleId>
+        <coreModuleId>acosix-utility-core</coreModuleId>
 
         <common.artifactId>de.acosix.alfresco.utility.common</common.artifactId>
     </properties>

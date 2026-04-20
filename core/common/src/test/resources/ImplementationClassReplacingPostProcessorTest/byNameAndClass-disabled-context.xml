@@ -26,6 +26,9 @@
         <property name="targetBeanName" value="testBean" />
         <property name="originalClassName" value="org.alfresco.util.exec.RuntimeExec" />
         <property name="replacementClassName" value="${common.artifactId}.spring.TestDummyBean" />
+        <property name="placeholderHelper">
+            <bean class="${project.artifactId}.spring.PropertyPlaceholderHelperFactory" />
+        </property>
     </bean>
 
 </beans>

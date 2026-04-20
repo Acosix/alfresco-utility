@@ -34,6 +34,7 @@
             <bean class="${common.artifactId}.spring.condition.ClassDefinedCondition">
                 <property name="className" value="javax.mail.internet.MimeMessage" />
             </bean>
+        <property name="placeholderHelper" ref="${coreModuleId}.nonStrictPlaceholderHelper" />
         </property>
     </bean>
 
@@ -47,6 +48,7 @@
             <bean class="${common.artifactId}.spring.condition.ClassDefinedCondition">
                 <property name="className" value="jakarta.mail.internet.MimeMessage" />
             </bean>
+        <property name="placeholderHelper" ref="${coreModuleId}.nonStrictPlaceholderHelper" />
         </property>
     </bean>
 
@@ -56,6 +58,7 @@
         <property name="targetBeanName" value="emailService" />
         <property name="originalClassName" value="org.alfresco.email.server.EmailServiceImpl" />
         <property name="replacementClassName" value="${javaPackageName}.email.server.ImprovedEmailServiceImpl" />
+        <property name="placeholderHelper" ref="${coreModuleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean id="${moduleId}.folderHandler" class="${javaPackageName}.email.server.handler.FolderEmailMessageHandler">

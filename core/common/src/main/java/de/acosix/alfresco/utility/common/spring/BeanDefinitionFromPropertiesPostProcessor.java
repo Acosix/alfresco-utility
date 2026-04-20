@@ -39,7 +39,6 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.config.PlaceholderConfigurerSupport;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -114,12 +113,6 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
     protected List<String> beanTypes;
 
     protected Properties propertiesSource;
-
-    protected String placeholderPrefix = PlaceholderConfigurerSupport.DEFAULT_PLACEHOLDER_PREFIX;
-
-    protected String placeholderSuffix = PlaceholderConfigurerSupport.DEFAULT_PLACEHOLDER_SUFFIX;
-
-    protected String valueSeparator = PlaceholderConfigurerSupport.DEFAULT_VALUE_SEPARATOR;
 
     protected PropertyPlaceholderHelper placeholderHelper;
 
@@ -200,30 +193,14 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
     }
 
     /**
-     * @param placeholderPrefix
-     *            the placeholderPrefix to set
+     * Sets the placeholder helper to use in resolving effective configuration properties.
+     *
+     * @param placeholderHelper
+     *     the placeholderHelper to set
      */
-    public void setPlaceholderPrefix(final String placeholderPrefix)
+    public void setPlaceholderHelper(final PropertyPlaceholderHelper placeholderHelper)
     {
-        this.placeholderPrefix = placeholderPrefix;
-    }
-
-    /**
-     * @param placeholderSuffix
-     *            the placeholderSuffix to set
-     */
-    public void setPlaceholderSuffix(final String placeholderSuffix)
-    {
-        this.placeholderSuffix = placeholderSuffix;
-    }
-
-    /**
-     * @param valueSeparator
-     *            the valueSeparator to set
-     */
-    public void setValueSeparator(final String valueSeparator)
-    {
-        this.valueSeparator = valueSeparator;
+        this.placeholderHelper = placeholderHelper;
     }
 
     /**
@@ -265,7 +242,10 @@ public class BeanDefinitionFromPropertiesPostProcessor implements BeanDefinition
             throw new IllegalStateException("propertiesSource has not been set");
         }
 
-        this.placeholderHelper = new PropertyPlaceholderHelper(this.placeholderPrefix, this.placeholderSuffix, this.valueSeparator, true);
+        if (this.placeholderHelper == null)
+        {
+            throw new IllegalStateException("placeholderHelper has not been set");
+        }
     }
 
     /**

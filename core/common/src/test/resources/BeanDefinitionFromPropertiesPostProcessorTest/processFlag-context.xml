@@ -36,6 +36,9 @@
                 </property>
             </bean>
         </property>
+        <property name="placeholderHelper">
+            <bean class="${project.artifactId}.spring.PropertyPlaceholderHelperFactory" />
+        </property>
     </bean>
 
 </beans>

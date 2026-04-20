@@ -31,7 +31,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.config.PlaceholderConfigurerSupport;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.util.PropertyPlaceholderHelper;
@@ -50,7 +49,7 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
      * @author Axel Faust
      */
     @FunctionalInterface
-    protected static interface PostProcessorOperation
+    protected interface PostProcessorOperation
     {
 
         /**
@@ -58,11 +57,11 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
          * retrieved using the provided function callback.
          *
          * @param affectedBeanDefinition
-         *            the definition of the bean primarily affected by the enclosing post processor
+         *     the definition of the bean primarily affected by the enclosing post processor
          * @param beanDefinitionRetriever
-         *            the callback to retrieve other (referenced) bean definitions
+         *     the callback to retrieve other (referenced) bean definitions
          * @throws BeansException
-         *             if any modification of the Spring beans context fails
+         *     if any modification of the Spring beans context fails
          */
         void applyChange(BeanDefinition affectedBeanDefinition, Function<String, BeanDefinition> beanDefinitionRetriever)
                 throws BeansException;
@@ -86,12 +85,6 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
 
     protected Properties propertiesSource;
 
-    protected String placeholderPrefix = PlaceholderConfigurerSupport.DEFAULT_PLACEHOLDER_PREFIX;
-
-    protected String placeholderSuffix = PlaceholderConfigurerSupport.DEFAULT_PLACEHOLDER_SUFFIX;
-
-    protected String valueSeparator = PlaceholderConfigurerSupport.DEFAULT_VALUE_SEPARATOR;
-
     protected PropertyPlaceholderHelper placeholderHelper;
 
     protected boolean failIfTargetBeanMissing = true;
@@ -109,7 +102,7 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
 
     /**
      * @param dependsOn
-     *            the dependsOn to set
+     *     the dependsOn to set
      */
     public void setDependsOn(final List<D> dependsOn)
     {
@@ -118,7 +111,7 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
 
     /**
      * @param targetBeanName
-     *            the targetBeanName to set
+     *     the targetBeanName to set
      */
     public void setTargetBeanName(final String targetBeanName)
     {
@@ -127,7 +120,7 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
 
     /**
      * @param targetBeanNamePattern
-     *            the targetBeanNamePattern to set
+     *     the targetBeanNamePattern to set
      */
     public void setTargetBeanNamePattern(final String targetBeanNamePattern)
     {
@@ -136,7 +129,7 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
 
     /**
      * @param enabled
-     *            the enabled to set
+     *     the enabled to set
      */
     public void setEnabled(final Boolean enabled)
     {
@@ -145,7 +138,7 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
 
     /**
      * @param enabledPropertyKey
-     *            the enabledPropertyKey to set
+     *     the enabledPropertyKey to set
      */
     public void setEnabledPropertyKey(final String enabledPropertyKey)
     {
@@ -154,7 +147,7 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
 
     /**
      * @param enabledPropertyKeys
-     *            the enabledPropertyKeys to set
+     *     the enabledPropertyKeys to set
      */
     public void setEnabledPropertyKeys(final List<String> enabledPropertyKeys)
     {
@@ -163,7 +156,7 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
 
     /**
      * @param propertiesSource
-     *            the propertiesSource to set
+     *     the propertiesSource to set
      */
     public void setPropertiesSource(final Properties propertiesSource)
     {
@@ -171,35 +164,19 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
     }
 
     /**
-     * @param placeholderPrefix
-     *            the placeholderPrefix to set
+     * Sets the placeholder helper to use in resolving effective configuration properties.
+     *
+     * @param placeholderHelper
+     *     the placeholderHelper to set
      */
-    public void setPlaceholderPrefix(final String placeholderPrefix)
+    public void setPlaceholderHelper(final PropertyPlaceholderHelper placeholderHelper)
     {
-        this.placeholderPrefix = placeholderPrefix;
-    }
-
-    /**
-     * @param placeholderSuffix
-     *            the placeholderSuffix to set
-     */
-    public void setPlaceholderSuffix(final String placeholderSuffix)
-    {
-        this.placeholderSuffix = placeholderSuffix;
-    }
-
-    /**
-     * @param valueSeparator
-     *            the valueSeparator to set
-     */
-    public void setValueSeparator(final String valueSeparator)
-    {
-        this.valueSeparator = valueSeparator;
+        this.placeholderHelper = placeholderHelper;
     }
 
     /**
      * @param failIfTargetBeanMissing
-     *            the failIfTargetBeanMissing to set
+     *     the failIfTargetBeanMissing to set
      */
     public void setFailIfTargetBeanMissing(final boolean failIfTargetBeanMissing)
     {
@@ -216,7 +193,7 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
 
     /**
      * @param condition
-     *            the condition to set
+     *     the condition to set
      */
     public void setCondition(final BeanDefinitionPostProcessorCondition condition)
     {
@@ -230,7 +207,10 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
     @Override
     public void afterPropertiesSet()
     {
-        this.placeholderHelper = new PropertyPlaceholderHelper(this.placeholderPrefix, this.placeholderSuffix, this.valueSeparator, true);
+        if (this.placeholderHelper == null)
+        {
+            throw new IllegalStateException("placeholderHelper has not been set");
+        }
     }
 
     /**

@@ -25,6 +25,9 @@
         <property name="enabled" value="true" />
         <property name="targetBeanName" value="testBean" />
         <property name="replacementClassName" value="${common.artifactId}.spring.TestDummyBean" />
+        <property name="placeholderHelper">
+            <bean class="${project.artifactId}.spring.PropertyPlaceholderHelperFactory" />
+        </property>
     </bean>
 
 </beans>

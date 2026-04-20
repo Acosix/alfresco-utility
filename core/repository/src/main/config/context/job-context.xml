@@ -23,17 +23,17 @@
         <property name="scheduler" ref="schedulerFactory" />
         <property name="triggers">
             <list>
-                <ref bean="${configModuleId}-ContentStoreDeletedCleanerJobTrigger" />
+                <ref bean="${moduleId}-ContentStoreDeletedCleanerJobTrigger" />
             </list>
         </property>
     </bean>
 
-    <bean id="${configModuleId}-ContentStoreDeletedCleanerJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+    <bean id="${moduleId}-ContentStoreDeletedCleanerJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
         <property name="cronExpression" value="\${${configModuleId}.job.contentstoreDeleted.cleanup.cron}" />
         <!-- system.cronJob.startDelayMilliseconds is only available in 6.0+, so we need the default value to be 5.x compatible -->
         <property name="startDelay" value="${system.cronJob.startDelayMilliseconds:60000}" />
         <property name="jobDetail">
-            <bean id="${configModuleId}-ContentStoreDeletedCleanerJob"
+            <bean id="${moduleId}-ContentStoreDeletedCleanerJob"
                 class="${javaPackageName}.job.GenericJobDetailsFactoryBean">
                 <property name="jobClass" value="${javaPackageName}.job.ContentStoreDeletedCleanerJob" />
                 <property name="jobDataAsMap">

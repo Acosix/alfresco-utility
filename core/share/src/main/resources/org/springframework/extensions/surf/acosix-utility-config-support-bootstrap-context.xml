@@ -19,6 +19,11 @@
            http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
+    <bean id="${moduleId}.nonStrictPlaceholderHelper" class="${common.artifactId}.spring.PropertyPlaceholderHelperFactory" />
+    <bean id="${moduleId}.strictPlaceholderHelper" class="${common.artifactId}.spring.PropertyPlaceholderHelperFactory">
+        <property name="ignoreUnresolvablePlaceholders" value="false" />
+    </bean>
+
     <bean class="${javaPackageName}.spring.EarlyActingBeanDefinitionFromPropertiesPostProcessor">
         <property name="enabledPropertyKey" value="${configModuleId}.moduleConfig.support.enabled" />
         <property name="propertyPrefix" value="${configModuleId}" />
@@ -30,6 +35,7 @@
             </list>
         </property>
         <property name="propertiesSource" ref="${configModuleId}-properties" />
+        <property name="placeholderHelper" ref="${moduleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
@@ -42,6 +48,7 @@
                 <property name="className" value="org.apache.logging.log4j.core.LoggerContext" />
             </bean>
         </property>
+        <property name="placeholderHelper" ref="${moduleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean class="${common.artifactId}.spring.PropertyAlteringBeanDefinitionRegistryPostProcessor">
@@ -62,6 +69,7 @@
                 <property name="className" value="org.apache.logging.log4j.core.LoggerContext" />
             </bean>
         </property>
+        <property name="placeholderHelper" ref="${moduleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean class="${common.artifactId}.spring.BeanDefinitionFromPropertiesPostProcessor">
@@ -73,6 +81,7 @@
             </list>
         </property>
         <property name="propertiesSource" ref="${configModuleId}-properties" />
+        <property name="placeholderHelper" ref="${moduleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean id="${configModuleId}-properties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
