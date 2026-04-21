@@ -48,7 +48,6 @@
                 <property name="className" value="org.apache.logging.log4j.core.LoggerContext" />
             </bean>
         </property>
-        <property name="placeholderHelper" ref="${moduleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean class="${common.artifactId}.spring.PropertyAlteringBeanDefinitionRegistryPostProcessor">

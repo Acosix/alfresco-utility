@@ -118,7 +118,6 @@
         <property name="value"
             value="[&quot;']?(?:_+)?(?:widgets?|[\w]+Widgets?|widgets?[A-Z]\w+)(?:_+)?[&quot;']?[^:=]*?[:=][\r\s\t\n]*\[?(\{(.*)\})\]?" />
         <property name="enabled" value="\${${configModuleId}.surf.betterRegexDojoWidgetsRule.enabled}" />
-        <property name="placeholderHelper" ref="${coreModuleId}.nonStrictPlaceholderHelper" />
     </bean>
     
     <!-- better detection of CSS dependency configs -->
@@ -131,7 +130,6 @@
         <property name="value"
             value="[&quot;']?cssFile[&quot;']?:[\r\s\t\n]*[&quot;'](.*?)[&quot;']([\r\s\t\n]*,[\r\s\t\n]*[&quot;']?mediaType[&quot;']?:[\r\s\t\n]*[&quot;'](.*?)[&quot;'])?" />
         <property name="enabled" value="\${${configModuleId}.surf.betterRegexDojoCSSDependencyRule.enabled}" />
-        <property name="placeholderHelper" ref="${coreModuleId}.nonStrictPlaceholderHelper" />
     </bean>
     
     <bean id="${moduleId}.betterWidgetCSSRequirementsRegexPatch" class="${common.artifactId}.spring.PropertyAlteringBeanFactoryPostProcessor">
@@ -140,7 +138,6 @@
         <property name="value"
             value="([&quot;']?cssRequirements[&quot;']?:[\r\s\t\n]*\[[\r\s\t\n]*\{(.*)\}[\r\s\t\n]*\])" />
         <property name="enabled" value="\${${configModuleId}.surf.betterRegexDojoCSSDependencyRule.enabled}" />
-        <property name="placeholderHelper" ref="${coreModuleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean id="${moduleId}.betterNonAmdDependencyRegexPatch" class="${common.artifactId}.spring.PropertyAlteringBeanFactoryPostProcessor">
@@ -149,7 +146,6 @@
         <property name="value"
             value="[&quot;'](.*?)[&quot;']" />
         <property name="enabled" value="\${${configModuleId}.surf.betterRegexDojoNonAmdDependencyRule.enabled}" />
-        <property name="placeholderHelper" ref="${coreModuleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean id="${moduleId}.jsonAwareWidgetsDependencyRulePatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
@@ -157,7 +153,6 @@
         <property name="originalClassName" value="org.springframework.extensions.surf.DojoWidgetsDependencyRule" />
         <property name="replacementClassName" value="${javaPackageName}.surf.JSONAwareWidgetsDependencyRule" />
         <property name="enabled" value="\${${configModuleId}.surf.jsonAwareDojoWidgetsRule.enabled}" />
-        <property name="placeholderHelper" ref="${coreModuleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean id="${moduleId}.jsonAwareCssDependencyRulePatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
@@ -165,7 +160,6 @@
         <property name="originalClassName" value="org.springframework.extensions.surf.DojoCssDependencyRule" />
         <property name="replacementClassName" value="${javaPackageName}.surf.JSONAwareCssDependencyRule" />
         <property name="enabled" value="\${${configModuleId}.surf.jsonAwareDojoCssRule.enabled}" />
-        <property name="placeholderHelper" ref="${coreModuleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean id="${moduleId}-ExtensibleDeclarativeWebScriptPatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
@@ -174,7 +168,6 @@
         <!-- this should be the default -->
         <property name="originalClassName" value="org.springframework.extensions.webscripts.DeclarativeWebScript" />
         <property name="replacementClassName" value="${common.artifactId}.web.scripts.ExtensibleDeclarativeWebScript" />
-        <property name="placeholderHelper" ref="${coreModuleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean id="${moduleId}-ExtensibilityFixedWebscriptRuntimeContainerPatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
@@ -183,7 +176,6 @@
         <!-- this should be the default -->
         <property name="originalClassName" value="org.springframework.extensions.webscripts.LocalWebScriptRuntimeContainer" />
         <property name="replacementClassName" value="${javaPackageName}.surf.ExtensibilityFixedLocalWebScriptRuntimeContainer" />
-        <property name="placeholderHelper" ref="${coreModuleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean id="${moduleId}.webScript.indexPatch-proto" class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
@@ -193,7 +185,6 @@
         <property name="failIfTargetBeanMissing" value="false" />
         <property name="originalClassName" value="org.springframework.extensions.webscripts.JaxRSUriIndex" />
         <property name="replacementClassName" value="${common.artifactId}.web.scripts.JaxRSUriIndex" />
-        <property name="placeholderHelper" ref="${coreModuleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean id="${moduleId}.webScript.indexPatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
@@ -201,7 +192,6 @@
         <property name="targetBeanName" value="webscripts.index" />
         <property name="originalClassName" value="org.springframework.extensions.webscripts.JaxRSUriIndex" />
         <property name="replacementClassName" value="${common.artifactId}.web.scripts.JaxRSUriIndex" />
-        <property name="placeholderHelper" ref="${coreModuleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean id="${moduleId}.webScript.FormUIGetPatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanFactoryPostProcessor">
@@ -209,7 +199,6 @@
         <property name="targetBeanName" value="webscript.org.alfresco.components.form.form.get" />
         <property name="originalClassName" value="org.alfresco.web.scripts.forms.FormUIGet" />
         <property name="replacementClassName" value="${javaPackageName}.forms.CorrectedFormUIGet" />
-        <property name="placeholderHelper" ref="${coreModuleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean class="org.alfresco.i18n.ResourceBundleBootstrapComponent">

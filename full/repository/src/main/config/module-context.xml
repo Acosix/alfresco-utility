@@ -101,7 +101,6 @@
         <!-- this should be the default -->
         <property name="originalClassName" value="org.alfresco.repo.web.scripts.TenantRepositoryContainer" />
         <property name="replacementClassName" value="${javaPackageName}.web.scripts.TenantExtensibilityContainer" />
-        <property name="placeholderHelper" ref="${coreModuleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean id="${moduleId}.extensibilityContainerPatch"
@@ -111,7 +110,6 @@
         <!-- this is the default based on the original 2012 blog post -->
         <property name="originalClassName" value="org.alfresco.repo.web.scripts.RepositoryContainer" />
         <property name="replacementClassName" value="org.alfresco.repo.web.scripts.ExtensibilityContainer" />
-        <property name="placeholderHelper" ref="${coreModuleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean id="${moduleId}.extensibleDeclarativeWebScriptPatch"
@@ -121,7 +119,6 @@
         <!-- this should be the default -->
         <property name="originalClassName" value="org.springframework.extensions.webscripts.DeclarativeWebScript" />
         <property name="replacementClassName" value="${common.artifactId}.web.scripts.ExtensibleDeclarativeWebScript" />
-        <property name="placeholderHelper" ref="${coreModuleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean id="${moduleId}.extensibilityHandlerPatch" class="${common.artifactId}.spring.PropertyAlteringBeanFactoryPostProcessor">
@@ -129,7 +126,6 @@
         <property name="targetBeanName" value="webscripts.container" />
         <property name="propertyName" value="extensibilityModuleHandler" />
         <property name="beanReferenceName" value="extensibility.handler" />
-        <property name="placeholderHelper" ref="${coreModuleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean id="${moduleId}.webScript.indexPatch-proto"
@@ -140,7 +136,6 @@
         <property name="failIfTargetBeanMissing" value="false" />
         <property name="originalClassName" value="org.springframework.extensions.webscripts.JaxRSUriIndex" />
         <property name="replacementClassName" value="${common.artifactId}.web.scripts.JaxRSUriIndex" />
-        <property name="placeholderHelper" ref="${coreModuleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean id="${moduleId}.webScript.indexPatch"
@@ -149,7 +144,6 @@
         <property name="targetBeanName" value="webscripts.index" />
         <property name="originalClassName" value="org.springframework.extensions.webscripts.JaxRSUriIndex" />
         <property name="replacementClassName" value="${common.artifactId}.web.scripts.JaxRSUriIndex" />
-        <property name="placeholderHelper" ref="${coreModuleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean id="${moduleId}.globalAuthenticationListener.facadePatch"
@@ -337,7 +331,6 @@
         <!-- this should be the default -->
         <property name="originalClassName" value="org.alfresco.repo.virtual.bundle.VirtualNodeServiceExtension" />
         <property name="replacementClassName" value="${javaPackageName}.virtual.RelaxedVirtualNodeServiceExtension" />
-        <property name="placeholderHelper" ref="${coreModuleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean id="${moduleId}.nodeServiceExtension.dictionaryServicePropPatch"
@@ -354,7 +347,6 @@
         <property name="beanReferenceName">
             <idref bean="dictionaryService" />
         </property>
-        <property name="placeholderHelper" ref="${coreModuleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean id="${moduleId}.nodeServiceExtension.storeTypePatch"
@@ -364,7 +356,6 @@
         <!-- this should be the default -->
         <property name="originalClassName" value="org.alfresco.repo.virtual.store.VirtualStoreImpl" />
         <property name="replacementClassName" value="${javaPackageName}.virtual.RelaxedVirtualStoreImpl" />
-        <property name="placeholderHelper" ref="${coreModuleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean id="${moduleId}.nodeServiceExtension.userPermissions.removeReadOnlySmartDeniesPatch"
@@ -378,7 +369,6 @@
             <!-- and we want to remove all restrictions anyway, so simplest to replace the bean with a no-op -->
             <bean id="smartUserPermissions" class="${javaPackageName}.virtual.RelaxedVirtualUserPermissions" init-method="init" />
         </property>
-        <property name="placeholderHelper" ref="${coreModuleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean id="${moduleId}.legacyTransform.executorServicePatch.condition"

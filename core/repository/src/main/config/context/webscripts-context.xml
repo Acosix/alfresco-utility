@@ -53,7 +53,6 @@
         <property name="targetBeanName">
             <idref bean="webscript.de.acosix.acosix-utility.slingshot-content.get" />
         </property>
-        <property name="placeholderHelper" ref="${moduleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean id="${moduleId}.slingshot-content.get.classSetter"
@@ -68,7 +67,6 @@
         <property name="targetBeanName">
             <idref bean="webscript.de.acosix.acosix-utility.slingshot-content.get" />
         </property>
-        <property name="placeholderHelper" ref="${moduleId}.nonStrictPlaceholderHelper" />
     </bean>
 
 </beans>

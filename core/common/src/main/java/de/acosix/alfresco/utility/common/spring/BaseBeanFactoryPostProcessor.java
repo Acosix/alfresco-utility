@@ -207,7 +207,7 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
     @Override
     public void afterPropertiesSet()
     {
-        if (this.placeholderHelper == null)
+        if (this.propertiesSource != null && this.placeholderHelper == null)
         {
             throw new IllegalStateException("placeholderHelper has not been set");
         }

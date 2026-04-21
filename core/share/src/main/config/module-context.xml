@@ -26,7 +26,6 @@
         <property name="targetBeanName" value="connector.remoteclient" />
         <property name="originalClassName" value="org.alfresco.web.scripts.SlingshotRemoteClient" />
         <property name="replacementClassName" value="${javaPackageName}.connector.MutableSlingshotRemoteClient" />
-        <property name="placeholderHelper" ref="${moduleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean id="${moduleId}-webscripts.connector.provider-javaxSessionAwareWebScriptsConnectorProviderPatch"
@@ -40,7 +39,6 @@
                 <property name="className" value="javax.servlet.http.HttpServletRequest" />
             </bean>
         </property>
-        <property name="placeholderHelper" ref="${moduleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean id="${moduleId}-webscripts.connector.provider-jakartaSessionAwareWebScriptsConnectorProviderPatch"
@@ -54,7 +52,6 @@
                 <property name="className" value="jakarta.servlet.http.HttpServletRequest" />
             </bean>
         </property>
-        <property name="placeholderHelper" ref="${moduleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean class="org.alfresco.i18n.ResourceBundleBootstrapComponent">
