@@ -34,8 +34,8 @@
             <bean class="${common.artifactId}.spring.condition.ClassDefinedCondition">
                 <property name="className" value="javax.mail.internet.MimeMessage" />
             </bean>
-        <property name="placeholderHelper" ref="${coreModuleId}.nonStrictPlaceholderHelper" />
         </property>
+        <property name="placeholderHelper" ref="${coreModuleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean id="${moduleId}.subetha6EmailServerPatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
@@ -48,8 +48,8 @@
             <bean class="${common.artifactId}.spring.condition.ClassDefinedCondition">
                 <property name="className" value="jakarta.mail.internet.MimeMessage" />
             </bean>
-        <property name="placeholderHelper" ref="${coreModuleId}.nonStrictPlaceholderHelper" />
         </property>
+        <property name="placeholderHelper" ref="${coreModuleId}.nonStrictPlaceholderHelper" />
     </bean>
 
     <bean id="${moduleId}.emailServicePatch" class="${common.artifactId}.spring.ImplementationClassReplacingBeanDefinitionRegistryPostProcessor">
