@@ -77,6 +77,8 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
 
     protected String targetBeanNamePattern;
 
+    protected String exclusionBeanNamePattern;
+
     protected Boolean enabled;
 
     protected String enabledPropertyKey;
@@ -125,6 +127,15 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
     public void setTargetBeanNamePattern(final String targetBeanNamePattern)
     {
         this.targetBeanNamePattern = targetBeanNamePattern;
+    }
+
+    /**
+     * @param exclusionBeanNamePattern
+     *     the exclusionBeanNamePattern to set
+     */
+    public void setExclusionBeanNamePattern(final String exclusionBeanNamePattern)
+    {
+        this.exclusionBeanNamePattern = exclusionBeanNamePattern;
     }
 
     /**
@@ -348,10 +359,14 @@ public abstract class BaseBeanFactoryPostProcessor<D extends BeanFactoryPostProc
                     else if (this.targetBeanNamePattern != null)
                     {
                         final Pattern beanNamePattern = Pattern.compile(this.targetBeanNamePattern);
+                        final Pattern exclusionPattern = this.exclusionBeanNamePattern != null
+                                ? Pattern.compile(this.exclusionBeanNamePattern)
+                                : null;
                         final String[] beanDefinitionNames = registry.getBeanDefinitionNames();
                         for (final String beanDefinitionName : beanDefinitionNames)
                         {
-                            if (beanNamePattern.matcher(beanDefinitionName).matches())
+                            if (beanNamePattern.matcher(beanDefinitionName).matches()
+                                    && (exclusionPattern == null || !exclusionPattern.matcher(beanDefinitionName).matches()))
                             {
                                 operation.applyChange(registry.getBeanDefinition(beanDefinitionName),
                                         beanName -> registry.getBeanDefinition(beanName));
